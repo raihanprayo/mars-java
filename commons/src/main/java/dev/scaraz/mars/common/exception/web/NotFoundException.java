@@ -1,0 +1,20 @@
+package dev.scaraz.mars.common.exception.web;
+
+import org.zalando.problem.Status;
+
+public class NotFoundException extends MarsException {
+
+    public static final String TITLE = "Not Found";
+
+    public NotFoundException(String title, String message, Object... args) {
+        super(Status.NOT_FOUND, title, message, args);
+    }
+
+    public NotFoundException(String message, Object... args) {
+        this(TITLE, message, args);
+    }
+
+    public NotFoundException() {
+        this(TITLE, "entity.not.found");
+    }
+}
