@@ -1,0 +1,39 @@
+package dev.scaraz.mars.core.config.security;
+
+import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.UserCredential;
+import dev.scaraz.mars.core.util.AuthSource;
+import dev.scaraz.mars.core.util.DelegateUser;
+import lombok.Getter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+
+public class CoreAuthenticationToken extends AbstractAuthenticationToken {
+
+    @Getter
+    private final AuthSource source;
+    private final UserDetails principal;
+    private final UserCredential credentials;
+
+    public CoreAuthenticationToken(AuthSource source, User user) {
+        super(user.getRoles());
+        this.source = source;
+        this.principal = new DelegateUser(user);
+        this.credentials = user.getCredential();
+        super.setAuthenticated(true);
+    }
+
+    @Override
+    public UserCredential getCredentials() {
+        return this.credentials;
+    }
+
+    @Override
+    public UserDetails getPrincipal() {
+        return this.principal;
+    }
+
+    @Override
+    public void setAuthenticated(boolean authenticated) {
+    }
+}
