@@ -34,9 +34,8 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional
     public Role create(String name, long order) {
-        Optional<Role> roleOpt = repo.findByNameAndGroupIsNull(name);
-        if (roleOpt.isPresent())
-            throw new BadRequestException("role.duplicate.exist");
+        if (repo.existByNameAndGroupIsNull(name))
+            throw BadRequestException.duplicateEntity(Role.class, "name", name);
 
         log.info("CREATE NEW ROLE {}", name);
         return save(Role.builder()
@@ -54,11 +53,10 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public Role create(String name, long order, String groupId) {
         Group group = groupRepo.findById(groupId)
-                .orElseThrow(() -> new NotFoundException("entity.not.found.detail", (Object) "Group", "id", groupId));
+                .orElseThrow(() -> NotFoundException.entity(Group.class, "id", groupId));
 
-        Optional<Role> roleOpt = repo.findByNameAndGroupId(name, groupId);
-        if (roleOpt.isPresent())
-            throw new BadRequestException("role.duplicate.exist");
+        if (repo.existByNameAndGroupId(name, groupId))
+            throw BadRequestException.duplicateEntity(Role.class, "name", name);
 
         log.info("CREATE NEW ROLE {} FOR GROUP {}", name, group.getName());
         return save(Role.builder()

@@ -20,8 +20,9 @@ public class CoreApplication implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         initializer.preInitRoles();
         initializer.preInitGroups();
+        initializer.preInitIssue();
     }
 }

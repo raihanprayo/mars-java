@@ -15,7 +15,19 @@ public class BadRequestException extends MarsException {
     }
 
     public BadRequestException() {
-        this(null);
+        this(TITLE, (String) null);
+    }
+
+    public static BadRequestException args(String message, Object... args) {
+        return new BadRequestException(message, args);
+    }
+
+    public static BadRequestException duplicateEntity() {
+        return new BadRequestException("entity.duplicate.exist");
+    }
+
+    public static BadRequestException duplicateEntity(Class<?> entity, String field, Object value) {
+        return new BadRequestException("entity.duplicate.exist.detail", new Object[]{entity.getName(), field, value});
     }
 
 }

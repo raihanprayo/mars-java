@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.credential;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -38,6 +39,7 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal {
     private String phone;
 
     @Column(name = "tg_id")
+    @JsonProperty(namespace = "tgId")
     private long telegramId;
 
     @Column

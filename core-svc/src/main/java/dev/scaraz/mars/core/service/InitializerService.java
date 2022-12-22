@@ -1,12 +1,15 @@
 package dev.scaraz.mars.core.service;
 
+import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.domain.credential.GroupSetting;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
+import dev.scaraz.mars.core.repository.order.IssueRepo;
 import dev.scaraz.mars.core.service.credential.GroupService;
 import dev.scaraz.mars.core.service.credential.RoleService;
+import dev.scaraz.mars.core.service.order.IssueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -28,10 +31,15 @@ public class InitializerService {
     private final RoleRepo roleRepo;
     private final RoleService roleService;
 
+    private final IssueRepo issueRepo;
+    private final IssueService issueService;
+
     @Async
     @Transactional
     public void preInitRoles() {
-        Map<String, Integer> names = Map.of("admin", 100, "user", 1);
+        Map<String, Integer> names = Map.of(
+                "admin", 100,
+                "user", 1);
         for (String name : names.keySet()) {
             Optional<Role> roleOpt = roleRepo.findByNameAndGroupIsNull(name);
             if (roleOpt.isEmpty()) roleService.create(name, names.get(name));
@@ -56,6 +64,25 @@ public class InitializerService {
         for (String name : names.keySet()) {
             boolean groupExist = groupRepo.findByName(name).isPresent();
             if (!groupExist) groupService.create(name, names.get(name));
+        }
+    }
+
+    @Async
+    @Transactional
+    public void preInitIssue() {
+        Map<String, Product> names = Map.of("lambat", Product.INTERNET,
+                "intermittent", Product.INTERNET,
+                "tbb", Product.INTERNET,
+                "blank", Product.IPTV,
+                "login", Product.IPTV,
+                "network", Product.IPTV,
+                "matot", Product.VOICE,
+                "bulk", Product.VOICE,
+                "icog", Product.VOICE);
+
+        for (String name : names.keySet()) {
+            if (issueRepo.existByNameAndProduct(name, names.get(name))) continue;
+            issueService.create(name, names.get(name), null);
         }
     }
 

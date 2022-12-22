@@ -10,4 +10,7 @@ import java.util.Optional;
 public interface RoleRepo extends JpaRepository<Role, String> {
     Optional<Role> findByNameAndGroupIsNull(String name);
     Optional<Role> findByNameAndGroupId(String name, String groupId);
+
+    boolean existByNameAndGroupIsNull(String name);
+    boolean existByNameAndGroupId(String name, String groupId);
 }

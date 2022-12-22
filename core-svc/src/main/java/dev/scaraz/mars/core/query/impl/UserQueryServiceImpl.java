@@ -28,17 +28,15 @@ public class UserQueryServiceImpl implements UserQueryService {
     @Override
     public User findById(String id) {
         return userRepo.findById(id)
-                .orElseThrow(() -> new NotFoundException(
-                        "entity.not.found.detail",
-                        (Object) "User", "id", id));
+                .orElseThrow(() -> NotFoundException.entity(
+                        User.class, "id", id));
     }
 
     @Override
     public User findByTelegramId(long tgId) {
         return userRepo.findByTelegramId(tgId)
-                .orElseThrow(() -> new NotFoundException(
-                        "entity.not.found.detail",
-                        (Object) "User", "telegramId", tgId));
+                .orElseThrow(() -> NotFoundException.entity(
+                        User.class, "telegramId", tgId));
     }
 
 }

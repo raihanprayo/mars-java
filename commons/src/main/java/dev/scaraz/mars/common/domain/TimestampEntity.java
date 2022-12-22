@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.scaraz.mars.common.tools.converter.InstantDeserializer;
@@ -30,12 +31,14 @@ public class TimestampEntity implements Serializable {
     @Column(name = "created_at")
     @JsonDeserialize(using = InstantDeserializer.class)
     @JsonSerialize(using = InstantSerializer.class)
+    @JsonProperty(index = Integer.MAX_VALUE - 2)
     private Instant createdAt;
 
     @LastModifiedDate
     @Column(name = "updated_at")
     @JsonDeserialize(using = InstantDeserializer.class)
     @JsonSerialize(using = InstantSerializer.class)
+    @JsonProperty(index = Integer.MAX_VALUE)
     private Instant updatedAt;
 
     @Override

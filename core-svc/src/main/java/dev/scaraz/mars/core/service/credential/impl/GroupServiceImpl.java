@@ -25,7 +25,7 @@ public class GroupServiceImpl implements GroupService {
     public Group create(String name, boolean canLogin) {
         boolean duplicateExist = repo.findByName(name).isPresent();
         if (duplicateExist)
-            throw new BadRequestException("entity.duplicate.exist");
+            throw BadRequestException.duplicateEntity(Group.class, "name", name);
 
         log.info("CREATE NEW GROUP WITH NAME {}", name);
         Group group = repo.save(Group.builder()

@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.service.credential.impl;
 
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.domain.credential.Role;
@@ -40,10 +41,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createFromBot(TelegramCreateUserDTO req) {
         Group group = groupRepo.findByName(req.getGroupName())
-                .orElseThrow(() -> new BadRequestException("entity.not.found.detail", (Object) "Group", "name", req.getGroupName()));
+                .orElseThrow(() -> NotFoundException.entity(Group.class, "name", req.getGroupName()));
 
         Role role = roleRepo.findByNameAndGroupIsNull("user")
-                .orElseThrow(() -> new BadRequestException("entity.not.found.detail", (Object) "Role", "name", "user"));
+                .orElseThrow(() -> NotFoundException.entity(Role.class, "name", "user"));
 
         User user = User.builder()
                 .nik(req.getNik())

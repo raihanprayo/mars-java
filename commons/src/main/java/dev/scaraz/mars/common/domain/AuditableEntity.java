@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -20,10 +21,12 @@ public class AuditableEntity extends TimestampEntity {
 
     @CreatedBy
     @Column(name = "created_by")
+    @JsonProperty(index = Integer.MAX_VALUE - 3)
     private String createdBy;
 
     @LastModifiedBy
     @Column(name = "updated_by")
+    @JsonProperty(index = Integer.MAX_VALUE - 1)
     private String updatedBy;
 
     @Override
