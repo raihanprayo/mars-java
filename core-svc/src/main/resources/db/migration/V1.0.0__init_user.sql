@@ -85,6 +85,7 @@ create table t_user_credential
     id          serial primary key,
     ref_user_id varchar(37)  not null,
 
+    username    varchar(100) unique,
     password    text,
 
     created_at  timestamp(0) not null default CURRENT_TIMESTAMP,

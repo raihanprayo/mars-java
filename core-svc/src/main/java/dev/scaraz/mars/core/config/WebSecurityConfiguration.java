@@ -5,6 +5,7 @@ import dev.scaraz.mars.core.config.filter.TelegramRequestFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -32,6 +33,7 @@ public class WebSecurityConfiguration {
 
     private static final int SALT = 14;
 
+    private final ApplicationContext applicationContext;
     private final SecurityProblemSupport problemSupport;
 
     private final JwtRequestFilter jwtRequestFilter;
@@ -44,7 +46,9 @@ public class WebSecurityConfiguration {
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
+        return authenticationConfiguration
+
+                .getAuthenticationManager();
     }
 
     @Bean
@@ -63,13 +67,12 @@ public class WebSecurityConfiguration {
         http
                 .authorizeRequests(r -> r
                         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .antMatchers(HttpMethod.GET, "/api/app/**").permitAll()
                         .antMatchers("/auth/authorize").permitAll()
-                        .antMatchers("/auth/register").permitAll()
+                        .antMatchers("/auth/refresh").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(telegramRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jwtRequestFilter, TelegramRequestFilter.class);
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

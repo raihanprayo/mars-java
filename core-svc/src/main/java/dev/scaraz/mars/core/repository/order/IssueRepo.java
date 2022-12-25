@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface IssueRepo extends JpaRepository<Issue, String> {
     Optional<Issue> findByNameAndProduct(String name, Product product);
-    boolean existByNameAndProduct(String name, Product product);
+    boolean existsByNameAndProduct(String name, Product product);
 }

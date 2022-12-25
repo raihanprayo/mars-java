@@ -28,7 +28,7 @@ public class IssueServiceImpl implements IssueService {
     @Override
     @Transactional
     public Issue create(String name, Product product, @Nullable String description) {
-        if (repo.existByNameAndProduct(name, product))
+        if (repo.existsByNameAndProduct(name, product))
             throw BadRequestException.duplicateEntity(Issue.class, "name", name);
 
         log.info("CREATE NEW ISSUER WITH NAME {} AND PRODUCT {}", name, product);

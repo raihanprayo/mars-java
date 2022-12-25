@@ -16,8 +16,8 @@ public class AuthResource {
 
     private final UserAuthService authService;
 
-    @GetMapping
-    public ResponseEntity<?> info() {
+    @GetMapping("/whoami")
+    public ResponseEntity<?> whoami() {
         return ResponseEntity.ok().build();
     }
 

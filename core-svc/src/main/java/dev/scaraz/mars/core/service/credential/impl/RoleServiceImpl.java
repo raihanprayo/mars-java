@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -34,7 +32,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional
     public Role create(String name, long order) {
-        if (repo.existByNameAndGroupIsNull(name))
+        if (repo.existsByNameAndGroupIsNull(name))
             throw BadRequestException.duplicateEntity(Role.class, "name", name);
 
         log.info("CREATE NEW ROLE {}", name);
@@ -55,7 +53,7 @@ public class RoleServiceImpl implements RoleService {
         Group group = groupRepo.findById(groupId)
                 .orElseThrow(() -> NotFoundException.entity(Group.class, "id", groupId));
 
-        if (repo.existByNameAndGroupId(name, groupId))
+        if (repo.existsByNameAndGroupId(name, groupId))
             throw BadRequestException.duplicateEntity(Role.class, "name", name);
 
         log.info("CREATE NEW ROLE {} FOR GROUP {}", name, group.getName());

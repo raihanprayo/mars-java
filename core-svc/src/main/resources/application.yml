@@ -3,10 +3,12 @@ server:
 
 spring:
   application:
-    name: mars-core
+    name: mars-roc
   jpa:
     database: postgresql
-    generate-ddl: true
+    generate-ddl: false
+    show-sql: ${JPA_SHOW_SQL:false}
+    open-in-view: ${JPA_OPEN_IN_VIEW:false}
   flyway:
     table: mars_schema_history
     default-schema: ${DS_SCHEMA:mars}
@@ -30,6 +32,37 @@ spring:
         core-size: ${ASYNC_CORE_POOL_SIZE:5}
         max-size: ${ASYNC_MAX_POOL_SIZE:20}
 
+logging:
+  file:
+    name: ${LOG_PATH:/logs/etax.log}
+  group:
+    spring: org.springframework,com.netflix,io.micrometer,feign,_org.springframework.web,io.undertow,org.xnio,Validator
+    http: okhttp3,org.apache
+    database: com.zaxxer.hikari,io.lettuce,io.netty,org.flywaydb.core,org.hibernate,org.postgresql,org.redisson
+    java: sun.net,javax.management,javax.activation,unknown.jul.logger,sun.rmi,sun.rmi.transport,jdk.event,reactor,io.github.resilience4j,sun.awt,com.sun,org.jboss
+    swagger: io.swagger,springfox,org.springdoc
+    keycloak: org.keycloak
+    mars: dev.scaraz.mars.telegram
+  level:
+    root: ${LOG_LEVEL:debug}
+    spring: warn
+    database: warn
+    http: warn
+    keycloak: warn
+    java: off
+    swagger: off
+    mars: info
+  pattern:
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name:mars-roc},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [PPH-21,%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      file-name-pattern: ${LOG_ARCHIVE:logs/archive/etax-%d{yyyy-MM-dd}.%i.log}
+  charset:
+    console: utf-8
+    file: utf-8
+
 mars:
   secret: ${JWT_SECRET:}
   cors:
@@ -40,5 +73,9 @@ mars:
     allowed-methods: GET, POST, PUT, DELETE, OPTIONS
     allow-credentials: on
     exposed-headers: [ ]
-  telegram:
-    token: ${TELEGRAM_BOT_TOKEN:709411539:AAHGXOA0nIOYtcpzIQegY7O0NO7Vzu1Uug0}
+
+telegram:
+  type: long_polling
+  name: "mars-roc"
+  token: ${TELEGRAM_BOT_TOKEN:709411539:AAHGXOA0nIOYtcpzIQegY7O0NO7Vzu1Uug0}
+  max-threads: ${TELEGRAM_MAX_THREADS:10}

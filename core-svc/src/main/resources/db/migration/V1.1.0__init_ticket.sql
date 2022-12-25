@@ -1,13 +1,15 @@
 create table t_issue
 (
-    id         varchar(37) primary key,
-    name       varchar(255) not null,
-    product    varchar(50)  not null,
+    id          varchar(37) primary key,
+    name        varchar(255) not null,
+    product     varchar(50)  not null,
 
-    created_at timestamp(0) not null default CURRENT_TIMESTAMP,
-    created_by varchar(255) not null,
-    updated_at timestamp(0)          default CURRENT_TIMESTAMP,
-    updated_by varchar(255)
+    description text,
+
+    created_at  timestamp(0) not null default CURRENT_TIMESTAMP,
+    created_by  varchar(255) not null,
+    updated_at  timestamp(0)          default CURRENT_TIMESTAMP,
+    updated_by  varchar(255)
 );
 
 create table t_ticket

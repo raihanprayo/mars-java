@@ -10,6 +10,7 @@
     <version>1.0</version>
     <modules>
         <module>commons</module>
+        <module>telegram</module>
     </modules>
 
     <parent>
@@ -25,6 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <zalando.version>0.27.0</zalando.version>
         <io.jsonwebtoken.version>0.11.5</io.jsonwebtoken.version>
+        <org.telegram.version>6.1.0</org.telegram.version>
     </properties>
 
     <dependencyManagement>
@@ -53,6 +55,11 @@
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-jackson</artifactId>
                 <version>${io.jsonwebtoken.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.telegram</groupId>
+                <artifactId>telegrambots</artifactId>
+                <version>${org.telegram.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

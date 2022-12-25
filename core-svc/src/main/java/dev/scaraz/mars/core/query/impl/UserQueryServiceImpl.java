@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Slf4j
 @RequiredArgsConstructor
 
@@ -20,9 +22,13 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public DelegateUser loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepo.findByNameOrNik(username, username)
-                .orElseThrow(() -> new UsernameNotFoundException("cannot find user with NIK/Name " + username));
-        return new DelegateUser(user);
+        Optional<User> user = userRepo.findByNameOrNik(username, username);
+        if (user.isEmpty()) user = userRepo.findByCredentialUsername(username);
+
+        if (user.isEmpty())
+            throw new UsernameNotFoundException("cannot find user with NIK/Name " + username);
+
+        return new DelegateUser(user.get());
     }
 
     @Override

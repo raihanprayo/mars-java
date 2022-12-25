@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.domain.order;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -16,8 +17,9 @@ import javax.persistence.*;
 public class LogTicket extends AuditableEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    private String id;
 
     @ManyToOne
     @JoinColumn(name = "ref_ticket_id")

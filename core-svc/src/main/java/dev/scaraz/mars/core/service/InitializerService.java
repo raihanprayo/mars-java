@@ -1,8 +1,6 @@
 package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.common.tools.enums.Product;
-import dev.scaraz.mars.core.domain.credential.Group;
-import dev.scaraz.mars.core.domain.credential.GroupSetting;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
@@ -16,7 +14,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -81,7 +78,7 @@ public class InitializerService {
                 "icog", Product.VOICE);
 
         for (String name : names.keySet()) {
-            if (issueRepo.existByNameAndProduct(name, names.get(name))) continue;
+            if (issueRepo.existsByNameAndProduct(name, names.get(name))) continue;
             issueService.create(name, names.get(name), null);
         }
     }

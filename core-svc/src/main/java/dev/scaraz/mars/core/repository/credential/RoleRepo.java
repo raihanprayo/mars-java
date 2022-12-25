@@ -11,6 +11,6 @@ public interface RoleRepo extends JpaRepository<Role, String> {
     Optional<Role> findByNameAndGroupIsNull(String name);
     Optional<Role> findByNameAndGroupId(String name, String groupId);
 
-    boolean existByNameAndGroupIsNull(String name);
-    boolean existByNameAndGroupId(String name, String groupId);
+    boolean existsByNameAndGroupIsNull(String name);
+    boolean existsByNameAndGroupId(String name, String groupId);
 }

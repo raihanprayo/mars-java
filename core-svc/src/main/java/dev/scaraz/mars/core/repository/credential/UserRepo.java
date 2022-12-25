@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface UserRepo extends JpaRepository<User, String> {
 
     Optional<User> findByNameOrNik(String name, String nik);
+    Optional<User> findByCredentialUsername(String username);
 
     Optional<User> findByTelegramId(long telegramId);
 

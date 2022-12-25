@@ -27,6 +27,9 @@ public class UserCredential extends AuditableEntity implements CredentialsContai
     private User user;
 
     @Column
+    private String username;
+
+    @Column
     private String password;
 
     @Override
