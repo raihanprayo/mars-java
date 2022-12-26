@@ -40,7 +40,7 @@ public class Group extends AuditableEntity {
 
     @Builder.Default
     @ToString.Exclude
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @ManyToMany
     @JoinTable(name = "t_group_members",
             joinColumns = @JoinColumn(name = "ref_user_id"),
             inverseJoinColumns = @JoinColumn(name = "ref_group_id"))

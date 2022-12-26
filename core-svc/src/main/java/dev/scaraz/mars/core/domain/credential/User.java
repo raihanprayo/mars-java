@@ -39,7 +39,6 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal {
     private String phone;
 
     @Column(name = "tg_id")
-    @JsonProperty(namespace = "tgId")
     private long telegramId;
 
     @Column
@@ -62,11 +61,10 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal {
     private UserSetting setting = new UserSetting();
 
     @ToString.Exclude
-    @ManyToMany(
-            fetch = FetchType.EAGER,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
+    @Builder.Default
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "t_user_roles",
+            name = "t_roles",
             joinColumns = @JoinColumn(name = "ref_role_id"),
             inverseJoinColumns = @JoinColumn(name = "ref_user_id"))
     private Set<Role> roles = new HashSet<>();
@@ -74,6 +72,7 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal {
     public void addRole(Role role) {
         roles.add(role);
     }
+
     public void addRoles(Role... roles) {
         this.roles.addAll(Set.of(roles));
     }
@@ -129,6 +128,9 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal {
     protected void prePersist() {
         if (this.setting.getUser() == null)
             this.setting.setUser(this);
+
+        if (this.credential.getUser() == null)
+            this.credential.setUser(this);
     }
 
 }

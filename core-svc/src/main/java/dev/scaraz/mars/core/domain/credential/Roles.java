@@ -1,32 +1,31 @@
 package dev.scaraz.mars.core.domain.credential;
 
-import dev.scaraz.mars.common.domain.AuditableEntity;
+import dev.scaraz.mars.common.domain.TimestampEntity;
 import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.Locale;
 
 @Getter
 @Setter
-@ToString
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
 
 @Entity
-@Table(name = "t_user_setting")
-public class UserSetting extends AuditableEntity {
+@Table(name = "t_roles")
+public class Roles extends TimestampEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne
-    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "ref_user_id")
     private User user;
 
-    @Column(name = "language")
-    private Locale lang = Locale.ENGLISH;
+    @ManyToOne
+    @JoinColumn(name = "ref_role_id")
+    private Role role;
 
 }

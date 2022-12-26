@@ -32,9 +32,14 @@ public class GroupSetting extends AuditableEntity {
     @Column(name = "can_login")
     private boolean canLogin;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ref_default_role_id")
+    private Role defaultRole;
+
     public boolean canLogin() {
         return this.canLogin;
     }
+
     public void canLogin(boolean canLogin) {
         this.canLogin = canLogin;
     }

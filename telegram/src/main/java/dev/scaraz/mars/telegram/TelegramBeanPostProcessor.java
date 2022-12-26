@@ -86,7 +86,7 @@ public class TelegramBeanPostProcessor implements BeanPostProcessor {
 
     private void bindControllers(@NonNull Object bean, String beanName, Class<?> original, OptionalLong userId) {
         if (original != null) {
-            log.info("Processing class {} as bean {} for user {}",
+            log.debug("Processing class {} as bean {} for user {}",
                     bean.getClass(), beanName, userId
             );
             for (Method method : original.getMethods()) {

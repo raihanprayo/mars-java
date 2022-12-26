@@ -8,10 +8,10 @@ import javax.persistence.*;
 
 @Getter
 @Setter
-@Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder(toBuilder = true)
 
 @Entity
 @Table(name = "t_user_credential")

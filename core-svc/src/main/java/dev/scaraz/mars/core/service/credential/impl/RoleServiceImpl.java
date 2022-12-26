@@ -43,25 +43,36 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Role create(String name, String groupId) {
-        return create(name, 0, groupId);
+    public Role createGroupRole(String name, String groupId) {
+        return createGroupRole(name, 0, groupId, false);
     }
 
     @Override
     @Transactional
-    public Role create(String name, long order, String groupId) {
+    public Role createGroupRole(String name, long order, String groupId, boolean defaultRole) {
         Group group = groupRepo.findById(groupId)
                 .orElseThrow(() -> NotFoundException.entity(Group.class, "id", groupId));
+
+        log.info("CREATE NEW ROLE {} FOR GROUP {}", name, group.getName());
 
         if (repo.existsByNameAndGroupId(name, groupId))
             throw BadRequestException.duplicateEntity(Role.class, "name", name);
 
-        log.info("CREATE NEW ROLE {} FOR GROUP {}", name, group.getName());
-        return save(Role.builder()
+        Role role = save(Role.builder()
                 .name(name.toLowerCase())
                 .order(order)
                 .group(group)
                 .build());
+
+        if (defaultRole) {
+            if (group.getSetting().getDefaultRole() != null)
+                throw BadRequestException.args("Group cannot have more than 1 default role");
+            else
+                group.getSetting().setDefaultRole(role);
+        }
+
+        groupRepo.save(group);
+        return role;
     }
 
 }

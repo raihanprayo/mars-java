@@ -9,8 +9,8 @@ public interface RoleService {
     @Transactional
     Role create(String name, long order);
 
-    Role create(String name, String groupId);
+    Role createGroupRole(String name, String groupId);
 
     @Transactional
-    Role create(String name, long order, String groupId);
+    Role createGroupRole(String name, long order, String groupId, boolean defaultRole);
 }

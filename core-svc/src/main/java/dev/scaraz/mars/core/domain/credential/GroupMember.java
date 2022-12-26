@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.domain.credential;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
+import dev.scaraz.mars.common.domain.TimestampEntity;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -19,7 +20,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "t_group_members")
 @EntityListeners(AuditingEntityListener.class)
-public class GroupMember extends AuditableEntity {
+public class GroupMember extends TimestampEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

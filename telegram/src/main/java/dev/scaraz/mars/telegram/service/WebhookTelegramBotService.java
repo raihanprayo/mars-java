@@ -7,6 +7,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.LongPollingBot;
@@ -32,9 +33,13 @@ public class WebhookTelegramBotService extends TelegramBotService {
         token = botBuilder.getToken();
         path = botBuilder.getPath();
         client = new TelegramBotWebhookImpl();
+
         try {
-            api.registerBot((LongPollingBot) client);
-        } catch (TelegramApiException e) {
+            api.registerBot(client, SetWebhook.builder()
+                    .url(path)
+                    .build());
+        }
+        catch (TelegramApiException e) {
             log.error("Can not register Long Polling with {}", botBuilder, e);
             throw new RuntimeException(e);
         }
