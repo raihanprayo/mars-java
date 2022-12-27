@@ -26,6 +26,11 @@ import static dev.scaraz.mars.telegram.util.TelegramUtil.KEY_LENGTH_COMPARATOR;
 public class MessageProcessor extends TelegramProcessor {
 
     @Override
+    public HandlerType type() {
+        return HandlerType.MESSAGE;
+    }
+
+    @Override
     public boolean shouldProcess(Update update) {
         return update.hasMessage();
     }
@@ -68,15 +73,13 @@ public class MessageProcessor extends TelegramProcessor {
                 service.sendHelpList(update, userKey);
                 return Optional.empty();
             }
-//            return processHandler(commandHandler, makeMessageArgumentList(
-//                    commandHandler.getMethod(), command, update
-//            ));
             return service.processHandler(commandHandler, makeArgumentList(
+                    service,
                     commandHandler,
                     update,
-                    HandlerType.MESSAGE,
                     command
             ));
         }, update));
     }
+
 }

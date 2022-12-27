@@ -20,15 +20,17 @@ public abstract class TelegramProcessor {
     @Autowired
     private TelegramArgumentResolver argumentResolver;
 
+    public abstract HandlerType type();
+
     public abstract boolean shouldProcess(Update update);
 
     public abstract Optional<BotApiMethod<?>> process(TelegramBotService service, Update update);
 
-    protected Object[] makeArgumentList(TelegramHandler handler,
+    protected Object[] makeArgumentList(TelegramBotService service,
+                                        TelegramHandler handler,
                                         Update update,
-                                        HandlerType handlerType,
                                         @Nullable TelegramMessageCommand command) throws IllegalArgumentException {
-        return argumentResolver.makeArgumentList(handler, update, handlerType, command);
+        return argumentResolver.makeArgumentList(service, handler, update, type(), command);
     }
 
     protected <T> Optional<T> handleExceptions(Callable<Optional<T>> callable, Update update) {

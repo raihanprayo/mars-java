@@ -1,28 +1,31 @@
 package dev.scaraz.mars.telegram.model;
 
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
+import org.springframework.core.MethodParameter;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.annotation.Annotation;
+import java.util.List;
 
 
 @FunctionalInterface
-public interface TelegramArgResolver<T> {
+public interface TelegramArgResolver {
+    List<HandlerType> DEFAULT_HANDLER_TYPE = List.of(HandlerType.ALL);
+    List<Class<? extends Annotation>> DEFAULT_SUPP_ANNOTATIONS = List.of();
 
-    Object resolve(
-            TelegramHandlerContext context,
-            Update update,
-            @Nullable TelegramMessageCommand messageCommand);
+    Object resolve(MethodParameter mp,
+                   TelegramArgContext ctx,
+                   Update update,
+                   @Nullable
+                   TelegramMessageCommand mc);
 
-    default HandlerType handledFor() {
-        return HandlerType.BOTH;
+    default List<HandlerType> handledFor() {
+        return DEFAULT_HANDLER_TYPE;
     }
 
-    default Type getType() {
-        ParameterizedType p = (ParameterizedType) TelegramArgResolver.this.getClass()
-                .getGenericSuperclass();
-        return p.getActualTypeArguments()[0];
+    default List<Class<? extends Annotation>> supportedAnnotations() {
+        return DEFAULT_SUPP_ANNOTATIONS;
     }
+
 }

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
@@ -35,6 +36,7 @@ import java.util.OptionalLong;
 @RequiredArgsConstructor
 
 @Priority(10)
+@Component
 public class TelegramListenerResolver implements BeanPostProcessor {
 
     private final TelegramBotService telegramBotService;

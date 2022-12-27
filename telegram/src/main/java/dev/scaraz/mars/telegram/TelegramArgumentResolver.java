@@ -1,31 +1,33 @@
 package dev.scaraz.mars.telegram;
 
+import dev.scaraz.mars.telegram.annotation.Command;
+import dev.scaraz.mars.telegram.annotation.Text;
+import dev.scaraz.mars.telegram.annotation.UserId;
 import dev.scaraz.mars.telegram.model.TelegramArgResolver;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
-import dev.scaraz.mars.telegram.model.TelegramHandlerContext;
+import dev.scaraz.mars.telegram.model.TelegramArgContext;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
-import dev.scaraz.mars.telegram.service.resolver.*;
+import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ClassUtils;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.bots.AbsSender;
 
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -33,12 +35,13 @@ import java.util.stream.Stream;
 
 @Component
 public class TelegramArgumentResolver implements BeanPostProcessor {
+    private static final Function<HandlerType, Set<TelegramArgResolver>> DEFAULT_HANDLER_SET = t -> new HashSet<>();
 
     private final ConfigurableBeanFactory beanFactory;
 
-    private final List<TelegramArgResolver<?>> paramTypeResolvers = new ArrayList<>();
+    private final TelegramBotsApi api;
 
-
+    private final Map<HandlerType, Set<TelegramArgResolver>> paramTypeResolvers = new EnumMap<>(HandlerType.class);
 
     @PostConstruct
     private void init() {
@@ -48,85 +51,213 @@ public class TelegramArgumentResolver implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         if (TelegramArgResolver.class.isAssignableFrom(bean.getClass())) {
-            TelegramArgResolver<?> resolver = (TelegramArgResolver<?>) bean;
-            paramTypeResolvers.add(resolver);
+            addParamResolver((TelegramArgResolver) bean);
         }
         return bean;
     }
 
-    public Optional<TelegramArgResolver<?>> getResolverByHandlerType(Type type, HandlerType... handlerTypes) {
-        List<HandlerType> types = List.of(handlerTypes);
-        for (TelegramArgResolver<?> resolver : paramTypeResolvers) {
-            if (types.contains(resolver.handledFor()) && resolver.getType() == type) {
-                return Optional.of(resolver);
+    public void addParamResolver(TelegramArgResolver... resolvers) {
+        for (TelegramArgResolver resolver : resolvers) {
+            List<HandlerType> handlerTypes = resolver.handledFor();
+
+            if (handlerTypes.size() == 0) {
+                paramTypeResolvers.computeIfAbsent(HandlerType.ALL, DEFAULT_HANDLER_SET)
+                        .add(resolver);
+            }
+            else {
+                for (HandlerType handlerType : handlerTypes) {
+                    paramTypeResolvers.computeIfAbsent(handlerType, DEFAULT_HANDLER_SET)
+                            .add(resolver);
+                }
             }
         }
-        return Optional.empty();
     }
 
-    public Object[] makeArgumentList(TelegramHandler handler,
-                                     Update update,
-                                     HandlerType handlerType,
-                                     @Nullable TelegramMessageCommand command) throws IllegalArgumentException {
-        AtomicInteger integer = new AtomicInteger(0);
-        return Stream.of(handler.getMethod().getGenericParameterTypes())
-                .map(type -> {
-                    final int index = integer.getAndIncrement();
-                    return this.getResolverByHandlerType(type, HandlerType.BOTH, handlerType)
-                            .orElseThrow(() -> new IllegalArgumentException(String.format(
-                                    "Unresolved argument type (%s) for method %s.%s at index %s",
-                                    type,
-                                    handler.getBeanClass().getSimpleName(),
-                                    handler.getMethodName(),
-                                    index
-                            )));
-                })
-                .map(resolver -> resolver.resolve(
-                                TelegramHandlerContext.builder()
-                                        .telegramCommand(handler.getTelegramCommand().orElse(null))
-                                        .scope(handlerType)
-                                        .bean(handler.getBean())
-                                        .build(),
-                                update,
-                                command
-                        )
+    public Object resolveMethodArg(int index,
+                                   Method method,
+                                   TelegramArgContext context,
+                                   Update update,
+                                   @Nullable
+                                   TelegramMessageCommand messageCommand
+    ) {
+        MethodParameter mp = new MethodParameter(method, index);
+        Class<?> parameterType = mp.getParameterType();
+
+        for (HandlerType handlerType : List.of(context.getScope(), HandlerType.ALL)) {
+            Set<TelegramArgResolver> resolverWithAnnotation = paramTypeResolvers.get(handlerType).stream()
+                    .filter(r -> r.supportedAnnotations().size() > 0)
+                    .collect(Collectors.toSet());
+
+            Set<TelegramArgResolver> resolverByType = paramTypeResolvers.get(handlerType).stream()
+                    .filter(r -> r.supportedAnnotations().size() == 0)
+                    .collect(Collectors.toSet());
+
+            if (mp.hasParameterAnnotations()) {
+                Optional<TelegramArgResolver> resolverOptional = resolverWithAnnotation.stream()
+                        .filter(r -> hasSupportedAnnotations(mp, r))
+                        .findFirst();
+
+                if (resolverOptional.isPresent()) {
+                    Object value = resolverOptional.get().resolve(mp, context, update, messageCommand);
+                    if (ClassUtils.isAssignable(value.getClass(), parameterType)) return value;
+
+                    throw new IllegalArgumentException(String.format("Invalid parameter type (%s), resolver return type (%s) are different from declared type.",
+                            parameterType,
+                            value.getClass()
+                    ));
+                }
+            }
+            else {
+                for (TelegramArgResolver resolver : resolverByType) {
+                    Object value = resolver.resolve(mp, context, update, messageCommand);
+                    if (ClassUtils.isAssignable(value.getClass(), parameterType)) return value;
+                }
+            }
+        }
+
+        throw new IllegalArgumentException(String.format(
+                "Unresolved argument type (%s) for method %s.%s at index %s",
+                parameterType,
+                method.getDeclaringClass().getSimpleName(),
+                method.getName(),
+                index
+        ));
+    }
+//    public Optional<TelegramArgResolver> getResolverByHandlerType(Class<?> type, HandlerType... handlerTypes) {
+//        List<HandlerType> types = List.of(handlerTypes);
+//        Set<TelegramArgResolver> resolvers = paramTypeResolvers.values().stream()
+//                .flatMap(Collection::stream)
+//                .collect(Collectors.toSet());
+//
+//        for (TelegramArgResolver resolver : resolvers) {
+//            if (types.contains(resolver.handledFor()) && resolver.getType() == type) {
+//                return Optional.of(resolver);
+//            }
+//        }
+//        return Optional.empty();
+//    }
+
+    public Object[] makeArgumentList(
+            TelegramBotService service,
+            TelegramHandler handler,
+            Update update,
+            HandlerType handlerType,
+            @Nullable TelegramMessageCommand command
+    ) throws IllegalArgumentException {
+        TelegramArgContext context = TelegramArgContext.builder()
+                .scope(handlerType)
+                .api(api)
+                .service(service)
+                .command(handler.getTelegramCommand().orElse(null))
+                .build();
+
+        return IntStream.range(0, handler.getMethod().getParameterTypes().length)
+                .boxed()
+                .map(index -> resolveMethodArg(
+                        index, handler.getMethod(),
+                        context, update, command)
                 )
                 .toArray();
     }
 
-    private void initDefaultResolvers() {
-        TelegramArgResolver<Update> updateResolver = (context, update, messageCommand) -> update;
-        TelegramArgResolver<AbsSender> botResolver = (context, update, messageCommand) -> context.getService().getClient();
-        TelegramArgResolver<TelegramBotsApi> apiResolver = (context, update, messageCommand) -> context.getApi();
+    private boolean hasSupportedAnnotations(MethodParameter mp, TelegramArgResolver resolver) {
+        return resolver.supportedAnnotations().stream()
+                .anyMatch(mp::hasParameterAnnotation);
+    }
 
-        TelegramArgResolver<Message> messageResolver = (context, update, messageCommand) ->
+    private void initDefaultResolvers() {
+        TelegramArgResolver updateResolver = (mp, context, update, messageCommand) -> update;
+        TelegramArgResolver botResolver = (mp, context, update, messageCommand) -> context.getService().getClient();
+        TelegramArgResolver apiResolver = (mp, context, update, messageCommand) -> context.getApi();
+
+        TelegramArgResolver messageResolver = (mp, context, update, messageCommand) ->
                 context.getScope() == HandlerType.CALLBACK_QUERY ?
                         update.getCallbackQuery().getMessage() : update.getMessage();
 
-        TelegramArgResolver<User> userResolver = (context, update, messageCommand) ->
+        TelegramArgResolver userResolver = (mp, context, update, messageCommand) ->
                 context.getScope() == HandlerType.MESSAGE ?
                         update.getMessage().getFrom() : update.getCallbackQuery().getFrom();
 
-        TelegramArgResolver<CallbackQuery> cbQueryResolver = new TelegramArgResolver<>() {
+        TelegramArgResolver cbQueryResolver = new TelegramArgResolver() {
             @Override
-            public HandlerType handledFor() {
-                return HandlerType.CALLBACK_QUERY;
+            public List<HandlerType> handledFor() {
+                return List.of(HandlerType.CALLBACK_QUERY);
             }
 
             @Override
-            public Object resolve(TelegramHandlerContext context, Update update, @Nullable TelegramMessageCommand messageCommand) {
+            public Object resolve(MethodParameter mp, TelegramArgContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
                 return update.getCallbackQuery();
+            }
+
+        };
+
+        TelegramArgResolver textAnnotResolver = new TelegramArgResolver() {
+            @Override
+            public List<Class<? extends Annotation>> supportedAnnotations() {
+                return List.of(Text.class);
+            }
+
+            @Override
+            public Object resolve(MethodParameter mp, TelegramArgContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+                switch (ctx.getScope()) {
+                    case MESSAGE:
+                        return mc.getArgument().orElse("");
+                    case CALLBACK_QUERY:
+                        return update.getCallbackQuery().getMessage().getText();
+                }
+                return null;
             }
         };
 
-        paramTypeResolvers.addAll(List.of(
+        TelegramArgResolver cmdAnnotResolver = new TelegramArgResolver() {
+            @Override
+            public List<Class<? extends Annotation>> supportedAnnotations() {
+                return List.of(Command.class);
+            }
+
+            @Override
+            public List<HandlerType> handledFor() {
+                return List.of(HandlerType.MESSAGE);
+            }
+
+            @Override
+            public Object resolve(MethodParameter mp, TelegramArgContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+                return mc.getCommand().orElse("");
+            }
+
+        };
+
+        TelegramArgResolver usrIdAnnotResolver = new TelegramArgResolver() {
+            @Override
+            public List<Class<? extends Annotation>> supportedAnnotations() {
+                return List.of(UserId.class);
+            }
+
+            @Override
+            public Object resolve(MethodParameter mp, TelegramArgContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+                switch (ctx.getScope()) {
+                    case MESSAGE:
+                        return update.getMessage().getFrom().getId();
+                    case CALLBACK_QUERY:
+                        return update.getCallbackQuery().getFrom().getId();
+                }
+                return null;
+            }
+
+        };
+
+        addParamResolver(
                 updateResolver,
                 botResolver,
                 apiResolver,
                 messageResolver,
                 userResolver,
-                cbQueryResolver
-        ));
+                cbQueryResolver,
+                textAnnotResolver,
+                cmdAnnotResolver,
+                usrIdAnnotResolver
+        );
 
     }
+
 }

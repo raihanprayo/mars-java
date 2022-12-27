@@ -70,6 +70,7 @@ public abstract class TelegramBotService implements AutoCloseable {
         this.api = api;
         embeddedValueResolver = new EmbeddedValueResolver(configurableBeanFactory);
 
+// NOTE: Jangan di delete dulu
 //        BiFunction<TelegramMessageCommand, Update, Long> messageUserIdExtractor = (telegramMessageCommand, update) ->
 //                update.getMessage().getFrom().getId();
 //
@@ -92,7 +93,6 @@ public abstract class TelegramBotService implements AutoCloseable {
 //                    return Instant.ofEpochSecond(Optional.ofNullable(message.getForwardDate()).orElse(message.getDate()));
 //                }))
 //                .build();
-//
 //        callbackQueryArgumentMapper = ImmutableMap.<Type, Function<Update, ?>>builder()
 //                .put(Update.class, update -> update)
 //                .put(TelegramBotsApi.class, update -> api)
@@ -121,14 +121,13 @@ public abstract class TelegramBotService implements AutoCloseable {
     @SuppressWarnings("WeakerAccess")
     public Optional<BotApiMethod<?>> updateProcess(Update update) {
         log.debug("Update {} received", update);
-//        return processors.stream()
-//                .filter(processorDescriptor -> processorDescriptor.test(update))
-//                .findFirst()
-//                .flatMap(processorDescriptor -> processorDescriptor.apply(update));
-        return telegramProcessors.stream()
-                .filter(processor -> processor.shouldProcess(update))
-                .findFirst()
-                .flatMap(processor -> processor.process(this, update));
+
+        for (int i = telegramProcessors.size() - 1; i > 0; i--) {
+            TelegramProcessor processor = telegramProcessors.get(i);
+            if (processor.shouldProcess(update)) return processor.process(this, update);
+        }
+
+        return Optional.empty();
     }
 
     public Optional<BotApiMethod<?>> processHandler(TelegramHandler commandHandler, Object[] arguments) throws IllegalAccessException, InvocationTargetException {

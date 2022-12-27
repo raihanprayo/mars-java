@@ -17,6 +17,11 @@ import java.util.Optional;
 @Component
 public class CallbackQueryProcessor extends TelegramProcessor {
     @Override
+    public HandlerType type() {
+        return HandlerType.CALLBACK_QUERY;
+    }
+
+    @Override
     public boolean shouldProcess(Update update) {
         return update.hasCallbackQuery();
     }
@@ -31,9 +36,9 @@ public class CallbackQueryProcessor extends TelegramProcessor {
                 ).getDefaultCallbackQueryHandler()
         ).flatMap(handler -> handleExceptions(
                 () -> service.processHandler(handler, makeArgumentList(
+                        service,
                         handler,
                         update,
-                        HandlerType.CALLBACK_QUERY,
                         null
                 )),
                 update
