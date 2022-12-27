@@ -1,53 +1,37 @@
 package dev.scaraz.mars.telegram.model;
 
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import java.lang.reflect.Method;
 import java.util.Optional;
 
-/**
- * Telegram Bot command handler descriptor.
- *
- * @author <a href="mailto:maratik@yandex-team.ru">Marat Bukharov</a>
- */
+@Builder
+@ToString
+@RequiredArgsConstructor
 public class TelegramHandler {
     private final Object bean;
     private final Method method;
     private final TelegramCommand telegramCommand;
 
-    public TelegramHandler(Object bean, Method method, TelegramCommand telegramCommand) {
-        this.bean = bean;
-        this.method = method;
-        this.telegramCommand = telegramCommand;
-    }
-
-    /**
-     * Bean which contains handler.
-     */
     public Object getBean() {
         return bean;
     }
+    public Class<?> getBeanClass() {
+        return bean.getClass();
+    }
 
-    /**
-     * Method which processes command
-     */
     public Method getMethod() {
         return method;
     }
+    public String getMethodName() {
+        return method.getName();
+    }
 
-    /**
-     * TelegramCommand annotation for this method.
-     */
     public Optional<TelegramCommand> getTelegramCommand() {
         return Optional.ofNullable(telegramCommand);
     }
 
-    @Override
-    public String toString() {
-        return "TelegramHandler{" +
-            "bean=" + bean +
-            ", method=" + method +
-            ", telegramCommand=" + telegramCommand +
-            '}';
-    }
 }

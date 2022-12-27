@@ -3,6 +3,7 @@ package dev.scaraz.mars.telegram;
 import dev.scaraz.mars.telegram.service.LongPollingTelegramBotService;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.service.WebhookTelegramBotService;
+import dev.scaraz.mars.telegram.util.enums.BotType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -56,7 +57,7 @@ public class TelegramConfiguration implements ImportAware {
     public TelegramBotService telegramBotService(TelegramBotsApi api) {
         log.info("Initializing Bot");
 
-        TelegramBotType type = telegramProperties.getType();
+        BotType type = telegramProperties.getType();
         TelegramBotProperties botProperties = TelegramBotProperties.builder()
                 .token(telegramProperties.getToken())
                 .username(telegramProperties.getName())
@@ -71,14 +72,6 @@ public class TelegramConfiguration implements ImportAware {
         }
 
         throw new RuntimeException("invalid bot type");
-    }
-
-    /**
-     * Bean post-processor to process Telegram Bot API annotations.
-     */
-    @Bean
-    public TelegramBeanPostProcessor telegramBeanPostProcessor(TelegramBotService telegramBotService) {
-        return new TelegramBeanPostProcessor(telegramBotService, configurableBeanFactory);
     }
 
 }

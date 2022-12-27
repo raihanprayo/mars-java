@@ -44,10 +44,8 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal {
     @Column
     private boolean active;
 
-    @ManyToOne
-    @JoinTable(name = "t_group_members",
-            joinColumns = @JoinColumn(name = "ref_group_id"),
-            inverseJoinColumns = @JoinColumn(name = "ref_user_id"))
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "ref_group_id")
     private Group group;
 
     @Builder.Default

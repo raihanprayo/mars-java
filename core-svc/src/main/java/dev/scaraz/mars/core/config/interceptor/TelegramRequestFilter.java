@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.config.filter;
+package dev.scaraz.mars.core.config.interceptor;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;

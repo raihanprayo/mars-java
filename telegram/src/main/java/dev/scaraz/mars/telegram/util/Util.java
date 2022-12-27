@@ -14,8 +14,8 @@ public class Util {
     /**
      * Make {@link OptionalLong} from {@link Long}.
      */
-    public static OptionalLong optionalOf(Long l) {
-        return toOptionalLong(Optional.ofNullable(l));
+    public static OptionalLong optionalOf(Long n) {
+        return toOptionalLong(Optional.ofNullable(n));
     }
 
     /**

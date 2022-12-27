@@ -26,6 +26,8 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
+import java.util.List;
+
 import static dev.scaraz.mars.common.utils.AppConstants.Auth.*;
 
 @Slf4j
@@ -48,12 +50,13 @@ public class UserAuthServiceImpl implements UserAuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public AuthResDTO login(AuthReqDTO authReq, String application) {
         User user = userQueryService.loadUserByUsername(authReq.getNik()).getUser();
 
         if (!user.hasRole("admin")) {
             if (!user.canLogin()) {
-                throw new AccessDeniedException("auth.group.disable.login");
+                throw new AccessDeniedException("auth.group.disable.login", user.getGroup().getName());
             }
         }
 
@@ -128,7 +131,10 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
-    public SendMessage.SendMessageBuilder registerFromBot(MessageEntity entity, Message message) {
+    public SendMessage.SendMessageBuilder registerFromBot(
+            MessageEntity entity,
+            Message message) {
+
         // nama / nik / groupName / no. hp
         String text = message.getText()
                 .substring(entity.getLength())
@@ -157,12 +163,17 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .telegramId(userTg.getId())
                 .build());
 
-        rolesRepo.save(Roles.builder()
-                .user(user)
-                .role(role)
-                .build());
+        rolesRepo.saveAll(List.of(
+                Roles.builder()
+                        .user(user)
+                        .role(role)
+                        .build(),
+                Roles.builder()
+                        .user(user)
+                        .role(group.getSetting().getDefaultRole())
+                        .build()
+        ));
 
-        groupService.addUser(group, user, null);
         return SendMessage.builder()
                 .chatId(message.getChatId())
                 .text("registration success")

@@ -9,6 +9,4 @@ import javax.annotation.Nullable;
 
 public interface GroupService {
     Group create(String name, boolean canLogin);
-
-    Group addUser(Group group, User user, @Nullable Role groupRole);
 }

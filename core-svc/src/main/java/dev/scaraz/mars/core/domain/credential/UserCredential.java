@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.credential;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
 import org.springframework.security.core.CredentialsContainer;
@@ -22,6 +23,7 @@ public class UserCredential extends AuditableEntity implements CredentialsContai
     private long id;
 
     @OneToOne
+    @JsonIgnore
     @ToString.Exclude
     @JoinColumn(name = "ref_user_id")
     private User user;

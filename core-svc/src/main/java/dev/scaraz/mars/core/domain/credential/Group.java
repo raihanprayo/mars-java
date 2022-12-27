@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.credential;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -38,14 +39,13 @@ public class Group extends AuditableEntity {
     @OneToOne(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private GroupSetting setting = new GroupSetting();
 
+    @JsonIgnore
     @Builder.Default
     @ToString.Exclude
-    @ManyToMany
-    @JoinTable(name = "t_group_members",
-            joinColumns = @JoinColumn(name = "ref_user_id"),
-            inverseJoinColumns = @JoinColumn(name = "ref_group_id"))
+    @OneToMany(mappedBy = "group")
     private Set<User> members = new HashSet<>();
 
+    @JsonIgnore
     @Builder.Default
     @ToString.Exclude
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.EAGER)

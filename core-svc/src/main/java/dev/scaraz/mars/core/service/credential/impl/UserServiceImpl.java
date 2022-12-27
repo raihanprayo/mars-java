@@ -1,7 +1,6 @@
 package dev.scaraz.mars.core.service.credential.impl;
 
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
-import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.credential.*;
 import dev.scaraz.mars.core.repository.credential.*;
@@ -16,8 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
-
 @Slf4j
 @RequiredArgsConstructor
 
@@ -28,13 +25,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
     private final UserCredentialRepo credentialRepo;
     private final UserSettingRepo settingRepo;
-    private final RoleRepo roleRepo;
-    private final RolesRepo rolesRepo;
-
-    private final GroupRepo groupRepo;
-
-    @Lazy
-    private final GroupService groupService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -46,6 +36,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserCredential save(UserCredential credential) {
         return credentialRepo.save(credential);
+    }
+
+    @Override
+    public UserSetting save(UserSetting credential) {
+        return settingRepo.save(credential);
     }
 
     @Override
@@ -66,6 +61,7 @@ public class UserServiceImpl implements UserService {
                     .name(req.getName())
                     .phone(req.getPhone())
                     .telegramId(req.getTelegramId())
+                    .group(group)
                     .build());
         }
         finally {

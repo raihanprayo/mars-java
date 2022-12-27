@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.config.filter;
+package dev.scaraz.mars.core.config.interceptor;
 
 import dev.scaraz.mars.common.domain.response.JwtToken;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
@@ -23,7 +23,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,10 +36,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        boolean isNotAuthenticated = !SecurityContextHolder.getContext().getAuthentication()
-                .isAuthenticated();
+        boolean noAuthentication = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
+                .isEmpty();
 
-        if (isNotAuthenticated) {
+        if (noAuthentication) {
             String bearerToken = request.getHeader("Authorization");
             if (StringUtils.isNoneBlank(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
                 try {

@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.config;
 
-import dev.scaraz.mars.core.config.filter.JwtRequestFilter;
-import dev.scaraz.mars.core.config.filter.TelegramRequestFilter;
+import dev.scaraz.mars.core.config.interceptor.JwtRequestFilter;
+import dev.scaraz.mars.core.config.interceptor.TelegramRequestFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
@@ -32,8 +32,6 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 public class WebSecurityConfiguration {
 
     private static final int SALT = 14;
-
-    private final ApplicationContext applicationContext;
     private final SecurityProblemSupport problemSupport;
 
     private final JwtRequestFilter jwtRequestFilter;
@@ -67,12 +65,13 @@ public class WebSecurityConfiguration {
         http
                 .authorizeRequests(r -> r
                         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .antMatchers("/auth/authorize").permitAll()
-                        .antMatchers("/auth/refresh").permitAll()
+                        .antMatchers(HttpMethod.GET, "/app/test").permitAll()
+                        .antMatchers(HttpMethod.POST, "/auth/authorize").permitAll()
+                        .antMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(telegramRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterAfter(jwtRequestFilter, TelegramRequestFilter.class);
 
         return http.build();
     }

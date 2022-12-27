@@ -16,7 +16,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
@@ -27,7 +26,7 @@ import java.util.Map;
 import java.util.OptionalLong;
 
 /**
- * Bean Post Processor from Telegram Bot API.
+ * Bean post-processor to process Telegram Bot API annotations
  *
  * @author <a href="mailto:maratik@yandex-team.ru">Marat Bukharov</a>
  */
@@ -36,7 +35,7 @@ import java.util.OptionalLong;
 @RequiredArgsConstructor
 
 @Priority(10)
-public class TelegramBeanPostProcessor implements BeanPostProcessor {
+public class TelegramListenerResolver implements BeanPostProcessor {
 
     private final TelegramBotService telegramBotService;
     private final ConfigurableBeanFactory configurableBeanFactory;

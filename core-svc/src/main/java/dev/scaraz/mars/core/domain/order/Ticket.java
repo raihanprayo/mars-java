@@ -62,6 +62,7 @@ public class Ticket extends AuditableEntity {
     @Column
     private String note;
 
+    @Builder.Default
     @Column(updatable = false)
     private int gaul = 0;
 
@@ -69,6 +70,7 @@ public class Ticket extends AuditableEntity {
     @JoinColumn(name = "ref_issue_id", updatable = false)
     private Issue issue;
 
+    @Builder.Default
     @OneToMany(mappedBy = "ticket")
     private Set<TicketAgent> agents = new HashSet<>();
 

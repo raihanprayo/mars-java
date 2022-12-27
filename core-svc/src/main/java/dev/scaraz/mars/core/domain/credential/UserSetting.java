@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.credential;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
 
@@ -22,11 +23,13 @@ public class UserSetting extends AuditableEntity {
     private long id;
 
     @OneToOne
+    @JsonIgnore
     @ToString.Exclude
     @JoinColumn(name = "ref_user_id")
     private User user;
 
     @Column(name = "language")
+    @Builder.Default
     private Locale lang = Locale.ENGLISH;
 
 }
