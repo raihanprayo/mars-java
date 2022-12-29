@@ -1,4 +1,4 @@
-package dev.scaraz.mars.telegram.service.processor;
+package dev.scaraz.mars.telegram.config.processor;
 
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
@@ -21,7 +21,6 @@ import static dev.scaraz.mars.telegram.util.TelegramUtil.KEY_LENGTH_COMPARATOR;
 
 @Slf4j
 @RequiredArgsConstructor
-
 @Component
 public class MessageProcessor extends TelegramProcessor {
 
@@ -36,11 +35,11 @@ public class MessageProcessor extends TelegramProcessor {
     }
 
     @Override
-    public Optional<BotApiMethod<?>> process(TelegramBotService service, Update update) {
+    public Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) {
         TelegramMessageCommand command = new TelegramMessageCommand(update);
         Optional<TelegramHandler> optionalCommandHandler;
         OptionalLong userKey = Util.optionalOf(update.getMessage().getChatId());
-        TelegramHandlers handlers = service.getHandlers(userKey);
+        TelegramHandlers handlers = bot.getHandlers(userKey);
 
         if (command.getForwardedFrom().isPresent()) {
             optionalCommandHandler = Optional.ofNullable(
@@ -52,7 +51,7 @@ public class MessageProcessor extends TelegramProcessor {
         else {
             Optional<String> commandCommandOpt = command.getCommand();
             optionalCommandHandler = commandCommandOpt.map(cmd -> handlers.getCommandList().get(cmd));
-            if (!optionalCommandHandler.isPresent()) {
+            if (optionalCommandHandler.isEmpty()) {
                 if (commandCommandOpt.isPresent()) {
                     String commandCommand = commandCommandOpt.get();
                     optionalCommandHandler = handlers.getPatternCommandList().entrySet().stream()
@@ -60,7 +59,7 @@ public class MessageProcessor extends TelegramProcessor {
                             .max(KEY_LENGTH_COMPARATOR)
                             .map(Map.Entry::getValue);
                 }
-                if (!optionalCommandHandler.isPresent()) {
+                if (optionalCommandHandler.isEmpty()) {
                     optionalCommandHandler = Optional.ofNullable(handlers.getDefaultMessageHandler());
                 }
             }
@@ -68,18 +67,18 @@ public class MessageProcessor extends TelegramProcessor {
 
         log.debug("Command handler: {}", optionalCommandHandler);
 
-        return optionalCommandHandler.flatMap(commandHandler -> handleExceptions(() -> {
+        return optionalCommandHandler.flatMap(commandHandler -> handleExceptions(update, () -> {
             if (commandHandler.getTelegramCommand().filter(TelegramCommand::isHelp).isPresent()) {
-                service.sendHelpList(update, userKey);
+                bot.sendHelpList(update, userKey);
                 return Optional.empty();
             }
-            return service.processHandler(commandHandler, makeArgumentList(
-                    service,
+            return bot.processHandler(commandHandler, makeArgumentList(
+                    bot,
                     commandHandler,
                     update,
                     command
             ));
-        }, update));
+        }));
     }
 
 }

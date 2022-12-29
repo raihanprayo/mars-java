@@ -1,4 +1,4 @@
-package dev.scaraz.mars.telegram;
+package dev.scaraz.mars.telegram.config;
 
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;

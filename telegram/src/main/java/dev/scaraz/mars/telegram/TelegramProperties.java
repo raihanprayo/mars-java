@@ -10,8 +10,9 @@ import static dev.scaraz.mars.telegram.TelegramBotProperties.DEFAULT_MAX_THREADS
 @ConfigurationProperties(prefix = "telegram")
 public class TelegramProperties {
     private boolean enabled = true;
-    private BotType type = BotType.LONG_POLLING;
     private String name;
     private String token;
+
+    private BotType type = BotType.LONG_POLLING;
     private int maxThreads = DEFAULT_MAX_THREADS;
 }

@@ -1,12 +1,8 @@
 package dev.scaraz.mars.telegram;
 
-import dev.scaraz.mars.telegram.service.LongPollingTelegramBotService;
-import dev.scaraz.mars.telegram.service.TelegramBotService;
-import dev.scaraz.mars.telegram.service.WebhookTelegramBotService;
-import dev.scaraz.mars.telegram.util.enums.BotType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +12,7 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.NonNull;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.BotSession;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 /**
@@ -34,44 +31,14 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 @EnableConfigurationProperties(TelegramProperties.class)
 public class TelegramConfiguration implements ImportAware {
 
-    private final ConfigurableBeanFactory configurableBeanFactory;
-
-    private final TelegramProperties telegramProperties;
-
     @Override
     public void setImportMetadata(@NonNull AnnotationMetadata importMetadata) {
     }
 
-    /**
-     * Telegram Bots API.
-     */
     @Bean
-    public TelegramBotsApi telegramBotsApi() throws TelegramApiException {
-        return new TelegramBotsApi(DefaultBotSession.class);
-    }
-
-    /**
-     * Telegram Bot Service to dispatch messages.
-     */
-    @Bean
-    public TelegramBotService telegramBotService(TelegramBotsApi api) {
-        log.info("Initializing Bot");
-
-        BotType type = telegramProperties.getType();
-        TelegramBotProperties botProperties = TelegramBotProperties.builder()
-                .token(telegramProperties.getToken())
-                .username(telegramProperties.getName())
-                .maxThreads(telegramProperties.getMaxThreads())
-                .build();
-
-        switch (type) {
-            case LONG_POLLING:
-                return new LongPollingTelegramBotService(botProperties, api, configurableBeanFactory);
-            case WEBHOOK:
-                return new WebhookTelegramBotService(botProperties, api, configurableBeanFactory);
-        }
-
-        throw new RuntimeException("invalid bot type");
+    public TelegramBotsApi telegramBotsApi(ObjectProvider<Class<? extends BotSession>> botSessionCtor) throws TelegramApiException {
+        Class<? extends BotSession> type = botSessionCtor.getIfAvailable(() -> DefaultBotSession.class);
+        return new TelegramBotsApi(type);
     }
 
 }

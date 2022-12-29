@@ -1,48 +1,27 @@
 package dev.scaraz.mars.telegram.service;
 
-import dev.scaraz.mars.telegram.TelegramArgumentResolver;
+import dev.scaraz.mars.telegram.config.TelegramArgumentResolver;
 import dev.scaraz.mars.telegram.model.*;
-import dev.scaraz.mars.telegram.service.processor.TelegramProcessor;
-import dev.scaraz.mars.telegram.util.enums.HandlerType;
+import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import lombok.extern.slf4j.Slf4j;
 import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.annotation.TelegramForward;
 import dev.scaraz.mars.telegram.annotation.TelegramHelp;
 import dev.scaraz.mars.telegram.annotation.TelegramMessage;
-import dev.scaraz.mars.telegram.util.Util;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.time.Instant;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.concurrent.Callable;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_COMPARATOR;
@@ -57,56 +36,15 @@ import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_CO
 public abstract class TelegramBotService implements AutoCloseable {
 
     private final Map<OptionalLong, TelegramHandlers> handlers = new HashMap<>();
+    protected final LinkedList<TelegramProcessor> telegramProcessors = new LinkedList<>();
 
-    private final TelegramBotsApi api;
-    private final EmbeddedValueResolver embeddedValueResolver;
+    private final EmbeddedValueResolver valueResolver;
 
     @Autowired
     protected TelegramArgumentResolver argumentResolver;
-    @Autowired
-    protected List<? extends TelegramProcessor> telegramProcessors;
 
-    public TelegramBotService(TelegramBotsApi api, ConfigurableBeanFactory configurableBeanFactory) {
-        this.api = api;
-        embeddedValueResolver = new EmbeddedValueResolver(configurableBeanFactory);
-
-// NOTE: Jangan di delete dulu
-//        BiFunction<TelegramMessageCommand, Update, Long> messageUserIdExtractor = (telegramMessageCommand, update) ->
-//                update.getMessage().getFrom().getId();
-//
-//        Function<Update, Long> callbackQueryUserIdExtractor = update ->
-//                update.getCallbackQuery().getFrom().getId();
-//        messageArgumentMapper = ImmutableMap.<Type, BiFunction<TelegramMessageCommand, Update, ?>>builder()
-//                .put(Update.class, (telegramMessageCommand, update) -> update)
-//                .put(TelegramBotsApi.class, (telegramMessageCommand, update) -> api)
-//                .put(TelegramBotService.class, (telegramMessageCommand, update) -> this)
-//                .put(Message.class, (telegramMessageCommand, update) -> update.getMessage())
-//                .put(DefaultAbsSender.class, (telegramMessageCommand, update) -> getClient())
-//                .put(User.class, (telegramMessageCommand, update) -> update.getMessage().getFrom())
-//
-//                .put(TelegramMessageCommand.class, (telegramMessageCommand, update) -> telegramMessageCommand)
-//                .put(String.class, (telegramMessageCommand, update) -> telegramMessageCommand.getArgument().orElse(null))
-//                .put(long.class, messageUserIdExtractor)
-//                .put(Long.class, messageUserIdExtractor)
-//                .put(Instant.class, ((telegramMessageCommand, update) -> {
-//                    Message message = update.getMessage();
-//                    return Instant.ofEpochSecond(Optional.ofNullable(message.getForwardDate()).orElse(message.getDate()));
-//                }))
-//                .build();
-//        callbackQueryArgumentMapper = ImmutableMap.<Type, Function<Update, ?>>builder()
-//                .put(Update.class, update -> update)
-//                .put(TelegramBotsApi.class, update -> api)
-//                .put(TelegramBotService.class, update -> this)
-//                .put(DefaultAbsSender.class, update -> getClient())
-//                .put(Message.class, update -> update.getCallbackQuery().getMessage())
-//                .put(User.class, update -> update.getCallbackQuery().getFrom())
-//
-//                .put(String.class, update -> update.getCallbackQuery().getData())
-//                .put(CallbackQuery.class, Update::getCallbackQuery)
-//                .put(long.class, callbackQueryUserIdExtractor)
-//                .put(Long.class, callbackQueryUserIdExtractor)
-//                .put(CallbackQueryId.class, update -> new CallbackQueryId(update.getCallbackQuery().getId()))
-//                .build();
+    public TelegramBotService(EmbeddedValueResolver valueResolver) {
+        this.valueResolver = valueResolver;
     }
 
     /**
@@ -114,6 +52,11 @@ public abstract class TelegramBotService implements AutoCloseable {
      */
     public abstract DefaultAbsSender getClient();
 
+    public void addProcessor(TelegramProcessor telegramProcessor) {
+        log.info("Adding Telegram Processor {}", telegramProcessor.type());
+        telegramProcessor.setArgumentResolver(argumentResolver);
+        this.telegramProcessors.add(telegramProcessor);
+    }
 
     /**
      * Main dispatcher method which takes {@link Update} object and calls controller method to process update.
@@ -122,11 +65,12 @@ public abstract class TelegramBotService implements AutoCloseable {
     public Optional<BotApiMethod<?>> updateProcess(Update update) {
         log.debug("Update {} received", update);
 
-        for (int i = telegramProcessors.size() - 1; i > 0; i--) {
+        for (int i = telegramProcessors.size() - 1; i >= 0; i--) {
             TelegramProcessor processor = telegramProcessors.get(i);
             if (processor.shouldProcess(update)) return processor.process(this, update);
         }
 
+        log.warn("No processor can handle current update");
         return Optional.empty();
     }
 
@@ -164,7 +108,7 @@ public abstract class TelegramBotService implements AutoCloseable {
                 .forEach(method -> sb
                         .append(method.getCommand())
                         .append(' ')
-                        .append(embeddedValueResolver.resolveStringValue(method.getDescription()))
+                        .append(valueResolver.resolveStringValue(method.getDescription()))
                         .append('\n')
                 );
         return sb.toString();
@@ -256,7 +200,7 @@ public abstract class TelegramBotService implements AutoCloseable {
             }
             else {
                 for (String from : fromArr) {
-                    String parsedFromStr = embeddedValueResolver.resolveStringValue(from);
+                    String parsedFromStr = valueResolver.resolveStringValue(from);
                     if (parsedFromStr == null) {
                         throw new RuntimeException("NPE in " + from);
                     }

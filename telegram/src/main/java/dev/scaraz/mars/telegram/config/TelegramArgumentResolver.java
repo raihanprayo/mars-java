@@ -1,4 +1,4 @@
-package dev.scaraz.mars.telegram;
+package dev.scaraz.mars.telegram.config;
 
 import dev.scaraz.mars.telegram.annotation.Command;
 import dev.scaraz.mars.telegram.annotation.Text;
@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
@@ -26,9 +25,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -36,8 +35,6 @@ import java.util.stream.Stream;
 @Component
 public class TelegramArgumentResolver implements BeanPostProcessor {
     private static final Function<HandlerType, Set<TelegramArgResolver>> DEFAULT_HANDLER_SET = t -> new HashSet<>();
-
-    private final ConfigurableBeanFactory beanFactory;
 
     private final TelegramBotsApi api;
 
@@ -84,16 +81,9 @@ public class TelegramArgumentResolver implements BeanPostProcessor {
         Class<?> parameterType = mp.getParameterType();
 
         for (HandlerType handlerType : List.of(context.getScope(), HandlerType.ALL)) {
-            Set<TelegramArgResolver> resolverWithAnnotation = paramTypeResolvers.get(handlerType).stream()
-                    .filter(r -> r.supportedAnnotations().size() > 0)
-                    .collect(Collectors.toSet());
-
-            Set<TelegramArgResolver> resolverByType = paramTypeResolvers.get(handlerType).stream()
-                    .filter(r -> r.supportedAnnotations().size() == 0)
-                    .collect(Collectors.toSet());
-
             if (mp.hasParameterAnnotations()) {
-                Optional<TelegramArgResolver> resolverOptional = resolverWithAnnotation.stream()
+                Optional<TelegramArgResolver> resolverOptional = paramTypeResolvers.get(handlerType).stream()
+                        .filter(isAnnotationArgResolver(true))
                         .filter(r -> hasSupportedAnnotations(mp, r))
                         .findFirst();
 
@@ -108,6 +98,10 @@ public class TelegramArgumentResolver implements BeanPostProcessor {
                 }
             }
             else {
+                Set<TelegramArgResolver> resolverByType = paramTypeResolvers.get(handlerType).stream()
+                        .filter(isAnnotationArgResolver(false))
+                        .collect(Collectors.toSet());
+
                 for (TelegramArgResolver resolver : resolverByType) {
                     Object value = resolver.resolve(mp, context, update, messageCommand);
                     if (ClassUtils.isAssignable(value.getClass(), parameterType)) return value;
@@ -123,19 +117,6 @@ public class TelegramArgumentResolver implements BeanPostProcessor {
                 index
         ));
     }
-//    public Optional<TelegramArgResolver> getResolverByHandlerType(Class<?> type, HandlerType... handlerTypes) {
-//        List<HandlerType> types = List.of(handlerTypes);
-//        Set<TelegramArgResolver> resolvers = paramTypeResolvers.values().stream()
-//                .flatMap(Collection::stream)
-//                .collect(Collectors.toSet());
-//
-//        for (TelegramArgResolver resolver : resolvers) {
-//            if (types.contains(resolver.handledFor()) && resolver.getType() == type) {
-//                return Optional.of(resolver);
-//            }
-//        }
-//        return Optional.empty();
-//    }
 
     public Object[] makeArgumentList(
             TelegramBotService service,
@@ -163,6 +144,13 @@ public class TelegramArgumentResolver implements BeanPostProcessor {
     private boolean hasSupportedAnnotations(MethodParameter mp, TelegramArgResolver resolver) {
         return resolver.supportedAnnotations().stream()
                 .anyMatch(mp::hasParameterAnnotation);
+    }
+
+    private Predicate<TelegramArgResolver> isAnnotationArgResolver(boolean b) {
+        return r -> {
+            int size = r.supportedAnnotations().size();
+            return b ? (size == 0) : (size > 0);
+        };
     }
 
     private void initDefaultResolvers() {

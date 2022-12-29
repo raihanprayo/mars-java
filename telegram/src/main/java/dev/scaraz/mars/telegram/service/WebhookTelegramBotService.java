@@ -3,14 +3,13 @@ package dev.scaraz.mars.telegram.service;
 import dev.scaraz.mars.telegram.TelegramBotProperties;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.LongPollingBot;
 
 /**
  * Webhook implementation of Telegram Bot Service.
@@ -25,10 +24,10 @@ public class WebhookTelegramBotService extends TelegramBotService {
     private final String path;
     private final TelegramWebhookBot client;
 
-    public WebhookTelegramBotService(
-            TelegramBotProperties botBuilder, TelegramBotsApi api, ConfigurableBeanFactory configurableBeanFactory
-    ) {
-        super(api, configurableBeanFactory);
+    public WebhookTelegramBotService(TelegramBotProperties botBuilder,
+                                     TelegramBotsApi api,
+                                     EmbeddedValueResolver valueResolver) {
+        super(valueResolver);
         username = botBuilder.getUsername();
         token = botBuilder.getToken();
         path = botBuilder.getPath();
@@ -40,7 +39,7 @@ public class WebhookTelegramBotService extends TelegramBotService {
                     .build());
         }
         catch (TelegramApiException e) {
-            log.error("Can not register Long Polling with {}", botBuilder, e);
+            log.error("Cannot register Webhook with {}", botBuilder, e);
             throw new RuntimeException(e);
         }
     }

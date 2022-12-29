@@ -2,7 +2,7 @@ package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -27,10 +27,10 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
     private final ExecutorService botExecutor;
     private final TelegramLongPollingBot client;
 
-    public LongPollingTelegramBotService(
-            TelegramBotProperties botBuilder, TelegramBotsApi api, ConfigurableBeanFactory configurableBeanFactory
-    ) {
-        super(api, configurableBeanFactory);
+    public LongPollingTelegramBotService(TelegramBotProperties botBuilder,
+                                         TelegramBotsApi api,
+                                         EmbeddedValueResolver valueResolver) {
+        super(valueResolver);
         log.info("Registering Long Polling with {}", botBuilder);
         username = botBuilder.getUsername();
         token = botBuilder.getToken();
@@ -43,7 +43,7 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
         try {
             api.registerBot(client);
         } catch (TelegramApiException e) {
-            log.error("Can not register Long Polling with {}", botBuilder, e);
+            log.error("Cannot register Long Polling with {}", botBuilder, e);
             throw new RuntimeException(e);
         }
     }
@@ -81,7 +81,7 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
                         getClient().execute(result);
                         log.debug("Update: {}. Message: {}. Successfully sent", update, result);
                     } catch (TelegramApiException e) {
-                        log.error("Update: {}. Can not send message {} to telegram: ", update, result, e);
+                        log.error("Update: {}. Cannot send message {} to telegram: ", update.getUpdateId(), result, e);
                     }
                 }), botExecutor);
         }
