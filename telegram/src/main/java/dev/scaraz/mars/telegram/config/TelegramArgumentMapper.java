@@ -5,7 +5,7 @@ import dev.scaraz.mars.telegram.annotation.Text;
 import dev.scaraz.mars.telegram.annotation.UserId;
 import dev.scaraz.mars.telegram.model.TelegramArgResolver;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
-import dev.scaraz.mars.telegram.model.TelegramArgContext;
+import dev.scaraz.mars.telegram.model.TelegramHandlerContext;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
@@ -72,7 +72,7 @@ public class TelegramArgumentMapper implements BeanPostProcessor {
 
     public Object resolveMethodArg(int index,
                                    Method method,
-                                   TelegramArgContext context,
+                                   TelegramHandlerContext context,
                                    Update update,
                                    @Nullable
                                    TelegramMessageCommand messageCommand
@@ -125,7 +125,7 @@ public class TelegramArgumentMapper implements BeanPostProcessor {
             HandlerType handlerType,
             @Nullable TelegramMessageCommand command
     ) throws IllegalArgumentException {
-        TelegramArgContext context = TelegramArgContext.builder()
+        TelegramHandlerContext context = TelegramHandlerContext.builder()
                 .scope(handlerType)
                 .api(api)
                 .service(service)
@@ -173,7 +173,7 @@ public class TelegramArgumentMapper implements BeanPostProcessor {
             }
 
             @Override
-            public Object resolve(MethodParameter mp, TelegramArgContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+            public Object resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
                 return update.getCallbackQuery();
             }
 
@@ -186,7 +186,7 @@ public class TelegramArgumentMapper implements BeanPostProcessor {
             }
 
             @Override
-            public Object resolve(MethodParameter mp, TelegramArgContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+            public Object resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
                 switch (ctx.getScope()) {
                     case MESSAGE:
                         return mc.getArgument().orElse("");
@@ -209,7 +209,7 @@ public class TelegramArgumentMapper implements BeanPostProcessor {
             }
 
             @Override
-            public Object resolve(MethodParameter mp, TelegramArgContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+            public Object resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
                 return mc.getCommand().orElse("");
             }
 
@@ -222,7 +222,7 @@ public class TelegramArgumentMapper implements BeanPostProcessor {
             }
 
             @Override
-            public Object resolve(MethodParameter mp, TelegramArgContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+            public Object resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
                 switch (ctx.getScope()) {
                     case MESSAGE:
                         return update.getMessage().getFrom().getId();

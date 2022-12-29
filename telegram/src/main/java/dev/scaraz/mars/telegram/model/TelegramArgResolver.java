@@ -15,7 +15,7 @@ public interface TelegramArgResolver {
     List<Class<? extends Annotation>> DEFAULT_SUPP_ANNOTATIONS = List.of();
 
     Object resolve(MethodParameter mp,
-                   TelegramArgContext ctx,
+                   TelegramHandlerContext ctx,
                    Update update,
                    @Nullable
                    TelegramMessageCommand mc);

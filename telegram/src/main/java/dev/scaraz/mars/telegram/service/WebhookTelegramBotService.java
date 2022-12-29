@@ -25,9 +25,7 @@ public class WebhookTelegramBotService extends TelegramBotService {
     private final TelegramWebhookBot client;
 
     public WebhookTelegramBotService(TelegramBotProperties botBuilder,
-                                     TelegramBotsApi api,
-                                     EmbeddedValueResolver valueResolver) {
-        super(valueResolver);
+                                     TelegramBotsApi api) {
         username = botBuilder.getUsername();
         token = botBuilder.getToken();
         path = botBuilder.getPath();

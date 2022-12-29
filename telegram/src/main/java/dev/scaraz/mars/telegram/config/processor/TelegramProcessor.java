@@ -7,8 +7,6 @@ import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -19,7 +17,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 
 @Slf4j
-@RequiredArgsConstructor
 public abstract class TelegramProcessor {
 
     @Getter

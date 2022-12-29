@@ -1,27 +1,27 @@
 package dev.scaraz.mars.telegram.service;
 
+import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.config.TelegramArgumentMapper;
 import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
-import dev.scaraz.mars.telegram.model.*;
 import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
+import dev.scaraz.mars.telegram.model.TelegramHandler;
 import lombok.extern.slf4j.Slf4j;
-import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
-import dev.scaraz.mars.telegram.annotation.TelegramCommand;
-import dev.scaraz.mars.telegram.annotation.TelegramForward;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
-import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalLong;
 
 import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_COMPARATOR;
 
@@ -35,7 +35,8 @@ import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_CO
 public abstract class TelegramBotService implements AutoCloseable {
     protected final LinkedList<TelegramProcessor> telegramProcessors = new LinkedList<>();
 
-    private final EmbeddedValueResolver valueResolver;
+    @Autowired
+    protected ConfigurableBeanFactory beanFactory;
 
     @Autowired
     protected TelegramArgumentMapper argumentMapper;
@@ -47,10 +48,6 @@ public abstract class TelegramBotService implements AutoCloseable {
      * @return telegram api client implementation
      */
     public abstract DefaultAbsSender getClient();
-
-    public TelegramBotService(EmbeddedValueResolver valueResolver) {
-        this.valueResolver = valueResolver;
-    }
 
     public void addProcessor(TelegramProcessor telegramProcessor) {
         log.info("Adding Telegram Processor {}", telegramProcessor.type());
@@ -96,6 +93,11 @@ public abstract class TelegramBotService implements AutoCloseable {
         getClient().execute(sendMessage);
     }
 
+    @Autowired
+    private void initialize(List<TelegramProcessor> telegramProcessors) {
+        telegramProcessors.forEach(this::addProcessor);
+    }
+
     private String buildHelpMessage(OptionalLong userKey) {
         StringBuilder sb = new StringBuilder();
         String prefixHelpMessage = handlerMapper.getHandlers(userKey).getPrefixHelpMessage();
@@ -107,7 +109,7 @@ public abstract class TelegramBotService implements AutoCloseable {
                 .forEach(method -> sb
                         .append(method.getCommand())
                         .append(' ')
-                        .append(valueResolver.resolveStringValue(method.getDescription()))
+                        .append(beanFactory.resolveEmbeddedValue(method.getDescription()))
                         .append('\n')
                 );
         return sb.toString();

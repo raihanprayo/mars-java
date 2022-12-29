@@ -28,9 +28,7 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
     private final TelegramLongPollingBot client;
 
     public LongPollingTelegramBotService(TelegramBotProperties botBuilder,
-                                         TelegramBotsApi api,
-                                         EmbeddedValueResolver valueResolver) {
-        super(valueResolver);
+                                         TelegramBotsApi api) {
         log.info("Registering Long Polling with {}", botBuilder);
         username = botBuilder.getUsername();
         token = botBuilder.getToken();

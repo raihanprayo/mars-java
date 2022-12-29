@@ -9,13 +9,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 
-import java.lang.reflect.Method;
 import java.util.Optional;
 
 @Getter
 @Builder
 @RequiredArgsConstructor
-public class TelegramArgContext {
+public class TelegramHandlerContext {
 
     private final HandlerType scope;
 
