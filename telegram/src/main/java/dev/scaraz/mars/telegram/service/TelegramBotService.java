@@ -78,19 +78,25 @@ public abstract class TelegramBotService implements AutoCloseable {
     protected TelegramProcessContext onUpdateReceived(Update update) {
         TelegramProcessor processor = getProcessor(update);
 
-        if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
-        else {
-            ProcessContextHolder.add(b -> b.processor(processor));
-            try {
-                processor.process(this, update)
-                        .ifPresent(m -> ProcessContextHolder.add(b -> b.result(m)));
+        try {
+            if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
+            else {
+                ProcessContextHolder.add(b -> b.update(update).processor(processor));
+                try {
+                    processor.process(this, update)
+                            .ifPresent(m -> ProcessContextHolder.add(b -> b.result(m)));
+                }
+                catch (Exception e) {
+                    log.warn("Fail to process update {}", update.getUpdateId(), e);
+                    processor.handleExceptions(this, update, e)
+                            .ifPresent(m -> ProcessContextHolder.add(b -> b.result(m)));
+                }
+                return ProcessContextHolder.get();
             }
-            catch (Exception e) {
-                log.warn("Fail to process update {}", update.getUpdateId(), e);
-                processor.handleExceptions(this, update, e)
-                        .ifPresent(m -> ProcessContextHolder.add(b -> b.result(m)));
-            }
-            return ProcessContextHolder.get();
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+            log.error(ex.getMessage());
         }
 
         // Berarti ga ada yang ngeprosess
