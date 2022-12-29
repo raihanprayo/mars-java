@@ -8,18 +8,23 @@ import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.service.WebhookTelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 
 import java.util.List;
 
+import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_EXECUTOR;
+
 @Slf4j
 @RequiredArgsConstructor
 
+@EnableAsync
 @Configuration
 public class TelegramBotConfiguration {
 
@@ -44,6 +49,17 @@ public class TelegramBotConfiguration {
         }
 
         throw new IllegalStateException(String.format("Unhandled bot type %s", telegramProperties.getType()));
+    }
+
+    @Bean(TELEGRAM_EXECUTOR)
+    @ConditionalOnProperty(prefix = "telegram", name = "type", havingValue = "long_polling")
+    public TaskExecutor updateExecutor() {
+        ThreadPoolTaskExecutor exc = new ThreadPoolTaskExecutor();
+        exc.setCorePoolSize(3);
+        exc.setMaxPoolSize(100);
+        exc.setQueueCapacity(1000);
+        exc.setThreadNamePrefix("TG-LP-UPD-");
+        return exc;
     }
 
 }

@@ -1,6 +1,9 @@
 package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
+import dev.scaraz.mars.telegram.config.ProcessContextHolder;
+import dev.scaraz.mars.telegram.model.TelegramProcessContext;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.beans.factory.config.EmbeddedValueResolver;
@@ -10,6 +13,9 @@ import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.BotSession;
+
+import java.util.Optional;
 
 /**
  * Webhook implementation of Telegram Bot Service.
@@ -19,21 +25,16 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 @Slf4j
 public class WebhookTelegramBotService extends TelegramBotService {
 
-    private final String username;
-    private final String token;
-    private final String path;
+    @Getter
     private final TelegramWebhookBot client;
 
     public WebhookTelegramBotService(TelegramBotProperties botBuilder,
                                      TelegramBotsApi api) {
-        username = botBuilder.getUsername();
-        token = botBuilder.getToken();
-        path = botBuilder.getPath();
-        client = new TelegramBotWebhookImpl();
 
+        this.client = createBot(botBuilder);
         try {
-            api.registerBot(client, SetWebhook.builder()
-                    .url(path)
+            api.registerBot(this.client, SetWebhook.builder()
+                    .url(this.client.getBotPath())
                     .build());
         }
         catch (TelegramApiException e) {
@@ -42,31 +43,34 @@ public class WebhookTelegramBotService extends TelegramBotService {
         }
     }
 
-    @Override
-    public TelegramWebhookBot getClient() {
-        return client;
+    private TelegramWebhookBot createBot(TelegramBotProperties botProperties) {
+        WebhookTelegramBotService self = this;
+        return new TelegramWebhookBot() {
+            @Override
+            public String getBotToken() {
+                return botProperties.getToken();
+            }
+
+            @Override
+            public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
+                return Optional.ofNullable(self.onUpdateReceived(update))
+                        .map(ctx -> {
+                            ProcessContextHolder.clear();
+                            return ctx.getResult();
+                        })
+                        .orElse(null);
+            }
+
+            @Override
+            public String getBotPath() {
+                return botProperties.getPath();
+            }
+
+            @Override
+            public String getBotUsername() {
+                return botProperties.getUsername();
+            }
+        };
     }
 
-    private class TelegramBotWebhookImpl extends TelegramWebhookBot {
-
-        @Override
-        public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-            return updateProcess(update).orElse(null);
-        }
-
-        @Override
-        public String getBotUsername() {
-            return username;
-        }
-
-        @Override
-        public String getBotToken() {
-            return token;
-        }
-
-        @Override
-        public String getBotPath() {
-            return path;
-        }
-    }
 }

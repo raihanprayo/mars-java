@@ -1,21 +1,22 @@
 package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
+import dev.scaraz.mars.telegram.config.ProcessContextHolder;
 import dev.scaraz.mars.telegram.config.TelegramArgumentMapper;
+import dev.scaraz.mars.telegram.config.UpdateContextHolder;
 import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
 import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
+import dev.scaraz.mars.telegram.model.TelegramProcessContext;
+import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import javax.annotation.PostConstruct;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
@@ -54,23 +55,51 @@ public abstract class TelegramBotService implements AutoCloseable {
         this.telegramProcessors.add(telegramProcessor);
     }
 
-    /**
-     * Main dispatcher method which takes {@link Update} object and calls controller method to process update.
-     */
-    @SuppressWarnings("WeakerAccess")
-    public Optional<BotApiMethod<?>> updateProcess(Update update) {
-        log.debug("Update {} received", update);
-
+    public TelegramProcessor getProcessor(Update update) {
         for (int i = telegramProcessors.size() - 1; i >= 0; i--) {
             TelegramProcessor processor = telegramProcessors.get(i);
-            if (processor.shouldProcess(update)) return processor.process(this, update);
+            if (processor.shouldProcess(update)) return processor;
+        }
+        return null;
+    }
+
+//    public Optional<BotApiMethod<?>> updateProcess(Update update) {
+//        log.debug("Update {} received", update);
+//
+//        for (int i = telegramProcessors.size() - 1; i >= 0; i--) {
+//            TelegramProcessor processor = telegramProcessors.get(i);
+//            if (processor.shouldProcess(update)) return processor.process(this, update);
+//        }
+//
+//        log.warn("No processor can handle current update");
+//        return Optional.empty();
+//    }
+
+    protected TelegramProcessContext onUpdateReceived(Update update) {
+        TelegramProcessor processor = getProcessor(update);
+
+        if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
+        else {
+            ProcessContextHolder.add(b -> b.processor(processor));
+            try {
+                processor.process(this, update)
+                        .ifPresent(m -> ProcessContextHolder.add(b -> b.result(m)));
+            }
+            catch (Exception e) {
+                log.warn("Fail to process update {}", update.getUpdateId(), e);
+                processor.handleExceptions(this, update, e)
+                        .ifPresent(m -> ProcessContextHolder.add(b -> b.result(m)));
+            }
+            return ProcessContextHolder.get();
         }
 
-        log.warn("No processor can handle current update");
-        return Optional.empty();
+        // Berarti ga ada yang ngeprosess
+        return null;
     }
 
     public Optional<BotApiMethod<?>> processHandler(TelegramHandler commandHandler, Object[] arguments) throws IllegalAccessException, InvocationTargetException {
+        ProcessContextHolder.add(b -> b.handler(commandHandler));
+
         Method method = commandHandler.getMethod();
         Class<?> methodReturnType = method.getReturnType();
         log.debug("Derived method return type: {}", methodReturnType);
@@ -86,11 +115,11 @@ public abstract class TelegramBotService implements AutoCloseable {
         return Optional.empty();
     }
 
-    public void sendHelpList(Update update, OptionalLong userKey) throws TelegramApiException {
+    public Optional<BotApiMethod<?>> getHelpList(Update update, OptionalLong userKey) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getMessage().getChatId());
-        sendMessage.setText(buildHelpMessage(userKey));
-        getClient().execute(sendMessage);
+        sendMessage.setText(TelegramUtil.esc(buildHelpMessage(userKey)));
+        return Optional.of(sendMessage);
     }
 
     @Autowired

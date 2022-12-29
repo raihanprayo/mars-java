@@ -35,7 +35,7 @@ public class MessageProcessor extends TelegramProcessor {
     }
 
     @Override
-    public Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) {
+    public Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) throws Exception {
         TelegramMessageCommand command = new TelegramMessageCommand(update);
         Optional<TelegramHandler> optionalCommandHandler;
         OptionalLong userKey = Util.optionalOf(update.getMessage().getChatId());
@@ -66,19 +66,20 @@ public class MessageProcessor extends TelegramProcessor {
         }
 
         log.debug("Command handler: {}", optionalCommandHandler);
-
-        return optionalCommandHandler.flatMap(commandHandler -> handleExceptions(update, () -> {
-            if (commandHandler.getTelegramCommand().filter(TelegramCommand::isHelp).isPresent()) {
-                bot.sendHelpList(update, userKey);
-                return Optional.empty();
+        if (optionalCommandHandler.isPresent()) {
+            TelegramHandler handler = optionalCommandHandler.get();
+            if (handler.getTelegramCommand().filter(TelegramCommand::isHelp).isPresent()) {
+                return bot.getHelpList(update, userKey);
             }
-            return bot.processHandler(commandHandler, makeArgumentList(
+            return bot.processHandler(handler, makeArgumentList(
                     bot,
-                    commandHandler,
+                    handler,
                     update,
                     command
             ));
-        }));
+        }
+
+        return Optional.empty();
     }
 
 }

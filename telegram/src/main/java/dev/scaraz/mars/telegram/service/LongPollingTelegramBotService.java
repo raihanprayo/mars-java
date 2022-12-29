@@ -1,18 +1,26 @@
 package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
+import dev.scaraz.mars.telegram.config.ProcessContextHolder;
+import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
+import dev.scaraz.mars.telegram.model.TelegramProcessContext;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.config.EmbeddedValueResolver;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.annotation.Async;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.BotSession;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
+import java.util.concurrent.*;
+
+import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_EXECUTOR;
 
 /**
  * Long polling implementation of Telegram Bot Service.
@@ -21,27 +29,31 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class LongPollingTelegramBotService extends TelegramBotService implements AutoCloseable {
-
-    private final String username;
-    private final String token;
     private final ExecutorService botExecutor;
+
     private final TelegramLongPollingBot client;
 
-    public LongPollingTelegramBotService(TelegramBotProperties botBuilder,
-                                         TelegramBotsApi api) {
-        log.info("Registering Long Polling with {}", botBuilder);
-        username = botBuilder.getUsername();
-        token = botBuilder.getToken();
-        botExecutor = new ThreadPoolExecutor(1, botBuilder.getMaxThreads(),
-            1L, TimeUnit.HOURS,
-            new SynchronousQueue<>()
-        );
+    @Getter
+    private final BotSession session;
 
-        client = new TelegramBotLongPollingImpl();
+    @Autowired
+    @Qualifier(TELEGRAM_EXECUTOR)
+    private TaskExecutor executor;
+
+    public LongPollingTelegramBotService(TelegramBotProperties botProperties,
+                                         TelegramBotsApi api) {
+        log.info("Registering Long Polling with {}", botProperties);
+
+        this.client = createBot(botProperties);
         try {
-            api.registerBot(client);
-        } catch (TelegramApiException e) {
-            log.error("Cannot register Long Polling with {}", botBuilder, e);
+            this.session = api.registerBot(client);
+            this.botExecutor = new ThreadPoolExecutor(1, botProperties.getMaxThreads(),
+                    1L, TimeUnit.HOURS,
+                    new SynchronousQueue<>()
+            );
+        }
+        catch (TelegramApiException e) {
+            log.error("Cannot register Long Polling with {}", botProperties, e);
             throw new RuntimeException(e);
         }
     }
@@ -60,7 +72,8 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
             if (!terminated) {
                 log.error("Bot executor did not terminated in 5 seconds");
             }
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             log.error("Bot executor service termination awaiting failed", e);
         }
 
@@ -70,28 +83,37 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
         }
     }
 
-    private class TelegramBotLongPollingImpl extends TelegramLongPollingBot {
-        @Override
-        public void onUpdateReceived(Update update) {
-            CompletableFuture.runAsync(() ->
-                updateProcess(update).ifPresent(result -> {
+    private TelegramLongPollingBot createBot(TelegramBotProperties botProperties) {
+        LongPollingTelegramBotService self = this;
+        return new TelegramLongPollingBot() {
+            @Override
+            public String getBotToken() {
+                return botProperties.getToken();
+            }
+
+            @Override
+            public String getBotUsername() {
+                return botProperties.getUsername();
+            }
+
+            @Override
+            public void onUpdateReceived(Update update) {
+                CompletableFuture.runAsync(() -> {
+                    TelegramProcessContext ctx = self.onUpdateReceived(update);
+                    if (ctx == null) return;
+
                     try {
-                        getClient().execute(result);
-                        log.debug("Update: {}. Message: {}. Successfully sent", update, result);
-                    } catch (TelegramApiException e) {
-                        log.error("Update: {}. Cannot send message {} to telegram: ", update.getUpdateId(), result, e);
+                        if (ctx.hasResult()) this.execute(ctx.getResult());
                     }
-                }), botExecutor);
-        }
-
-        @Override
-        public String getBotUsername() {
-            return username;
-        }
-
-        @Override
-        public String getBotToken() {
-            return token;
-        }
+                    catch (TelegramApiException ex) {
+                        ctx.getProcessor().handleExceptions(self, update, ex);
+                    }
+                    finally {
+                        ProcessContextHolder.clear();
+                    }
+                });
+            }
+        };
     }
+
 }

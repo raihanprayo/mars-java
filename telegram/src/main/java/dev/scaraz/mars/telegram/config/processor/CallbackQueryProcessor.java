@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 @Slf4j
@@ -27,17 +28,17 @@ public class CallbackQueryProcessor extends TelegramProcessor {
     }
 
     @Override
-    public Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) {
+    public Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) throws Exception {
         Optional<TelegramHandler> defaultCallbackQueryHandler = Optional.ofNullable(
                 getHandlerMapper().getHandlers(Util.optionalOf(update.getCallbackQuery().getFrom().getId()))
                         .getDefaultCallbackQueryHandler()
         );
 
-        return defaultCallbackQueryHandler.flatMap(handler -> handleExceptions(update, () -> bot.processHandler(handler, makeArgumentList(
-                bot,
-                handler,
-                update,
-                null))
-        ));
+        if (defaultCallbackQueryHandler.isPresent()) {
+            TelegramHandler handler = defaultCallbackQueryHandler.get();
+            return bot.processHandler(handler, makeArgumentList(bot, handler, update, null));
+        }
+
+        return Optional.empty();
     }
 }

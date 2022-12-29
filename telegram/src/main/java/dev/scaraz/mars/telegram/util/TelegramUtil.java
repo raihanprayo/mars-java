@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public interface TelegramUtil {
+    String TELEGRAM_EXECUTOR = "tg-bot-update-executor";
     String RESERVED_CHAR_REGX = "([\\[\\])(~`>#+=|{}.!\\-])";
 
     Comparator<Map.Entry<String, ?>> KEY_LENGTH_COMPARATOR =

@@ -31,23 +31,18 @@ public abstract class TelegramProcessor {
 
     public abstract boolean shouldProcess(Update update);
 
-    public abstract Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update);
+    public abstract Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) throws Exception;
+
+    public Optional<BotApiMethod<?>> handleExceptions(TelegramBotService service, Update update, Exception ex) {
+        log.error("Could not process update: {}", update, ex);
+        return Optional.empty();
+    }
 
     protected Object[] makeArgumentList(TelegramBotService service,
                                         TelegramHandler handler,
                                         Update update,
                                         @Nullable TelegramMessageCommand command) throws IllegalArgumentException {
         return getArgumentMapper().makeArgumentList(service, handler, update, type(), command);
-    }
-
-    protected <T> Optional<T> handleExceptions(Update update, Callable<Optional<T>> callable) {
-        try {
-            return callable.call();
-        }
-        catch (Exception e) {
-            log.error("Could not process update: {}", update, e);
-            return Optional.empty();
-        }
     }
 
 }
