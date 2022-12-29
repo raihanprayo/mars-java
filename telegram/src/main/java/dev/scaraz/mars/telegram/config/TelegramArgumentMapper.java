@@ -33,7 +33,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 
 @Component
-public class TelegramArgumentResolver implements BeanPostProcessor {
+public class TelegramArgumentMapper implements BeanPostProcessor {
     private static final Function<HandlerType, Set<TelegramArgResolver>> DEFAULT_HANDLER_SET = t -> new HashSet<>();
 
     private final TelegramBotsApi api;

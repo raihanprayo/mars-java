@@ -29,7 +29,7 @@ public class CallbackQueryProcessor extends TelegramProcessor {
     @Override
     public Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) {
         Optional<TelegramHandler> defaultCallbackQueryHandler = Optional.ofNullable(
-                bot.getHandlers(Util.optionalOf(update.getCallbackQuery().getFrom().getId()))
+                getHandlerMapper().getHandlers(Util.optionalOf(update.getCallbackQuery().getFrom().getId()))
                         .getDefaultCallbackQueryHandler()
         );
 

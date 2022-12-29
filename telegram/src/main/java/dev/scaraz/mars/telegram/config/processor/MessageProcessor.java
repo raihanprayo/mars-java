@@ -39,7 +39,7 @@ public class MessageProcessor extends TelegramProcessor {
         TelegramMessageCommand command = new TelegramMessageCommand(update);
         Optional<TelegramHandler> optionalCommandHandler;
         OptionalLong userKey = Util.optionalOf(update.getMessage().getChatId());
-        TelegramHandlers handlers = bot.getHandlers(userKey);
+        TelegramHandlers handlers = getHandlerMapper().getHandlers(userKey);
 
         if (command.getForwardedFrom().isPresent()) {
             optionalCommandHandler = Optional.ofNullable(
