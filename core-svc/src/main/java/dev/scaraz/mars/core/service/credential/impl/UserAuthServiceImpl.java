@@ -56,7 +56,7 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     @Transactional
-    public AuthResDTO login(AuthReqDTO authReq, String application) {
+    public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
         User user = userQueryService.loadUserByUsername(authReq.getNik()).getUser();
 
         if (!user.hasRole("admin")) {

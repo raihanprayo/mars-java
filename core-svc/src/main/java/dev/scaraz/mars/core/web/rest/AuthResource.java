@@ -23,7 +23,7 @@ public class AuthResource {
 
     @PostMapping("/authorize")
     public ResponseEntity<?> authorize(@RequestBody AuthReqDTO authReq) {
-        AuthResDTO authResult = authService.login(authReq, "mars-dashboard");
+        AuthResDTO authResult = authService.authenticate(authReq, "mars-dashboard");
         return ResponseEntity.ok(authResult);
     }
 

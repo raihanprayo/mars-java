@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
 public interface UserAuthService {
 
-    AuthResDTO login(AuthReqDTO authReq, String application);
+    AuthResDTO authenticate(AuthReqDTO authReq, String application);
 
     User authenticateFromBot(long telegramId);
 
