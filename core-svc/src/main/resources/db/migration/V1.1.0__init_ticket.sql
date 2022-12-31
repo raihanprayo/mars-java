@@ -19,7 +19,8 @@ create table t_ticket
     witel        varchar(20)         not null,
     sto          varchar(20)         not null,
     status       varchar(20)         not null,
-    gaul         int4                not null default 0,
+    source       varchar(20)         not null,
+    gaul         int4                not null default 0::int4,
 
     incident_no  varchar(100)        not null,
     service_no   varchar(100)        not null,

@@ -5,12 +5,15 @@ import dev.scaraz.mars.telegram.model.TelegramHandler;
 import dev.scaraz.mars.telegram.model.TelegramHandlers;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
+import dev.scaraz.mars.telegram.util.ParseMode;
+import dev.scaraz.mars.telegram.util.TelegramUtil;
 import dev.scaraz.mars.telegram.util.Util;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Map;
@@ -82,4 +85,19 @@ public class MessageProcessor extends TelegramProcessor {
         return Optional.empty();
     }
 
+    @Override
+    public Optional<BotApiMethod<?>> handleExceptions(TelegramBotService bot, Update update, Exception ex) {
+        super.handleExceptions(bot, update, ex);
+        long chatId = update.getMessage().getChatId();
+
+        return Optional.of(SendMessage.builder()
+                .chatId(chatId)
+                .text(TelegramUtil.esc(String.join("\n",
+                        "*" + ex.getClass().getSimpleName() + "*:",
+                        "",
+                        ex.getMessage()
+                )))
+                .parseMode(ParseMode.MarkdownV2.name())
+                .build());
+    }
 }

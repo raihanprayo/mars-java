@@ -53,12 +53,17 @@ public class WebhookTelegramBotService extends TelegramBotService {
 
             @Override
             public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-                return Optional.ofNullable(self.onUpdateReceived(update))
-                        .map(ctx -> {
-                            ProcessContextHolder.clear();
-                            return ctx.getResult();
-                        })
-                        .orElse(null);
+                self.onUpdateReceived(update);
+                try {
+                    TelegramProcessContext ctx = ProcessContextHolder.get();
+                    return ctx.getResult();
+                }
+                catch (IllegalStateException ex) {
+                    return null;
+                }
+                finally {
+                    ProcessContextHolder.clear();
+                }
             }
 
             @Override

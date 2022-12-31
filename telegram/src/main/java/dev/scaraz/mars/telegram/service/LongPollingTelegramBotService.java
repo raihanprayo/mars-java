@@ -2,25 +2,18 @@ package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
 import dev.scaraz.mars.telegram.config.ProcessContextHolder;
-import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import dev.scaraz.mars.telegram.model.TelegramProcessContext;
+import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.annotation.Async;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.BotSession;
 
-import java.util.Optional;
 import java.util.concurrent.*;
-
-import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_EXECUTOR;
 
 /**
  * Long polling implementation of Telegram Bot Service.
@@ -36,15 +29,14 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
     @Getter
     private final BotSession session;
 
-    @Autowired
-    @Qualifier(TELEGRAM_EXECUTOR)
-    private TaskExecutor executor;
+    private final TaskExecutor executor;
 
     public LongPollingTelegramBotService(TelegramBotProperties botProperties,
-                                         TelegramBotsApi api) {
+                                         TelegramBotsApi api, TaskExecutor executor) {
         log.info("Registering Long Polling with {}", botProperties);
 
         this.client = createBot(botProperties);
+        this.executor = executor;
         try {
             this.session = api.registerBot(client);
             this.botExecutor = new ThreadPoolExecutor(1, botProperties.getMaxThreads(),
@@ -99,19 +91,20 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
             @Override
             public void onUpdateReceived(Update update) {
                 CompletableFuture.runAsync(() -> {
-                    TelegramProcessContext ctx = self.onUpdateReceived(update);
-                    if (ctx == null) return;
+                            self.onUpdateReceived(update);
+                            try {
+                                TelegramProcessContext ctx = ProcessContextHolder.get();
+                                if (ctx.hasResult()) this.execute(ctx.getResult());
+                            }
+                            catch (TelegramApiException | IllegalStateException ex) {
+                                ProcessContextHolder.update(c -> c.cycle(ProcessCycle.SEND));
+                                ProcessContextHolder.getIfAvailable(ctx ->
+                                        ctx.getProcessor().handleExceptions(self, update, ex)
+                                );
+                            }
 
-                    try {
-                        if (ctx.hasResult()) this.execute(ctx.getResult());
-                    }
-                    catch (TelegramApiException ex) {
-                        ctx.getProcessor().handleExceptions(self, update, ex);
-                    }
-                    finally {
-                        ProcessContextHolder.clear();
-                    }
-                });
+                            ProcessContextHolder.clear();
+                        }, self.executor);
             }
         };
     }

@@ -24,7 +24,7 @@ public interface TelegramUtil {
 
     static String esc(String... texts) {
         return Arrays.stream(texts)
-                .map(t -> t.replaceAll(RESERVED_CHAR_REGX, "\\$1"))
+                .map(t -> t.replaceAll(RESERVED_CHAR_REGX, "\\\\$1"))
                 .collect(Collectors.joining("\n"));
     }
 

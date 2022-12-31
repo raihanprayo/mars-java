@@ -26,11 +26,7 @@ public class Ticket extends AuditableEntity {
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
 
-    @Column(updatable = false)
-    @GeneratedValue(generator = "ticket-no")
-    @GenericGenerator(
-            name = "ticket-no",
-            strategy = "dev.scaraz.mars.core.util.generator.TicketNoGenerator")
+    @Column(name = "no", updatable = false)
     private String no;
 
     @Column(updatable = false)
@@ -47,7 +43,8 @@ public class Ticket extends AuditableEntity {
     private String serviceNo;
 
     @Column
-    private TcStatus status;
+    @Builder.Default
+    private TcStatus status = TcStatus.OPEN;
 
     @Column(updatable = false)
     @Enumerated(EnumType.STRING)

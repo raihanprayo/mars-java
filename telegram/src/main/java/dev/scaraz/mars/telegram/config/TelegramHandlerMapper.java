@@ -122,20 +122,24 @@ public class TelegramHandlerMapper implements BeanPostProcessor {
                 if (!Modifier.isPublic(method.getModifiers())) {
                     continue;
                 }
-                log.debug("Found method {}", method.getName());
                 if (AnnotatedElementUtils.hasAnnotation(method, TelegramCommand.class)) {
+                    log.debug("Found method {}", method.getName());
                     bindCommandHandler(bean, method, userId);
                 }
                 if (AnnotatedElementUtils.hasAnnotation(method, TelegramMessage.class)) {
+                    log.debug("Found method {}", method.getName());
                     bindDefaultMessageHandler(bean, method, userId);
                 }
                 if (AnnotatedElementUtils.hasAnnotation(method, TelegramForward.class)) {
+                    log.debug("Found method {}", method.getName());
                     bindForwardHandler(bean, method, userId);
                 }
                 if (AnnotatedElementUtils.hasAnnotation(method, TelegramHelp.class)) {
+                    log.debug("Found method {}", method.getName());
                     bindHelpPrefix(bean, method, userId);
                 }
                 if (AnnotatedElementUtils.hasAnnotation(method, TelegramCallbackQuery.class)) {
+                    log.debug("Found method {}", method.getName());
                     bindCallbackQueryHandler(bean, method, userId);
                 }
             }

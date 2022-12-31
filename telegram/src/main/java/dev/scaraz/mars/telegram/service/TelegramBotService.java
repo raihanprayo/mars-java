@@ -3,15 +3,15 @@ package dev.scaraz.mars.telegram.service;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.config.ProcessContextHolder;
 import dev.scaraz.mars.telegram.config.TelegramArgumentMapper;
-import dev.scaraz.mars.telegram.config.UpdateContextHolder;
 import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
 import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
-import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
+import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.util.ClassUtils;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -75,44 +75,43 @@ public abstract class TelegramBotService implements AutoCloseable {
 //        return Optional.empty();
 //    }
 
-    protected TelegramProcessContext onUpdateReceived(Update update) {
+    protected void onUpdateReceived(Update update) {
         TelegramProcessor processor = getProcessor(update);
 
         try {
             if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
             else {
-                ProcessContextHolder.add(b -> b.update(update).processor(processor));
+                ProcessContextHolder.update(b -> b.update(update).processor(processor).cycle(ProcessCycle.PROCESS));
                 try {
                     processor.process(this, update)
-                            .ifPresent(m -> ProcessContextHolder.add(b -> b.result(m)));
+                            .ifPresent(m -> ProcessContextHolder.update(b -> b.result(m)));
                 }
                 catch (Exception e) {
                     log.warn("Fail to process update {}", update.getUpdateId(), e);
                     processor.handleExceptions(this, update, e)
-                            .ifPresent(m -> ProcessContextHolder.add(b -> b.result(m)));
+                            .ifPresent(m -> ProcessContextHolder.update(b -> b.result(m)));
                 }
-                return ProcessContextHolder.get();
             }
         }
         catch (Exception ex) {
             ex.printStackTrace();
             log.error(ex.getMessage());
+            ProcessContextHolder.clear();
         }
-
-        // Berarti ga ada yang ngeprosess
-        return null;
     }
 
     public Optional<BotApiMethod<?>> processHandler(TelegramHandler commandHandler, Object[] arguments) throws IllegalAccessException, InvocationTargetException {
-        ProcessContextHolder.add(b -> b.handler(commandHandler));
+        ProcessContextHolder.update(b -> b.handler(commandHandler).handlerArguments(arguments));
 
         Method method = commandHandler.getMethod();
         Class<?> methodReturnType = method.getReturnType();
         log.debug("Derived method return type: {}", methodReturnType);
+        log.debug("Bean {}", commandHandler.getBean());
         if (methodReturnType == void.class || methodReturnType == Void.class) {
             method.invoke(commandHandler.getBean(), arguments);
         }
-        else if (BotApiMethod.class.isAssignableFrom(methodReturnType)) {
+//        else if (BotApiMethod.class.isAssignableFrom(methodReturnType)) {
+        else if (ClassUtils.isAssignable(BotApiMethod.class, methodReturnType)) {
             return Optional.ofNullable((BotApiMethod<?>) method.invoke(commandHandler.getBean(), arguments));
         }
         else {

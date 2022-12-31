@@ -14,11 +14,18 @@ public class ProcessContextHolder {
                 .orElseThrow(() -> new IllegalStateException("No update bounded to current thread"));
     }
 
+    public static void getIfAvailable(Consumer<TelegramProcessContext> consumer) {
+        try {
+            consumer.accept(get());
+        }
+        catch (IllegalStateException ex) {}
+    }
+
     public static void clear() {
         ctxAttribute.remove();
     }
 
-    public static void add(Consumer<TelegramProcessContext.TelegramProcessContextBuilder> consumer) {
+    public static void update(Consumer<TelegramProcessContext.TelegramProcessContextBuilder> consumer) {
         TelegramProcessContext.TelegramProcessContextBuilder b = Optional.ofNullable(ctxAttribute.get())
                 .map(TelegramProcessContext::toBuilder)
                 .orElseGet(TelegramProcessContext::builder);

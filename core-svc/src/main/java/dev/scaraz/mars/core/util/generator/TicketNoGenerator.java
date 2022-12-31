@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.util.generator;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 
+@Slf4j
 public class TicketNoGenerator implements IdentifierGenerator {
 
     @Override
@@ -24,7 +26,9 @@ public class TicketNoGenerator implements IdentifierGenerator {
                 .setParameter("instant", now.atStartOfDay().toInstant(ZoneOffset.of("+07")));
 
         long total = query.getFetchSize();
+
         String totalStr = String.format("%06d", total);
+        log.debug("Generating no ticket {}", totalStr);
         return dateString + totalStr;
     }
 

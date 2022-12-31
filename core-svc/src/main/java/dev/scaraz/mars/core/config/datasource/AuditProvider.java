@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.config.datasource;
 
+import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.auditing.DateTimeProvider;
@@ -32,8 +33,9 @@ public class AuditProvider implements AuditorAware<String>, DateTimeProvider {
         Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();
 
-        if (authentication != null && authentication.isAuthenticated())
+        if (authentication != null && authentication.isAuthenticated()) {
             return Optional.of(authentication.getName());
+        }
 
         return Optional.of("system");
     }

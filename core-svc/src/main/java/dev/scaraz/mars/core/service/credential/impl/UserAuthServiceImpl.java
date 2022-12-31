@@ -5,10 +5,12 @@ import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.domain.response.JwtToken;
+import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
 import dev.scaraz.mars.common.exception.web.AccessDeniedException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
+import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.config.security.JwtUtil;
 import dev.scaraz.mars.core.domain.credential.*;
 import dev.scaraz.mars.core.query.UserQueryService;
@@ -16,9 +18,11 @@ import dev.scaraz.mars.core.repository.credential.*;
 import dev.scaraz.mars.core.service.credential.GroupService;
 import dev.scaraz.mars.core.service.credential.UserAuthService;
 import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.util.AuthSource;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,6 +96,20 @@ public class UserAuthServiceImpl implements UserAuthService {
                 .refreshToken(refreshToken.getToken())
                 .refreshExpiredAt(refreshToken.getExpiredAt().getEpochSecond())
                 .build();
+    }
+
+    @Override
+    public User authenticateFromBot(long telegramId) {
+        try {
+            User user = userQueryService.findByTelegramId(telegramId);
+            SecurityContextHolder.getContext().setAuthentication(
+                    new CoreAuthenticationToken(AuthSource.TELEGRAM, user)
+            );
+            return user;
+        }
+        catch (NotFoundException ex) {
+            throw new TgUnauthorizedError(telegramId);
+        }
     }
 
     @Override

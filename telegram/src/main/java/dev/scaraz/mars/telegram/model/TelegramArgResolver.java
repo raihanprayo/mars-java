@@ -12,7 +12,6 @@ import java.util.List;
 @FunctionalInterface
 public interface TelegramArgResolver {
     List<HandlerType> DEFAULT_HANDLER_TYPE = List.of(HandlerType.ALL);
-    List<Class<? extends Annotation>> DEFAULT_SUPP_ANNOTATIONS = List.of();
 
     Object resolve(MethodParameter mp,
                    TelegramHandlerContext ctx,
@@ -22,10 +21,6 @@ public interface TelegramArgResolver {
 
     default List<HandlerType> handledFor() {
         return DEFAULT_HANDLER_TYPE;
-    }
-
-    default List<Class<? extends Annotation>> supportedAnnotations() {
-        return DEFAULT_SUPP_ANNOTATIONS;
     }
 
 }

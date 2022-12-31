@@ -33,8 +33,10 @@ public abstract class TelegramProcessor {
 
     public abstract Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) throws Exception;
 
-    public Optional<BotApiMethod<?>> handleExceptions(TelegramBotService service, Update update, Exception ex) {
-        log.error("Could not process update: {}", update, ex);
+    public Optional<BotApiMethod<?>> handleExceptions(TelegramBotService bot, Update update, Exception ex) {
+        ex.printStackTrace();
+        log.error("Could not process update: {}", update.getUpdateId());
+        log.error(ex.getMessage());
         return Optional.empty();
     }
 

@@ -8,6 +8,8 @@ import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.service.WebhookTelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +36,10 @@ public class TelegramBotConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(TelegramBotService.class)
-    public TelegramBotService telegramBotService() {
+    public TelegramBotService telegramBotService(
+            @Autowired(required = false)
+            @Qualifier(TELEGRAM_EXECUTOR) TaskExecutor taskExecutor
+    ) {
         TelegramBotProperties botProperties = TelegramBotProperties.builder()
                 .token(telegramProperties.getToken())
                 .username(telegramProperties.getName())
@@ -45,7 +50,7 @@ public class TelegramBotConfiguration {
             case WEBHOOK:
                 return new WebhookTelegramBotService(botProperties, api);
             case LONG_POLLING:
-                return new LongPollingTelegramBotService(botProperties, api);
+                return new LongPollingTelegramBotService(botProperties, api, taskExecutor);
         }
 
         throw new IllegalStateException(String.format("Unhandled bot type %s", telegramProperties.getType()));
@@ -58,7 +63,7 @@ public class TelegramBotConfiguration {
         exc.setCorePoolSize(3);
         exc.setMaxPoolSize(100);
         exc.setQueueCapacity(1000);
-        exc.setThreadNamePrefix("TG-LP-UPD-");
+        exc.setThreadNamePrefix("TG-UPDATE-");
         return exc;
     }
 
