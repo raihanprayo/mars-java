@@ -22,6 +22,7 @@ import dev.scaraz.mars.core.util.AuthSource;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -105,6 +106,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             SecurityContextHolder.getContext().setAuthentication(
                     new CoreAuthenticationToken(AuthSource.TELEGRAM, user)
             );
+            LocaleContextHolder.setLocale(user.getSetting().getLang());
             return user;
         }
         catch (NotFoundException ex) {

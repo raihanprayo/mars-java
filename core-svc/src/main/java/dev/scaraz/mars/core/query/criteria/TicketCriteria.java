@@ -1,8 +1,7 @@
 package dev.scaraz.mars.core.query.criteria;
 
-import dev.scaraz.mars.common.tools.enums.TcSource;
-import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.common.tools.enums.Witel;
+import dev.scaraz.mars.common.tools.annotation.CriteriaField;
+import dev.scaraz.mars.common.tools.enums.*;
 import dev.scaraz.mars.common.tools.filter.Criteria;
 import dev.scaraz.mars.common.tools.filter.type.EnumFilter;
 import dev.scaraz.mars.common.tools.filter.type.IntegerFilter;
@@ -27,4 +26,9 @@ public class TicketCriteria implements Criteria {
     private IntegerFilter gaul;
 
     private IssueCriteria issue;
+    @CriteriaField("issue.product")
+    private EnumFilter<Product> product;
+
+    private TicketAgentCriteria agents;
+
 }

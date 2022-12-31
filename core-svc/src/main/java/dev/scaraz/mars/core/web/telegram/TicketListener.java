@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.web.telegram;
 
+import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
 import dev.scaraz.mars.common.domain.general.TicketForm;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.Translator;
@@ -8,7 +9,10 @@ import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Ticket;
+import dev.scaraz.mars.core.query.TicketAgentQueryService;
+import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
+import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.Util;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
@@ -31,7 +35,10 @@ import java.util.stream.Stream;
 @TelegramBot
 public class TicketListener {
 
-    private final TicketBotService ticketBotService;
+    private final TicketService service;
+    private final TicketQueryService queryService;
+    private final TicketAgentQueryService agentQueryService;
+    private final TicketBotService botService;
 
     @TelegramCommand(commands = "/report", description = "Register new ticker/order")
     public SendMessage registerReport(
@@ -40,12 +47,12 @@ public class TicketListener {
             Message message
     ) {
         try {
-            TicketForm form = parseMessage(text);
+            TicketForm form = parseTicketRegistration(text);
 
             log.info("Validation Ticket Form {}", form);
-            ticketBotService.validateForm(form);
+            botService.validateForm(form);
 
-            Ticket ticket = ticketBotService.registerForm(
+            Ticket ticket = botService.registerForm(
                     form.toBuilder()
                             .source(getChatSource(message.getChat().getType()))
                             .senderId(user.getTelegramId())
@@ -71,7 +78,33 @@ public class TicketListener {
         }
     }
 
-    private TicketForm parseMessage(String text) {
+    @TelegramCommand(commands = "/take", description = "take ticket by order no")
+    public SendMessage takeTicket(@TgAuth User user, @Text String text) {
+        try {
+            Ticket ticket = botService.take(text);
+            return SendMessage.builder()
+                    .chatId(user.getTelegramId())
+                    .text(Translator.tr("ticket.take.success", ticket.getNo()))
+                    .build();
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+            log.error(ex.getMessage());
+            return SendMessage.builder()
+                    .chatId(user.getTelegramId())
+                    .text(TelegramUtil.esc(ex.getMessage()))
+                    .parseMode(ParseMode.MarkdownV2.name())
+                    .build();
+        }
+    }
+
+
+    @TelegramCommand(commands = "/close", description = "close ticket")
+    public void closeTicket(@TgAuth User user, @Text String text, Message message) {
+
+    }
+
+    private TicketForm parseTicketRegistration(String text) {
         TicketForm form = new TicketForm();
         String[] lines = text.split("\n");
 
@@ -104,7 +137,7 @@ public class TicketListener {
         return form;
     }
 
-    private static void applyForm(TicketForm form, String fieldValue, String fieldName) {
+    private void applyForm(TicketForm form, String fieldValue, String fieldName) {
         try {
             switch (fieldName) {
                 case "witel":
@@ -141,13 +174,13 @@ public class TicketListener {
 
 
     private String fieldNameMatcher(String fieldName) {
-        Map<String, TicketForm.Descriptor> descriptors = TicketForm.getDescriptors();
+        Map<String, FormDescriptor> descriptors = TicketForm.getDescriptors();
         Set<String> formKeys = descriptors.keySet();
         for (String formKey : formKeys) {
-            TicketForm.Descriptor descriptor = descriptors.get(formKey);
-            if (descriptor.multiline()) continue;
+            FormDescriptor formDescriptor = descriptors.get(formKey);
+            if (formDescriptor.multiline()) continue;
 
-            Stream<String> aliases = Stream.of(descriptor.alias());
+            Stream<String> aliases = Stream.of(formDescriptor.alias());
             if (aliases.anyMatch(alias -> alias.equalsIgnoreCase(fieldName))) {
                 return formKey;
             }
@@ -161,7 +194,7 @@ public class TicketListener {
 
     private int noteLineMatcher(String[] lines) {
         String FIELD_NAME = "description";
-        TicketForm.Descriptor descriptor = TicketForm.getDescriptors().get(FIELD_NAME);
+        FormDescriptor formDescriptor = TicketForm.getDescriptors().get(FIELD_NAME);
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
             int colonIndex = line.indexOf(":");
@@ -169,7 +202,7 @@ public class TicketListener {
             if (colonIndex == -1) continue;
             String fieldName = line.substring(0, colonIndex);
 
-            Stream<String> aliases = Stream.of(descriptor.alias());
+            Stream<String> aliases = Stream.of(formDescriptor.alias());
             if (aliases.anyMatch(alias -> alias.equalsIgnoreCase(fieldName))) {
                 return i;
             }

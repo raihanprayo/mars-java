@@ -10,18 +10,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.List;
 
-public interface UserQueryService extends UserDetailsService {
+public interface UserQueryService extends UserDetailsService, BaseQueryService<User, UserCriteria> {
 
     @Override
     DelegateUser loadUserByUsername(String username) throws UsernameNotFoundException;
-
-    List<User> findAll();
-
-    Page<User> findAll(Pageable pageable);
-
-    List<User> findAll(UserCriteria criteria);
-
-    Page<User> findAll(UserCriteria criteria, Pageable pageable);
 
     User findById(String id);
 

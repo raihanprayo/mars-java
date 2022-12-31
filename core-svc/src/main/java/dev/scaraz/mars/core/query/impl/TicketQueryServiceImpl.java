@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.query.impl;
 
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.utils.QueryBuilder;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketQueryService;
@@ -22,6 +23,18 @@ import java.util.List;
 public class TicketQueryServiceImpl extends QueryBuilder implements TicketQueryService {
 
     private final TicketRepo repo;
+
+    @Override
+    public Ticket findById(String id) {
+        return repo.findById(id)
+                .orElseThrow(() -> NotFoundException.entity(Ticket.class, "id", id));
+    }
+
+    @Override
+    public Ticket findByIdOrNo(String idOrNo) {
+        return repo.findByIdOrNo(idOrNo, idOrNo)
+                .orElseThrow(() -> NotFoundException.entity(Ticket.class, "id/no", idOrNo));
+    }
 
     @Override
     public List<Ticket> findAll() {

@@ -14,6 +14,7 @@ import io.jsonwebtoken.security.SignatureException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -49,6 +50,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     User user = userQueryService.findById(jwt.getUserId());
                     SecurityContextHolder.getContext()
                             .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
+
+                    LocaleContextHolder.setLocale(user.getSetting().getLang());
                 }
                 catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
                        IllegalArgumentException ex) {

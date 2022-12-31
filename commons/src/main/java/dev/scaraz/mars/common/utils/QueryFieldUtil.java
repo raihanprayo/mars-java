@@ -8,11 +8,49 @@ import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
-import javax.persistence.metamodel.SingularAttribute;
-import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 
-public class EntityFieldUtil {
+public class QueryFieldUtil {
+
+    protected static  <E> Specification<E> create(Filter<?> filter, String attribute) {
+        boolean negated = filter.isNegated();
+
+        if (filter.getEq() != null)
+            return equalSpec(filter.getEq(), attribute, negated);
+        if (filter.getIn() != null)
+            return inclusionSpec(filter.getIn(), attribute, negated);
+
+        return null;
+    }
+
+    protected static  <E> Specification<E> createReadable(ReadableFilter<?> filter, String attribute) {
+        Specification<E> spec = create(filter, attribute);
+        if (spec == null) {
+            if (filter.getLike() != null)
+                return likeSpec(filter.getLike(), attribute, filter.isNegated());
+        }
+        return spec;
+    }
+
+    protected static  <E> Specification<E> createRange(RangeFilter<?> filter, String attribute) {
+        Specification<E> spec = create(filter, attribute);
+        if (spec == null) {
+            spec = Specification.where(null);
+
+            if (filter.getGt() != null) spec.and(gtSpec(filter.getGt(), attribute, false));
+            else if (filter.getGte() != null) spec.and(gtSpec(filter.getGte(), attribute, true));
+
+            if (filter.getLt() != null) spec.and(ltSpec(filter.getLt(), attribute, false));
+            else if (filter.getLte() != null) spec.and(ltSpec(filter.getLte(), attribute, true));
+        }
+        return spec;
+    }
+
+    protected static  <E> Specification<E> createReadableRange(ReadableRangeFilter<?> filter, String attribute) {
+        return Specification.<E>where(null)
+                .and(createReadable(filter, attribute))
+                .and(createRange(filter, attribute));
+    }
 
     public static <E, T> Specification<E> equalSpec(T value, String attribute, boolean negate) {
         return (r, q, b) -> {

@@ -7,16 +7,8 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-public interface RoleQueryService {
+public interface RoleQueryService extends BaseQueryService<Role, RoleCriteria> {
     Role findByIdOrName(String idOrName);
 
     Role findGroupRole(String groupId, String name);
-
-    List<Role> findAll();
-
-    Page<Role> findAll(Pageable pageable);
-
-    List<Role> findAll(RoleCriteria criteria);
-
-    Page<Role> findAll(RoleCriteria criteria, Pageable pageable);
 }

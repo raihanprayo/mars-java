@@ -14,7 +14,7 @@ import java.io.Serializable;
 public class AuthResDTO implements Serializable {
 
     private String code;
-    private String newPassword;
+//    private String newPassword;
 
     private String accessToken;
     private long expiredAt;

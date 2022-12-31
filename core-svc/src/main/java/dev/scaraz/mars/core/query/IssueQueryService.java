@@ -8,16 +8,9 @@ import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
-public interface IssueQueryService {
+public interface IssueQueryService extends BaseQueryService<Issue, IssueCriteria> {
     Optional<Issue> findById(String id);
 
     Optional<Issue> findOne(IssueCriteria criteria);
 
-    List<Issue> findAll();
-
-    Page<Issue> findAll(Pageable pageable);
-
-    List<Issue> findAll(IssueCriteria criteria);
-
-    Page<Issue> findAll(IssueCriteria criteria, Pageable pageable);
 }

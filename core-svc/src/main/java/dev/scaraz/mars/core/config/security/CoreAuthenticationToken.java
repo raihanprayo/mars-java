@@ -12,7 +12,7 @@ public class CoreAuthenticationToken extends AbstractAuthenticationToken {
 
     @Getter
     private final AuthSource source;
-    private final UserDetails principal;
+    private final DelegateUser principal;
     private final UserCredential credentials;
 
     public CoreAuthenticationToken(AuthSource source, User user) {
@@ -29,7 +29,7 @@ public class CoreAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     @Override
-    public UserDetails getPrincipal() {
+    public DelegateUser getPrincipal() {
         return this.principal;
     }
 

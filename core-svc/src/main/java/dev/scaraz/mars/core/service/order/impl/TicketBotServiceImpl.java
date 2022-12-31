@@ -1,25 +1,26 @@
 package dev.scaraz.mars.core.service.order.impl;
 
+import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
 import dev.scaraz.mars.common.domain.general.TicketForm;
 import dev.scaraz.mars.common.exception.telegram.TelegramError;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.IssueQueryService;
+import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.Util;
-import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 
 import java.lang.reflect.Field;
@@ -35,6 +36,7 @@ public class TicketBotServiceImpl implements TicketBotService {
 
     private final TicketService service;
     private final TicketQueryService queryService;
+    private final TicketAgentQueryService agentQueryService;
     private final IssueQueryService issueQueryService;
 
     @Override
@@ -58,9 +60,18 @@ public class TicketBotServiceImpl implements TicketBotService {
     }
 
     @Override
+    public Ticket take(String ticketNo) {
+        Ticket ticket = queryService.findByIdOrNo(ticketNo);
+        if (agentQueryService.hasAgentInProgressByTicketNo(ticketNo))
+            throw BadRequestException.args("error.ticket.taken");
+
+        return service.take(ticket);
+    }
+
+    @Override
     public void validateForm(TicketForm form) throws TgInvalidFormError {
         // check required fields
-        Map<String, TicketForm.Descriptor> descriptors = TicketForm.getDescriptors();
+        Map<String, FormDescriptor> descriptors = TicketForm.getDescriptors();
 
         log.info("Descriptor Keys {}", descriptors.keySet());
         for (String fieldName : descriptors.keySet()) {
@@ -69,15 +80,15 @@ public class TicketBotServiceImpl implements TicketBotService {
                 Field field = form.getClass().getDeclaredField(fieldName);
                 field.setAccessible(true);
 
-                TicketForm.Descriptor descriptor = descriptors.get(field.getName());
+                FormDescriptor formDescriptor = descriptors.get(field.getName());
                 Object o = field.get(form);
 
-                log.info("* CHECK FIELD {} -- required ? {} - alias {}", field.getName(), descriptor.required(), descriptor.alias());
-                if (o == null && descriptor.required()) {
+                log.info("* CHECK FIELD {} -- required ? {} - alias {}", field.getName(), formDescriptor.required(), formDescriptor.alias());
+                if (o == null && formDescriptor.required()) {
                     throw new TgInvalidFormError(
                             field.getName(),
                             "error.ticket.form.missing.field",
-                            List.of(descriptor.alias()));
+                            List.of(formDescriptor.alias()));
                 }
                 field.setAccessible(false);
             }
@@ -95,13 +106,13 @@ public class TicketBotServiceImpl implements TicketBotService {
 
     private void checkFieldIncidentNo(TicketForm form) {
         final String FIELD_NAME = "incident";
-        TicketForm.Descriptor descriptor = TicketForm.getDescriptors().get(FIELD_NAME);
+        FormDescriptor formDescriptor = TicketForm.getDescriptors().get(FIELD_NAME);
         String incident = form.getIncident();
         if (!incident.toUpperCase().startsWith("IN")) {
             throw new TgInvalidFormError(
                     FIELD_NAME,
                     "error.ticket.form.incident",
-                    List.of(descriptor.alias())
+                    List.of(formDescriptor.alias())
             );
         }
 
@@ -110,14 +121,14 @@ public class TicketBotServiceImpl implements TicketBotService {
             throw new TgInvalidFormError(
                     FIELD_NAME,
                     "error.ticket.form.incident",
-                    List.of(descriptor.alias())
+                    List.of(formDescriptor.alias())
             );
         }
     }
 
     private void checkFieldServiceNo(TicketForm form) {
         final String FIELD_NAME = "service";
-        TicketForm.Descriptor descriptor = TicketForm.getDescriptors().get(FIELD_NAME);
+        FormDescriptor formDescriptor = TicketForm.getDescriptors().get(FIELD_NAME);
         String serviceNo = form.getService();
 
         boolean isIptvInternet = List.of(Product.IPTV, Product.INTERNET).contains(form.getProduct());
@@ -129,7 +140,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 throw new TgInvalidFormError(
                         FIELD_NAME,
                         "error.ticket.form.service",
-                        List.of(descriptor.alias())
+                        List.of(formDescriptor.alias())
                 );
             }
         }
@@ -144,7 +155,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 throw new TgInvalidFormError(
                         FIELD_NAME,
                         "error.ticket.form.service.voice",
-                        List.of(descriptor.alias())
+                        List.of(formDescriptor.alias())
                 );
             }
         }
@@ -152,7 +163,7 @@ public class TicketBotServiceImpl implements TicketBotService {
 
     private void checkFieldIssue(TicketForm form) {
         final String FIELD_NAME = "issue";
-        TicketForm.Descriptor descriptor = TicketForm.getDescriptors().get(FIELD_NAME);
+        FormDescriptor formDescriptor = TicketForm.getDescriptors().get(FIELD_NAME);
 
         String problem = form.getIssue();
         Optional<Issue> issueOpt = issueQueryService.findOne(IssueCriteria.builder()
@@ -166,7 +177,7 @@ public class TicketBotServiceImpl implements TicketBotService {
             throw new TgInvalidFormError(
                     FIELD_NAME,
                     "error.ticket.form.problem",
-                    List.of(descriptor.alias())
+                    List.of(formDescriptor.alias())
             );
         }
     }

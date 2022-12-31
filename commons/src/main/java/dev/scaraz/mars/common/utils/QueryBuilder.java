@@ -3,7 +3,6 @@ package dev.scaraz.mars.common.utils;
 import dev.scaraz.mars.common.tools.CriteriaFieldMetadata;
 import dev.scaraz.mars.common.tools.annotation.CriteriaField;
 import dev.scaraz.mars.common.tools.filter.*;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -12,52 +11,14 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-import static dev.scaraz.mars.common.utils.EntityFieldUtil.*;
+import static dev.scaraz.mars.common.utils.QueryFieldUtil.*;
 
 @Slf4j
 public class QueryBuilder {
 
-    protected <E> Specification<E> create(Filter<?> filter, String attribute) {
-        boolean negated = filter.isNegated();
-
-        if (filter.getEq() != null)
-            return equalSpec(filter.getEq(), attribute, negated);
-        if (filter.getIn() != null)
-            return inclusionSpec(filter.getIn(), attribute, negated);
-
-        return null;
-    }
-
-    protected <E> Specification<E> createReadable(ReadableFilter<?> filter, String attribute) {
-        Specification<E> spec = create(filter, attribute);
-        if (spec == null) {
-            if (filter.getLike() != null)
-                return likeSpec(filter.getLike(), attribute, filter.isNegated());
-        }
-        return spec;
-    }
-
-    protected <E> Specification<E> createRange(RangeFilter<?> filter, String attribute) {
-        Specification<E> spec = create(filter, attribute);
-        if (spec == null) {
-            spec = Specification.where(null);
-
-            if (filter.getGt() != null) spec.and(gtSpec(filter.getGt(), attribute, false));
-            else if (filter.getGte() != null) spec.and(gtSpec(filter.getGte(), attribute, true));
-
-            if (filter.getLt() != null) spec.and(ltSpec(filter.getLt(), attribute, false));
-            else if (filter.getLte() != null) spec.and(ltSpec(filter.getLte(), attribute, true));
-        }
-        return spec;
-    }
-
-    protected <E> Specification<E> createReadableRange(ReadableRangeFilter<?> filter, String attribute) {
-        return Specification.<E>where(null)
-                .and(createReadable(filter, attribute))
-                .and(createRange(filter, attribute));
-    }
-
     protected <E, C extends Criteria> Specification<E> createSpecification(C criteria) {
+        if (criteria == null) return null;
+
         Specification<E> spec = Specification.where(null);
 
         Set<CriteriaFieldMetadata> mds = travelCriteria((Class<Criteria>) criteria.getClass(), criteria);
@@ -70,22 +31,22 @@ public class QueryBuilder {
 
             Class<? extends Filter> filterClass = filter.getClass();
             if (ReadableRangeFilter.class.isAssignableFrom(filterClass)) {
-                spec = spec.and(createReadableRange((ReadableRangeFilter<?>) filter, attribute));
+                spec = spec.and(QueryFieldUtil.createReadableRange((ReadableRangeFilter<?>) filter, attribute));
             }
             else if (ReadableFilter.class.isAssignableFrom(filterClass)) {
-                spec = spec.and(createReadable((ReadableFilter<?>) filter, attribute));
+                spec = spec.and(QueryFieldUtil.createReadable((ReadableFilter<?>) filter, attribute));
             }
             else if (RangeFilter.class.isAssignableFrom(filterClass)) {
-                spec = spec.and(createRange((RangeFilter<?>) filter, attribute));
+                spec = spec.and(QueryFieldUtil.createRange((RangeFilter<?>) filter, attribute));
             }
             else {
-                spec = spec.and(create(filter, attribute));
+                spec = spec.and(QueryFieldUtil.create(filter, attribute));
             }
         }
         return spec;
     }
 
-    protected Set<CriteriaFieldMetadata> travelCriteria(Class<Criteria> clazz, Criteria criteria) {
+    private Set<CriteriaFieldMetadata> travelCriteria(Class<Criteria> clazz, Criteria criteria) {
         Set<CriteriaFieldMetadata> mds = new HashSet<>();
         if (criteria == null) return mds;
 
@@ -117,7 +78,7 @@ public class QueryBuilder {
         return mds;
     }
 
-    protected Set<CriteriaFieldMetadata> travelCriteria(String prefix, Class<Criteria> clazz, Criteria criteria) {
+    private Set<CriteriaFieldMetadata> travelCriteria(String prefix, Class<Criteria> clazz, Criteria criteria) {
         Set<CriteriaFieldMetadata> mds = new HashSet<>();
         if (criteria == null) return mds;
 
@@ -156,14 +117,15 @@ public class QueryBuilder {
     }
 
     private Object getFieldValue(Field field, Object source) {
+        field.setAccessible(true);
         try {
-            field.setAccessible(true);
-            Object o = field.get(source);
-            field.setAccessible(false);
-            return o;
+            return field.get(source);
         }
         catch (IllegalAccessException e) {
             return null;
+        }
+        finally {
+            field.setAccessible(false);
         }
     }
 

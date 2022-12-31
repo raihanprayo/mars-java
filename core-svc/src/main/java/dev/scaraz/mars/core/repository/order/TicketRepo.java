@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Optional;
 
 @Repository
 public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificationExecutor<Ticket> {
@@ -15,5 +16,7 @@ public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificat
     long countByCreatedAtGreaterThanEqual(Instant today);
 
     int countByServiceNo(String serviceNo);
+
+    Optional<Ticket> findByIdOrNo(String ticketId, String ticketNo);
 
 }

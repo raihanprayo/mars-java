@@ -14,5 +14,7 @@ public interface TicketBotService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     Ticket registerForm(TicketForm form, Collection<PhotoSize> photos);
 
+    Ticket take(String ticketNo);
+
     void validateForm(TicketForm form) throws TgInvalidFormError;
 }
