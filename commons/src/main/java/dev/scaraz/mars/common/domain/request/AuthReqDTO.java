@@ -12,5 +12,7 @@ public class AuthReqDTO {
     private String password;
 
     private boolean confirmed = false;
+    private String email;
+    private String username;
 
 }

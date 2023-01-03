@@ -1,10 +1,9 @@
 package dev.scaraz.mars.core.query.criteria;
 
 import dev.scaraz.mars.common.tools.AuditableCriteria;
-import dev.scaraz.mars.common.tools.annotation.CriteriaField;
-import dev.scaraz.mars.common.tools.enums.AgStatus;
-import dev.scaraz.mars.common.tools.filter.type.EnumFilter;
+import dev.scaraz.mars.common.tools.filter.type.AgStatusFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import lombok.*;
 
 @Getter
@@ -15,15 +14,15 @@ import lombok.*;
 @AllArgsConstructor
 public class TicketAgentCriteria extends AuditableCriteria {
 
-    private EnumFilter<AgStatus> status;
+    private StringFilter id;
+
+    private AgStatusFilter status;
+
+    private TcStatusFilter closeStatus;
 
     private UserCriteria user;
-
-    @CriteriaField("user.id")
-    private StringFilter userId;
-
     private TicketCriteria ticket;
 
-    @CriteriaField("ticket.id")
+    private StringFilter userId;
     private StringFilter ticketId;
 }

@@ -1,11 +1,17 @@
 package dev.scaraz.mars.core.repository.order;
 
+import dev.scaraz.mars.common.tools.enums.AgStatus;
+import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Optional;
 
 @Repository
@@ -15,7 +21,12 @@ public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificat
 
     long countByCreatedAtGreaterThanEqual(Instant today);
 
-    int countByServiceNo(String serviceNo);
+    int countByServiceNoAndIssueIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(
+            String serviceNo,
+            String issueId,
+            Instant gte,
+            Instant lte
+    );
 
     Optional<Ticket> findByIdOrNo(String ticketId, String ticketNo);
 

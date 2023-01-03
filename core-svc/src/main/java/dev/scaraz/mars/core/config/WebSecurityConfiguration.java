@@ -1,11 +1,9 @@
 package dev.scaraz.mars.core.config;
 
 import dev.scaraz.mars.core.config.interceptor.JwtRequestFilter;
-import dev.scaraz.mars.core.config.interceptor.TelegramRequestFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -35,7 +33,6 @@ public class WebSecurityConfiguration {
     private final SecurityProblemSupport problemSupport;
 
     private final JwtRequestFilter jwtRequestFilter;
-    private final TelegramRequestFilter telegramRequestFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -51,7 +48,7 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
+        return http
                 .cors().and()
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(eh -> eh
@@ -59,21 +56,17 @@ public class WebSecurityConfiguration {
                         .authenticationEntryPoint(problemSupport)
                 )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable);
-
-        http
                 .authorizeRequests(r -> r
                         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/app/test").permitAll()
-                        .antMatchers(HttpMethod.POST, "/auth/authorize").permitAll()
-                        .antMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
+                        .antMatchers("/auth/authorize**").permitAll()
+                        .antMatchers("/auth/refresh**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(telegramRequestFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(jwtRequestFilter, TelegramRequestFilter.class);
-
-        return http.build();
+                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean

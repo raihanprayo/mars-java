@@ -13,6 +13,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserCriteria extends AuditableCriteria {
+
+    private StringFilter id;
     private StringFilter name;
     private StringFilter nik;
     private StringFilter phone;

@@ -67,12 +67,13 @@ mars:
   secret: ${JWT_SECRET:}
   cors:
     max-age: 3600
-    allowed-origin-patterns: [ ]
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:10220}
     allowed-headers: "*"
     allowed-methods: GET, POST, PUT, DELETE, OPTIONS
     allow-credentials: on
-    exposed-headers: [ ]
+    exposed-headers: TC-INTERNET, TC-VOICE, TC-IPTV, X-Total-Count, X-Sort
+  directory:
+    storage: ${MARS_DIRECTORY_STORAGE:D:/TMP/mars}
 
 telegram:
   type: long_polling

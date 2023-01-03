@@ -16,4 +16,8 @@ public interface BaseQueryService<E, C extends Criteria> {
 
     Page<E> findAll(C criteria, Pageable pageable);
 
+    long count();
+
+    long count(C criteria);
+
 }

@@ -13,6 +13,7 @@ import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
+import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.Util;
@@ -39,13 +40,17 @@ public class TicketBotServiceImpl implements TicketBotService {
     private final TicketAgentQueryService agentQueryService;
     private final IssueQueryService issueQueryService;
 
+    private final StorageService storageService;
+
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Ticket registerForm(TicketForm form, Collection<PhotoSize> photos) {
         Issue issue = issueQueryService.findById(form.getIssue())
                 .orElseThrow();
 
-        return service.save(Ticket.builder()
+        int totalGaul = queryService.countGaul(form.getIssue(), form.getService());
+
+        Ticket ticket = service.save(Ticket.builder()
                 .witel(form.getWitel())
                 .sto(form.getSto())
                 .issue(issue)
@@ -55,8 +60,13 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .senderId(form.getSenderId())
                 .senderName(form.getSenderName())
                 .note(form.getDescription())
-                .gaul(queryService.countByServiceNo(form.getService()))
+                .gaul(totalGaul)
                 .build());
+
+        if (photos != null && !photos.isEmpty())
+            storageService.addPhotoForTicketAsync(photos, ticket);
+
+        return ticket;
     }
 
     @Override

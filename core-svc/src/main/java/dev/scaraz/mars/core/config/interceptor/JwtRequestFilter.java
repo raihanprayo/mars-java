@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.config.interceptor;
 
 import dev.scaraz.mars.common.domain.response.JwtToken;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.config.security.JwtUtil;
 import dev.scaraz.mars.core.domain.credential.User;
@@ -21,9 +22,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -37,28 +40,44 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        boolean noAuthentication = Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication())
-                .isEmpty();
+        Cookie[] cookies = request.getCookies();
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.isNoneBlank(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            try {
+                String token = bearerToken.substring(BEARER_PREFIX.length());
+                JwtToken jwt = JwtUtil.decode(token);
 
-        if (noAuthentication) {
-            String bearerToken = request.getHeader("Authorization");
-            if (StringUtils.isNoneBlank(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-                try {
-                    String token = bearerToken.substring(BEARER_PREFIX.length());
-                    JwtToken jwt = JwtUtil.decode(token);
+                User user = userQueryService.findById(jwt.getUserId());
+                SecurityContextHolder.getContext()
+                        .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
 
-                    User user = userQueryService.findById(jwt.getUserId());
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
-
-                    LocaleContextHolder.setLocale(user.getSetting().getLang());
-                }
-                catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
-                       IllegalArgumentException ex) {
-                    throw new UnauthorizedException(ex.getMessage());
-                }
+                LocaleContextHolder.setLocale(user.getSetting().getLang());
+            }
+            catch (SignatureException |
+                   ExpiredJwtException |
+                   MalformedJwtException |
+                   UnsupportedJwtException |
+                   IllegalArgumentException ex) {
             }
         }
+        else if (cookies != null && cookies.length != 0) {
+            log.debug("AUTH FROM COOKIE {}", List.of(cookies));
+            for (Cookie cookie : cookies) {
+                if (!cookie.getName().equals(AppConstants.Auth.COOKIE_TOKEN)) {
+                    continue;
+                }
+
+                String token = cookie.getValue();
+                JwtToken jwt = JwtUtil.decode(token);
+
+                User user = userQueryService.findById(jwt.getUserId());
+                SecurityContextHolder.getContext()
+                        .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
+
+                LocaleContextHolder.setLocale(user.getSetting().getLang());
+            }
+        }
+
         filterChain.doFilter(request, response);
     }
 }

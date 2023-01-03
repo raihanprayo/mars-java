@@ -7,6 +7,7 @@ import dev.scaraz.mars.core.domain.order.TicketAgent;
 import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
+import dev.scaraz.mars.core.query.spec.TicketAgentSpecBuilder;
 import dev.scaraz.mars.core.repository.order.TicketAgentRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,11 +24,10 @@ import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
-public class TicketAgentQueryServiceImpl extends QueryBuilder implements TicketAgentQueryService {
+public class TicketAgentQueryServiceImpl implements TicketAgentQueryService {
 
     private final TicketAgentRepo repo;
-
-    private final TicketQueryService ticketQueryService;
+    private final TicketAgentSpecBuilder specBuilder;
 
     @Override
     public List<TicketAgent> findAll() {
@@ -41,17 +41,27 @@ public class TicketAgentQueryServiceImpl extends QueryBuilder implements TicketA
 
     @Override
     public List<TicketAgent> findAll(TicketAgentCriteria criteria) {
-        return repo.findAll(createSpecification(criteria));
+        return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Page<TicketAgent> findAll(TicketAgentCriteria criteria, Pageable pageable) {
-        return repo.findAll(createSpecification(criteria), pageable);
+        return repo.findAll(specBuilder.createSpec(criteria), pageable);
+    }
+
+    @Override
+    public long count() {
+        return repo.count();
+    }
+
+    @Override
+    public long count(TicketAgentCriteria criteria) {
+        return repo.count(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Optional<TicketAgent> findOne(TicketAgentCriteria criteria) {
-        return repo.findOne(createSpecification(criteria));
+        return repo.findOne(specBuilder.createSpec(criteria));
     }
 
     @Override

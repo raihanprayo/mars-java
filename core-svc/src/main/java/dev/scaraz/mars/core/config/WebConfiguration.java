@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
+import dev.scaraz.mars.common.tools.converter.EnumsConverter;
 import dev.scaraz.mars.core.config.interceptor.LogInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -29,7 +31,7 @@ import java.util.Locale;
 @EnableWebMvc
 @RequiredArgsConstructor
 public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebMvcConfigurer {
-    private static final Locale
+    public static final Locale
             LOCALE_ID = new Locale("id"),
             LOCALE_EN = new Locale("en");
 
@@ -40,6 +42,15 @@ public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebM
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new LogInterceptor());
+    }
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new EnumsConverter.StringToProduct());
+        registry.addConverter(new EnumsConverter.StringToAgStatus());
+        registry.addConverter(new EnumsConverter.StringToTcSource());
+        registry.addConverter(new EnumsConverter.StringToTcStatus());
+        registry.addConverter(new EnumsConverter.StringToWitel());
     }
 
     @PostConstruct

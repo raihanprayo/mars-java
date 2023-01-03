@@ -1,23 +1,23 @@
 package dev.scaraz.mars.telegram.model;
 
 import dev.scaraz.mars.telegram.util.Util;
-
 import dev.scaraz.mars.telegram.util.enums.MessageSource;
-import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalLong;
+import java.util.*;
 
 /**
  * Telegram bot command splitted by command and arguments.
  *
  * @author <a href="mailto:maratik@yandex-team.ru">Marat Bukharov</a>
  */
+@Slf4j
 public class TelegramMessageCommand {
     private final MessageSource source;
     private final String command;
@@ -39,7 +39,9 @@ public class TelegramMessageCommand {
         if (commandEntity != null && commandEntity.getOffset() == 0) {
             isCommand = true;
             command = commandEntity.getText();
-            argument = text.substring(commandEntity.getLength()).trim();
+            argument = text
+                    .substring(commandEntity.getLength())
+                    .trim();
         }
         else {
             command = null;
@@ -88,18 +90,9 @@ public class TelegramMessageCommand {
         return Util.optionalOf(forwardedFrom);
     }
 
-    @Override
-    public String toString() {
-        return "TelegramMessageCommand{" +
-                "command='" + command + '\'' +
-                ", argument='" + argument + '\'' +
-                ", isCommand=" + isCommand +
-                ", forwardedFrom=" + forwardedFrom +
-                '}';
-    }
-
     private boolean isSlashStart(String message) {
-        return message != null && message.trim().startsWith("/");
+        return message != null && message.trim()
+                .startsWith("/");
     }
 
     private MessageEntity getCommandEntity(Message message) {
@@ -108,12 +101,42 @@ public class TelegramMessageCommand {
                 message.getCaptionEntities() :
                 message.getEntities();
 
-        for (MessageEntity entity : entities) {
-            if (!entity.getType().equals("bot_command")) continue;
-            result = entity;
+        if (entities != null) {
+            for (MessageEntity entity : entities) {
+                if (!entity.getType()
+                        .equals("bot_command")) continue;
+                result = entity;
+            }
         }
 
         return result;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (!(o instanceof TelegramMessageCommand)) return false;
+
+        TelegramMessageCommand that = (TelegramMessageCommand) o;
+
+        return new EqualsBuilder()
+                .append(command, that.command)
+                .append(source, that.source)
+                .append(isCommand(), that.isCommand())
+                .append(getArgument(), that.getArgument())
+                .append(getForwardedFrom(), that.getForwardedFrom())
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(source)
+                .append(isCommand())
+                .append(getArgument())
+                .append(isCommand())
+                .append(getForwardedFrom())
+                .toHashCode();
+    }
 }

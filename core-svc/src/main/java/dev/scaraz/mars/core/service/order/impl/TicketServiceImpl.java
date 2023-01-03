@@ -40,11 +40,6 @@ public class TicketServiceImpl implements TicketService {
     private final TicketRepo repo;
     private final TicketAgentRepo agentRepo;
 
-    private final TicketQueryService queryService;
-    private final TicketAgentQueryService agentQueryService;
-
-    private final IssueQueryService issueQueryService;
-
     private final TelegramBotService bot;
 
     @Override
@@ -59,11 +54,12 @@ public class TicketServiceImpl implements TicketService {
 
         Instant todayIns = todayLd.atStartOfDay().toInstant(ZoneOffset.of("+07"));
 
-        long total = repo.countByCreatedAtGreaterThanEqual(todayIns);
+        long total = repo.countByCreatedAtGreaterThanEqual(todayIns) + 1;
         String todayStr = todayLd.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-        log.debug("Generating no ticket {}", todayStr);
-        return todayStr + StringUtils.leftPad(total + "", 6, "0");
+        String result = todayStr + StringUtils.leftPad(total + "", 6, "0");
+        log.debug("Generating no ticket {}", result);
+        return result;
     }
 
     @Override

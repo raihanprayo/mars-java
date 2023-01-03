@@ -44,7 +44,7 @@ public class LogInterceptor implements HandlerInterceptor {
             );
         }
         catch (Exception ex) {
-            log.info("[{}] INCOMING REQUEST TO {} {}",
+            log.info("[{}] INCOMING REQUEST TO {} FROM {}",
                     methodName,
                     request.getMethod(),
                     url

@@ -1,9 +1,9 @@
 package dev.scaraz.mars.core.query.impl;
 
-import dev.scaraz.mars.common.utils.QueryBuilder;
 import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.query.GroupQueryService;
 import dev.scaraz.mars.core.query.criteria.GroupCriteria;
+import dev.scaraz.mars.core.query.spec.GroupSpecBuilder;
 import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +17,10 @@ import java.util.List;
 @RequiredArgsConstructor
 
 @Service
-public class GroupQueryServiceImpl extends QueryBuilder implements GroupQueryService {
+public class GroupQueryServiceImpl implements GroupQueryService {
 
     private final GroupRepo repo;
+    private final GroupSpecBuilder specBuilder;
 
     @Override
     public List<Group> findAll() {
@@ -33,12 +34,21 @@ public class GroupQueryServiceImpl extends QueryBuilder implements GroupQuerySer
 
     @Override
     public List<Group> findAll(GroupCriteria criteria) {
-        return repo.findAll(createSpecification(criteria));
+        return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Page<Group> findAll(GroupCriteria criteria, Pageable pageable) {
-        return repo.findAll(createSpecification(criteria), pageable);
+        return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
 
+    @Override
+    public long count() {
+        return repo.count();
+    }
+
+    @Override
+    public long count(GroupCriteria criteria) {
+        return repo.count(specBuilder.createSpec(criteria));
+    }
 }

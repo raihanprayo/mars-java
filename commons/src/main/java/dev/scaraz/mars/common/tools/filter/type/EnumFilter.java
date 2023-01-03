@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.tools.filter.type;
 
+import dev.scaraz.mars.common.tools.filter.AbsFilter;
 import dev.scaraz.mars.common.tools.filter.AbsRangeFilter;
 import dev.scaraz.mars.common.tools.filter.ReadableFilter;
 import lombok.Getter;
@@ -7,46 +8,29 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.util.Collection;
+import java.util.List;
 
 @Getter
-public class EnumFilter<T extends Enum<? super T>> extends AbsRangeFilter<T> implements ReadableFilter<T> {
-
-    @Getter
-    private T like;
-
-    private T gt;
-    private T gte;
-
-    private T lt;
-    private T lte;
-
-    public EnumFilter<T> setLike(T like) {
-        this.like = like;
-        return this;
-    }
+public class EnumFilter<T extends Enum<? super T>> extends AbsRangeFilter<T> {
 
     @Override
     public EnumFilter<T> setGt(T greaterThan) {
-        this.gt = greaterThan;
-        return this;
+        return (EnumFilter<T>) super.setGt(greaterThan);
     }
 
     @Override
     public EnumFilter<T> setGte(T greaterThanEqual) {
-        this.gte = greaterThanEqual;
-        return this;
+        return (EnumFilter<T>) super.setGte(greaterThanEqual);
     }
 
     @Override
     public EnumFilter<T> setLt(T lessThan) {
-        this.lt = lessThan;
-        return this;
+        return (EnumFilter<T>) super.setLt(lessThan);
     }
 
     @Override
     public EnumFilter<T> setLte(T lessThanEqual) {
-        this.lte = lessThanEqual;
-        return this;
+        return (EnumFilter<T>) super.setLte(lessThanEqual);
     }
 
     @Override
@@ -59,9 +43,18 @@ public class EnumFilter<T extends Enum<? super T>> extends AbsRangeFilter<T> imp
         return (EnumFilter<T>) super.setIn(in);
     }
 
+    public EnumFilter<T> setIn(T... in) {
+        return (EnumFilter<T>) super.setIn(List.of(in));
+    }
+
     @Override
     public EnumFilter<T> setNullable(boolean nullable) {
         return (EnumFilter<T>) super.setNullable(nullable);
+    }
+
+    @Override
+    public EnumFilter<T> setNegated(boolean negated) {
+        return (EnumFilter<T>) super.setNegated(negated);
     }
 
     @Override
@@ -71,7 +64,6 @@ public class EnumFilter<T extends Enum<? super T>> extends AbsRangeFilter<T> imp
                 .append("in", in)
                 .append("nullable", nullable)
                 .append("negated", negated)
-                .append("like", like)
                 .append("gt", gt)
                 .append("gte", gte)
                 .append("lt", lt)

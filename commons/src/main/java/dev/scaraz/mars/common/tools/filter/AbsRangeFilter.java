@@ -11,11 +11,11 @@ import java.util.Collection;
 @AllArgsConstructor
 public abstract class AbsRangeFilter<T extends Comparable<? super T>> extends AbsFilter<T> implements RangeFilter<T> {
 
-    private T gt;
-    private T gte;
+    protected T gt;
+    protected T gte;
 
-    private T lt;
-    private T lte;
+    protected T lt;
+    protected T lte;
 
     public AbsRangeFilter<T> setGt(T greaterThan) {
         this.gt = greaterThan;

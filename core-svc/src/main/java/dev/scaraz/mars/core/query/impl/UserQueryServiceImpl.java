@@ -1,10 +1,10 @@
 package dev.scaraz.mars.core.query.impl;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
-import dev.scaraz.mars.common.utils.QueryBuilder;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.spec.UserSpecBuilder;
 import dev.scaraz.mars.core.repository.credential.UserRepo;
 import dev.scaraz.mars.core.util.DelegateUser;
 import lombok.RequiredArgsConstructor;
@@ -21,51 +21,63 @@ import java.util.Optional;
 @RequiredArgsConstructor
 
 @Service
-public class UserQueryServiceImpl extends QueryBuilder implements UserQueryService {
+public class UserQueryServiceImpl implements UserQueryService {
 
-    private final UserRepo userRepo;
+    private final UserRepo repo;
+    private final UserSpecBuilder specBuilder;
 
     @Override
     public DelegateUser loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = userRepo.findByNameOrNik(username, username);
-        if (user.isEmpty()) user = userRepo.findByCredentialUsername(username);
+        Optional<User> user = repo.findByNik(username);
+        if (user.isEmpty())
+            user = repo.findByCredentialUsernameOrCredentialEmail(username, username);
 
         if (user.isEmpty())
-            throw new UsernameNotFoundException("cannot find user with NIK/Name " + username);
+            throw new UsernameNotFoundException("cannot find user with NIK/Username " + username);
 
         return new DelegateUser(user.get());
     }
 
     @Override
     public List<User> findAll() {
-        return userRepo.findAll();
+        return repo.findAll();
     }
 
     @Override
     public Page<User> findAll(Pageable pageable) {
-        return userRepo.findAll(pageable);
+        return repo.findAll(pageable);
     }
 
     @Override
     public List<User> findAll(UserCriteria criteria) {
-        return userRepo.findAll(createSpecification(criteria));
+        return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Page<User> findAll(UserCriteria criteria, Pageable pageable) {
-        return userRepo.findAll(createSpecification(criteria), pageable);
+        return repo.findAll(specBuilder.createSpec(criteria), pageable);
+    }
+
+    @Override
+    public long count() {
+        return repo.count();
+    }
+
+    @Override
+    public long count(UserCriteria criteria) {
+        return repo.count(specBuilder.createSpec(criteria));
     }
 
     @Override
     public User findById(String id) {
-        return userRepo.findById(id)
+        return repo.findById(id)
                 .orElseThrow(() -> NotFoundException.entity(
                         User.class, "id", id));
     }
 
     @Override
     public User findByTelegramId(long tgId) {
-        return userRepo.findByTelegramId(tgId)
+        return repo.findByTelegramId(tgId)
                 .orElseThrow(() -> NotFoundException.entity(
                         User.class, "telegramId", tgId));
     }

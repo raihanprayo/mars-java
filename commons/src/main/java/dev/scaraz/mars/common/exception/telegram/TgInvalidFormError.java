@@ -18,7 +18,7 @@ public class TgInvalidFormError extends TelegramError {
             String message,
             Object... args
     ) {
-        this(field, Translator.tr(message), null, args);
+        this(field, Translator.tr(message, args), null, args);
     }
 
     public TgInvalidFormError(String field,

@@ -11,16 +11,22 @@ import java.util.List;
 public class ResourceUtil {
 
     public static <T> ResponseEntity<List<T>> pagination(Page<T> page, String baseUrl) {
-        HttpHeaders headers = generatePaginationHeader(page, baseUrl);
+        return pagination(page, new HttpHeaders(), baseUrl);
+    }
+
+    public static <T> ResponseEntity<List<T>> pagination(Page<T> page, HttpHeaders headers, String baseUrl) {
         return new ResponseEntity<>(
                 page.getContent(),
-                headers,
+                generatePaginationHeader(page, headers, baseUrl),
                 HttpStatus.OK
         );
     }
 
     public static HttpHeaders generatePaginationHeader(Page<?> page, String baseUrl) {
-        HttpHeaders headers = new HttpHeaders();
+        return generatePaginationHeader(page, new HttpHeaders(), baseUrl);
+    }
+
+    public static HttpHeaders generatePaginationHeader(Page<?> page, HttpHeaders headers, String baseUrl) {
         headers.add("X-Total-Count", Long.toString(page.getTotalElements()));
         headers.add("X-Sort", page.getSort().toString());
 

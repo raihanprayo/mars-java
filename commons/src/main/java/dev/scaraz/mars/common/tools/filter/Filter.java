@@ -13,6 +13,7 @@ public interface Filter<T> extends Serializable {
     T getEq();
     Collection<T> getIn();
 
+    Filter<T> setNegated(boolean negated);
     boolean isNegated();
     boolean isNullable();
 }

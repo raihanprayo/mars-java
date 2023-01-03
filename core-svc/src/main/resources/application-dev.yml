@@ -1,1 +1,7 @@
-
+mars:
+  cookie:
+    name: MARSID
+    domain: localhost
+    path: /
+    http-only: true
+    secure: false

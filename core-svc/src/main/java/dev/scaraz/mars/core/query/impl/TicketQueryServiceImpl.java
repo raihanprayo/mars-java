@@ -1,10 +1,14 @@
 package dev.scaraz.mars.core.query.impl;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
-import dev.scaraz.mars.common.utils.QueryBuilder;
+import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.*;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketQueryService;
+import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
+import dev.scaraz.mars.core.query.spec.TicketSpecBuilder;
 import dev.scaraz.mars.core.repository.order.TicketRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,16 +17,22 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
 
 @Service
 @Transactional(readOnly = true)
-public class TicketQueryServiceImpl extends QueryBuilder implements TicketQueryService {
+public class TicketQueryServiceImpl implements TicketQueryService {
 
     private final TicketRepo repo;
+    private final TicketSpecBuilder specBuilder;
 
     @Override
     public Ticket findById(String id) {
@@ -48,17 +58,61 @@ public class TicketQueryServiceImpl extends QueryBuilder implements TicketQueryS
 
     @Override
     public List<Ticket> findAll(TicketCriteria criteria) {
-        return repo.findAll(createSpecification(criteria));
+        return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Page<Ticket> findAll(TicketCriteria criteria, Pageable pageable) {
-        return repo.findAll(createSpecification(criteria), pageable);
+        return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
 
     @Override
-    public int countByServiceNo(String serviceNo) {
-        return repo.countByServiceNo(serviceNo);
+    public long count() {
+        return repo.count();
+    }
+
+    @Override
+    public long count(TicketCriteria criteria) {
+        return repo.count(specBuilder.createSpec(criteria));
+    }
+
+    @Override
+    public Map<Product, Long> countProducts(@Nullable TicketAgentCriteria agentCriteria) {
+        EnumMap<Product, Long> map = new EnumMap<>(Product.class);
+        TcStatusFilter statusFilter = new TcStatusFilter()
+                .setEq(TcStatus.OPEN);
+
+        map.put(Product.IPTV, count(TicketCriteria.builder()
+                .status(statusFilter)
+                .product(new ProductFilter().setEq(Product.IPTV))
+                .agents(agentCriteria)
+                .build()));
+
+        map.put(Product.VOICE, count(TicketCriteria.builder()
+                .status(statusFilter)
+                .product(new ProductFilter().setEq(Product.VOICE))
+                .agents(agentCriteria)
+                .build()));
+
+        map.put(Product.INTERNET, count(TicketCriteria.builder()
+                .status(statusFilter)
+                .product(new ProductFilter().setEq(Product.INTERNET))
+                .agents(agentCriteria)
+                .build())
+        );
+        return map;
+    }
+
+    @Override
+    public int countGaul(String issueId, String serviceNo) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime weekAgo = now.minusDays(7);
+        return repo.countByServiceNoAndIssueIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(
+                serviceNo,
+                issueId,
+                weekAgo.toInstant(ZoneOffset.of("+07")),
+                now.toInstant(ZoneOffset.of("+07"))
+        );
     }
 
 }

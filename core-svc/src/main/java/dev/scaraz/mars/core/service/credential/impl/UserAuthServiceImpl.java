@@ -31,6 +31,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
+import java.time.Instant;
 import java.util.List;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Auth.*;
@@ -74,7 +75,10 @@ public class UserAuthServiceImpl implements UserAuthService {
             }
             else {
                 auditProvider.setName(user.getName());
-                user.getCredential().setPassword(passwordEncoder.encode(authReq.getPassword()));
+                UserCredential credential = user.getCredential();
+                credential.setEmail(authReq.getEmail());
+                credential.setUsername(authReq.getUsername());
+                credential.setPassword(passwordEncoder.encode(authReq.getPassword()));
                 user.setCredential(userCredentialRepo.save(user.getCredential()));
             }
         }
@@ -85,13 +89,15 @@ public class UserAuthServiceImpl implements UserAuthService {
             }
         }
 
-        JwtResult accessToken = JwtUtil.accessToken(user, application);
-        JwtResult refreshToken = JwtUtil.refreshToken(user, application);
+        Instant issuedAt = Instant.now();
+        JwtResult accessToken = JwtUtil.accessToken(user, application, issuedAt);
+        JwtResult refreshToken = JwtUtil.refreshToken(user, application, issuedAt);
 
-        user.setCredential(userCredentialRepo.save(user.getCredential()));
         return AuthResDTO.builder()
                 .code(SUCCESS)
                 .user(user)
+                .issuedAt(issuedAt.getEpochSecond())
+
                 .accessToken(accessToken.getToken())
                 .expiredAt(accessToken.getExpiredAt().getEpochSecond())
                 .refreshToken(refreshToken.getToken())
@@ -122,8 +128,9 @@ public class UserAuthServiceImpl implements UserAuthService {
             User user = userRepo.findById(decode.getUserId())
                     .orElseThrow();
 
-            JwtResult jwtAccessToken = JwtUtil.accessToken(user, audience);
-            JwtResult jwtRefreshToken = JwtUtil.refreshToken(user, audience);
+            Instant now = Instant.now();
+            JwtResult jwtAccessToken = JwtUtil.accessToken(user, audience, now);
+            JwtResult jwtRefreshToken = JwtUtil.refreshToken(user, audience, now);
             return AuthResDTO.builder()
                     .code(SUCCESS)
                     .accessToken(jwtAccessToken.getToken())
@@ -171,9 +178,9 @@ public class UserAuthServiceImpl implements UserAuthService {
                 groupName = content[2],
                 phone = content[3];
 
-        Group group = groupRepo.findByName(groupName)
+        Group group = groupRepo.findByNameIgnoreCase(groupName)
                 .orElseThrow(() -> NotFoundException.entity(Group.class, "name", groupName));
-        Role role = roleRepo.findByNameAndGroupIsNull("user")
+        Role appRole = roleRepo.findByNameAndGroupIsNull("user")
                 .orElseThrow(() -> NotFoundException.entity(Role.class, "name", "user"));
 
         User user = userService.createFromBot(group, TelegramCreateUserDTO.builder()
@@ -186,7 +193,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         rolesRepo.saveAll(List.of(
                 Roles.builder()
                         .user(user)
-                        .role(role)
+                        .role(appRole)
                         .build(),
                 Roles.builder()
                         .user(user)

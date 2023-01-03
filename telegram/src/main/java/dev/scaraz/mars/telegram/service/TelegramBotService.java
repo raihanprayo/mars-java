@@ -100,7 +100,7 @@ public abstract class TelegramBotService implements AutoCloseable {
         }
     }
 
-    public Optional<BotApiMethod<?>> processHandler(TelegramHandler commandHandler, Object[] arguments) throws IllegalAccessException, InvocationTargetException {
+    public Optional<BotApiMethod<?>> processHandler(TelegramHandler commandHandler, Object[] arguments) throws Exception {
         ProcessContextHolder.update(b -> b.handler(commandHandler).handlerArguments(arguments));
 
         Method method = commandHandler.getMethod();
@@ -112,7 +112,13 @@ public abstract class TelegramBotService implements AutoCloseable {
         }
 //        else if (BotApiMethod.class.isAssignableFrom(methodReturnType)) {
         else if (ClassUtils.isAssignable(BotApiMethod.class, methodReturnType)) {
-            return Optional.ofNullable((BotApiMethod<?>) method.invoke(commandHandler.getBean(), arguments));
+            try {
+                return Optional.ofNullable((BotApiMethod<?>) method.invoke(commandHandler.getBean(), arguments));
+            }
+            catch (InvocationTargetException ex) {
+                if (ex.getCause() != null) throw (Exception) ex.getCause();
+                throw ex;
+            }
         }
         else {
             log.error("Unsupported handler '{}'", commandHandler);

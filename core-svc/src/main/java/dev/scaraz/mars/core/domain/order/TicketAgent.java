@@ -8,6 +8,8 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -46,5 +48,8 @@ public class TicketAgent extends AuditableEntity {
 
     @Column
     private String reopenDescription;
+
+    @OneToOne(mappedBy = "agent", fetch = FetchType.EAGER)
+    private TicketAsset assets;
 
 }

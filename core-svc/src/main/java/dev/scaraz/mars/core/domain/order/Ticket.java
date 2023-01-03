@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.order;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
@@ -44,6 +45,7 @@ public class Ticket extends AuditableEntity {
 
     @Column
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     private TcStatus status = TcStatus.OPEN;
 
     @Column(updatable = false)
@@ -67,6 +69,10 @@ public class Ticket extends AuditableEntity {
     @JoinColumn(name = "ref_issue_id", updatable = false)
     private Issue issue;
 
+    @OneToOne(fetch = FetchType.EAGER, mappedBy = "ticket")
+    private TicketAsset assets;
+
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "ticket")
     private Set<TicketAgent> agents = new HashSet<>();

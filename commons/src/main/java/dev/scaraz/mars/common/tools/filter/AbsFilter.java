@@ -34,6 +34,11 @@ public abstract class AbsFilter<T> implements Filter<T> {
         return this;
     }
 
+    public AbsFilter<T> setNegated(boolean negated) {
+        this.negated = negated;
+        return this;
+    }
+
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)

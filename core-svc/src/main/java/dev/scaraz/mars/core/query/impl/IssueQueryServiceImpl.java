@@ -1,9 +1,9 @@
 package dev.scaraz.mars.core.query.impl;
 
-import dev.scaraz.mars.common.utils.QueryBuilder;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
+import dev.scaraz.mars.core.query.spec.IssueSpecBuilder;
 import dev.scaraz.mars.core.repository.order.IssueRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,38 +20,48 @@ import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
-public class IssueQueryServiceImpl extends QueryBuilder implements IssueQueryService {
+public class IssueQueryServiceImpl implements IssueQueryService {
 
-    private final IssueRepo issueRepo;
+    private final IssueRepo repo;
+    private final IssueSpecBuilder specBuilder;
 
     @Override
     public Optional<Issue> findById(String id) {
-        return issueRepo.findById(id);
+        return repo.findById(id);
     }
 
     @Override
     public Optional<Issue> findOne(IssueCriteria criteria) {
-        return issueRepo.findOne(createSpecification(criteria));
+        return repo.findOne(specBuilder.createSpec(criteria));
     }
 
     @Override
     public List<Issue> findAll() {
-        return issueRepo.findAll();
+        return repo.findAll();
     }
 
     @Override
     public Page<Issue> findAll(Pageable pageable) {
-        return issueRepo.findAll(pageable);
+        return repo.findAll(pageable);
     }
 
     @Override
     public List<Issue> findAll(IssueCriteria criteria) {
-        return issueRepo.findAll(createSpecification(criteria));
+        return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Page<Issue> findAll(IssueCriteria criteria, Pageable pageable) {
-        return issueRepo.findAll(createSpecification(criteria), pageable);
+        return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
 
+    @Override
+    public long count() {
+        return repo.count();
+    }
+
+    @Override
+    public long count(IssueCriteria criteria) {
+        return repo.count(specBuilder.createSpec(criteria));
+    }
 }

@@ -36,27 +36,31 @@ public class JwtUtil {
                 .getBytes(StandardCharsets.UTF_8)));
     }
 
-    public static JwtResult accessToken(User user, String application) {
-        return generate(user, application, 12, ChronoUnit.HOURS, false);
+    public static JwtResult accessToken(User user, String application, Instant issuedAt) {
+        return generate(user, application, 12, ChronoUnit.HOURS, issuedAt, false);
     }
 
-    public static JwtResult refreshToken(User user, String application) {
-        return generate(user, application, 48, ChronoUnit.HOURS, true);
+    public static JwtResult refreshToken(User user, String application, Instant issuedAt) {
+        return generate(user, application, 48, ChronoUnit.HOURS, issuedAt, true);
     }
 
-    public static JwtResult generate(User user, String application, long expiredIn, ChronoUnit timeUnit, boolean asRefreshToken) {
+    public static JwtResult generate(User user,
+                                     String application,
+                                     long expiredIn,
+                                     ChronoUnit timeUnit,
+                                     Instant issuedAt,
+                                     boolean asRefreshToken) {
         Map<String, Object> group = Map.of(
                 "id", user.getGroup().getId(),
                 "name", user.getGroup().getName()
         );
 
-        Instant now = Instant.now();
         Claims claims = new DefaultClaims();
         claims.setId(UUID.randomUUID().toString());
         claims.setAudience(application);
         claims.setSubject(user.getId());
-        claims.setIssuedAt(Date.from(now));
-        claims.setExpiration(Date.from(now.plus(expiredIn, timeUnit)));
+        claims.setIssuedAt(Date.from(issuedAt));
+        claims.setExpiration(Date.from(issuedAt.plus(expiredIn, timeUnit)));
 
         claims.put("rfs", asRefreshToken);
         claims.put("name", user.getName());
