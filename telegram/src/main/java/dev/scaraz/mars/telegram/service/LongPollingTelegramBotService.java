@@ -1,6 +1,7 @@
 package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
+import dev.scaraz.mars.telegram.UpdateContextHolder;
 import dev.scaraz.mars.telegram.config.ProcessContextHolder;
 import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
@@ -91,20 +92,23 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
             @Override
             public void onUpdateReceived(Update update) {
                 CompletableFuture.runAsync(() -> {
-                            self.onUpdateReceived(update);
-                            try {
-                                TelegramProcessContext ctx = ProcessContextHolder.get();
-                                if (ctx.hasResult()) this.execute(ctx.getResult());
-                            }
-                            catch (TelegramApiException | IllegalStateException ex) {
-                                ProcessContextHolder.update(c -> c.cycle(ProcessCycle.SEND));
-                                ProcessContextHolder.getIfAvailable(ctx ->
-                                        ctx.getProcessor().handleExceptions(self, update, ex)
-                                );
-                            }
+                    UpdateContextHolder.set(update);
 
-                            ProcessContextHolder.clear();
-                        }, self.executor);
+                    self.onUpdateReceived(update);
+                    try {
+                        TelegramProcessContext ctx = ProcessContextHolder.get();
+                        if (ctx.hasResult()) this.execute(ctx.getResult());
+                    }
+                    catch (TelegramApiException | IllegalStateException ex) {
+                        ProcessContextHolder.update(c -> c.cycle(ProcessCycle.SEND));
+                        ProcessContextHolder.getIfAvailable(ctx ->
+                                ctx.getProcessor().handleExceptions(self, update, ex)
+                        );
+                    }
+
+                    ProcessContextHolder.clear();
+                    UpdateContextHolder.clear();
+                }, self.executor);
             }
         };
     }

@@ -1,0 +1,10 @@
+mars:
+  cookie:
+    name: ${COOKIE_NAME:MARSID}
+    domain: ${COOKIE_DOMAIN:localhost}
+    path: ${COOKIE_PATH:/}
+    http-only: ${COOKIE_HTTP_ONLY:true}
+    secure: ${COOKIE_SECURE:false}
+  i18n:
+    with-defaults: ${INCLUDE_DEFAULT_MESSAGES:true}
+    externals: ${MESSAGES_DIRS:}

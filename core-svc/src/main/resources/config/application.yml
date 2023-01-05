@@ -13,6 +13,7 @@ spring:
     table: mars_schema_history
     default-schema: ${DS_SCHEMA:mars}
     create-schemas: true
+    locations: ${MIGRATION_DIR:classpath:db/migrations}
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:postgresql://${DS_HOST:127.0.0.1}:${DS_PORT:15433}/${DS_DATABASE:tr2db}
@@ -51,7 +52,7 @@ logging:
     keycloak: warn
     java: off
     swagger: off
-    mars: debug
+    mars: info
   pattern:
     console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name:mars-roc},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
     file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [PPH-21,%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
@@ -71,7 +72,7 @@ mars:
     allowed-headers: "*"
     allowed-methods: GET, POST, PUT, DELETE, OPTIONS
     allow-credentials: on
-    exposed-headers: TC-INTERNET, TC-VOICE, TC-IPTV, X-Total-Count, X-Sort
+    exposed-headers: Tc-Count, X-Total-Count, X-Sort
   directory:
     storage: ${MARS_DIRECTORY_STORAGE:D:/TMP/mars}
 

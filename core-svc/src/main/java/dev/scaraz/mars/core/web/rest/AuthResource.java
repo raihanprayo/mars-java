@@ -9,19 +9,14 @@ import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Roles;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.mapper.UserMapper;
-import dev.scaraz.mars.core.query.RoleQueryService;
-import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.repository.credential.RolesRepo;
-import dev.scaraz.mars.core.service.credential.UserAuthService;
+import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.RequestContextHolder;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -35,7 +30,7 @@ import java.util.Objects;
 public class AuthResource {
 
     private final MarsProperties marsProperties;
-    private final UserAuthService authService;
+    private final AuthService authService;
     private final UserMapper userMapper;
     private final RolesRepo rolesRepo;
 

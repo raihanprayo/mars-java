@@ -1,10 +1,14 @@
 package dev.scaraz.mars.core.domain.order;
 
-import dev.scaraz.mars.common.domain.AuditableEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
+import java.time.Instant;
 
 @Getter
 @Setter
@@ -14,15 +18,40 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "t_log_ticket")
-public class LogTicket extends AuditableEntity {
+@EntityListeners(AuditingEntityListener.class)
+public class LogTicket {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @JsonIgnore
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "ref_ticket_no", updatable = false, referencedColumnName = "no")
+    private Ticket ticket;
+
+    @Column
+    private String message;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "prev_status")
+    private TcStatus prev;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "curr_status")
+    private TcStatus curr;
 
     @ManyToOne
-    @JoinColumn(name = "ref_ticket_id")
-    private Ticket ticket;
+    @JsonIgnore
+    @JoinColumn(name = "ref_agent_id")
+    private TicketAgent agent;
+
+    @CreatedBy
+    @Column(name = "created_by", updatable = false)
+    private String createdBy;
+
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private Instant createdAt;
 
 }

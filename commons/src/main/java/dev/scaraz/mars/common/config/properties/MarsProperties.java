@@ -8,7 +8,9 @@ import lombok.ToString;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.web.cors.CorsConfiguration;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 
 @Getter
 @Setter
@@ -28,7 +30,11 @@ public class MarsProperties {
     private TelegramProperties telegram = new TelegramProperties();
 
     @Setter(AccessLevel.NONE)
+    private I18nProperties i18n = new I18nProperties();
+
+    @Setter(AccessLevel.NONE)
     private EnumMap<DirectoryAlias, String> directory = new EnumMap<>(DirectoryAlias.class);
+
 
     @Getter
     @Setter
@@ -47,6 +53,14 @@ public class MarsProperties {
         private boolean httpOnly = true;
         private boolean secure = false;
         private String path = "/";
+    }
+
+    @Getter
+    @Setter
+    @ToString
+    public static class I18nProperties {
+        private boolean withDefaults = true;
+        private List<String> externals = new ArrayList<>();
     }
 
 }

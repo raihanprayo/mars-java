@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface TicketAgentQueryService extends BaseQueryService<TicketAgent, TicketAgentCriteria> {
     Optional<TicketAgent> findOne(TicketAgentCriteria criteria);
 
+    TicketAgent findByTicketIdAndUserId(String ticketId, String userId);
+
     boolean hasAgentInProgressByTicketId(String ticketId);
 
     boolean hasAgentInProgressByTicketNo(String ticketIdOrNo);

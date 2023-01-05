@@ -25,4 +25,5 @@ public class TicketAgentCriteria extends AuditableCriteria {
 
     private StringFilter userId;
     private StringFilter ticketId;
+    private StringFilter ticketNo;
 }

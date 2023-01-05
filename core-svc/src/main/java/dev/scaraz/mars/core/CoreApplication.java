@@ -6,11 +6,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 
 @Slf4j
 @RequiredArgsConstructor
 
-@SpringBootApplication
+@SpringBootApplication(
+        exclude = {RedisAutoConfiguration.class}
+)
 public class CoreApplication implements CommandLineRunner {
 
     private final InitializerService initializer;

@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.service.credential.impl;
+package dev.scaraz.mars.core.service.impl;
 
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
@@ -16,7 +16,7 @@ import dev.scaraz.mars.core.domain.credential.*;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.credential.*;
 import dev.scaraz.mars.core.service.credential.GroupService;
-import dev.scaraz.mars.core.service.credential.UserAuthService;
+import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.AuthSource;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -40,7 +40,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.Auth.*;
 @RequiredArgsConstructor
 
 @Service
-public class UserAuthServiceImpl implements UserAuthService {
+public class AuthServiceImpl implements AuthService {
 
     private final AuditProvider auditProvider;
     private final GroupRepo groupRepo;
@@ -112,7 +112,7 @@ public class UserAuthServiceImpl implements UserAuthService {
             SecurityContextHolder.getContext().setAuthentication(
                     new CoreAuthenticationToken(AuthSource.TELEGRAM, user)
             );
-            LocaleContextHolder.setLocale(user.getSetting().getLang());
+            LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
             return user;
         }
         catch (NotFoundException ex) {

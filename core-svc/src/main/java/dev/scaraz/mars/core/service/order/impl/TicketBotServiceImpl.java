@@ -1,20 +1,24 @@
 package dev.scaraz.mars.core.service.order.impl;
 
+import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
 import dev.scaraz.mars.common.domain.general.TicketForm;
-import dev.scaraz.mars.common.exception.telegram.TelegramError;
+import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
-import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.core.domain.cache.CacheTicketConfirm;
 import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.IssueQueryService;
-import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
+import dev.scaraz.mars.core.repository.cache.CacheTicketConfirmRepo;
 import dev.scaraz.mars.core.service.StorageService;
+import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
+import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.Util;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +28,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
@@ -36,11 +41,13 @@ import java.util.Optional;
 public class TicketBotServiceImpl implements TicketBotService {
 
     private final TicketService service;
+    private final TicketFlowService flowService;
     private final TicketQueryService queryService;
-    private final TicketAgentQueryService agentQueryService;
     private final IssueQueryService issueQueryService;
 
     private final StorageService storageService;
+    private final CacheTicketConfirmRepo cacheConfirmRepo;
+    private final LogTicketService logTicketService;
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -63,19 +70,45 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .gaul(totalGaul)
                 .build());
 
+        log.debug("REGISTERED NEW TICKET -- TICKET NO={} GAUL={} TYPE={}/{}",
+                ticket.getNo(), totalGaul != 0,
+                issue.getProduct(),
+                issue.getName());
+
         if (photos != null && !photos.isEmpty())
             storageService.addPhotoForTicketAsync(photos, ticket);
+
+        logTicketService.add(LogTicket.builder()
+                .ticket(ticket)
+                .curr(ticket.getStatus())
+                .message(String.format(
+                        "created ticket with gaul is %s",
+                        totalGaul != 0
+                ))
+                .build());
 
         return ticket;
     }
 
     @Override
     public Ticket take(String ticketNo) {
-        Ticket ticket = queryService.findByIdOrNo(ticketNo);
-        if (agentQueryService.hasAgentInProgressByTicketNo(ticketNo))
-            throw BadRequestException.args("error.ticket.taken");
+        return flowService.take(ticketNo);
+    }
 
-        return service.take(ticket);
+    @Override
+    @Transactional
+    public void confirmedClose(
+            long messageId,
+            boolean closeTicket,
+            @Nullable String note) {
+        CacheTicketConfirm confirmData = cacheConfirmRepo.findById(messageId)
+                .orElseThrow();
+
+        flowService.confirm(confirmData.getNo(), !closeTicket, TicketStatusFormDTO.builder()
+                .note(note)
+                .build());
+
+        cacheConfirmRepo.deleteById(messageId);
     }
 
     @Override
@@ -103,7 +136,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 field.setAccessible(false);
             }
             catch (NoSuchFieldException | IllegalAccessException e) {
-                throw new TelegramError(e);
+                throw new TgError(e);
             }
         }
 
@@ -164,7 +197,7 @@ public class TicketBotServiceImpl implements TicketBotService {
             if (!strNumbr) {
                 throw new TgInvalidFormError(
                         FIELD_NAME,
-                        "error.ticket.form.service.voice",
+                        "error.ticket.form.service",
                         List.of(formDescriptor.alias())
                 );
             }

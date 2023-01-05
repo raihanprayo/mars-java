@@ -1,6 +1,7 @@
 package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
+import dev.scaraz.mars.telegram.UpdateContextHolder;
 import dev.scaraz.mars.telegram.config.ProcessContextHolder;
 import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import lombok.Getter;
@@ -53,6 +54,7 @@ public class WebhookTelegramBotService extends TelegramBotService {
 
             @Override
             public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
+                UpdateContextHolder.set(update);
                 self.onUpdateReceived(update);
                 try {
                     TelegramProcessContext ctx = ProcessContextHolder.get();
@@ -63,6 +65,7 @@ public class WebhookTelegramBotService extends TelegramBotService {
                 }
                 finally {
                     ProcessContextHolder.clear();
+                    UpdateContextHolder.clear();
                 }
             }
 

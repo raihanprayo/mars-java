@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.service.credential;
+package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
-public interface UserAuthService {
+public interface AuthService {
 
     AuthResDTO authenticate(AuthReqDTO authReq, String application);
 

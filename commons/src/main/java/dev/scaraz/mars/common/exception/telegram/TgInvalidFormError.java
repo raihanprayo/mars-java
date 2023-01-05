@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class TgInvalidFormError extends TelegramError {
+public class TgInvalidFormError extends TgError {
     private final String field;
     private final List<String> aliases;
 
@@ -31,13 +31,13 @@ public class TgInvalidFormError extends TelegramError {
     }
 
     @Override
-    public String getMessage() {
-        return String.join("\n",
-                getTitle(),
-                "",
-                String.format("%s, field (%s) alias (%s)", super.getMessage(), field,
-                        String.join("/", aliases)
-                )
-        );
+    public String format() {
+        String footer = "field (" + field +")";
+
+        if (!aliases.isEmpty())
+            footer += String.format(" alias (%s)", String.join("/", aliases));
+
+        return format(getMessage(), footer);
     }
+
 }

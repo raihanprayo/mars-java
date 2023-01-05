@@ -1,11 +1,10 @@
 package dev.scaraz.mars.core.query.impl;
 
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.common.utils.QueryBuilder;
 import dev.scaraz.mars.core.domain.order.TicketAgent;
 import dev.scaraz.mars.core.query.TicketAgentQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
 import dev.scaraz.mars.core.query.spec.TicketAgentSpecBuilder;
 import dev.scaraz.mars.core.repository.order.TicketAgentRepo;
@@ -62,6 +61,16 @@ public class TicketAgentQueryServiceImpl implements TicketAgentQueryService {
     @Override
     public Optional<TicketAgent> findOne(TicketAgentCriteria criteria) {
         return repo.findOne(specBuilder.createSpec(criteria));
+    }
+
+    @Override
+    public TicketAgent findByTicketIdAndUserId(String ticketId, String userId) {
+        return repo.findByTicketIdAndUserId(ticketId, userId)
+                .orElseThrow(() -> NotFoundException.entity(
+                        TicketAgent.class,
+                        "ticketId/userId",
+                        String.format("%s/%s", ticketId, userId)
+                ));
     }
 
     @Override

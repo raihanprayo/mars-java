@@ -1,9 +1,26 @@
+create table t_log_ticket
+(
+    id            serial primary key,
+    ref_ticket_no varchar(37)  not null,
+
+    message       varchar(100),
+
+    prev_status   varchar(15),
+    curr_status   varchar(15),
+
+    ref_agent_id  varchar(37),
+
+    created_at    timestamp(0) not null default CURRENT_TIMESTAMP,
+    created_by    varchar(100) not null
+);
+
 create or replace view v_ticket_summary as
 select tc.id                               as id,
        tc.no                               as no,
        tc.witel                            as witel,
        tc.sto                              as sto,
        tc.status                           as status,
+       tc.source                           as source,
        (tc.gaul > 0)                       as is_gaul,
        tc.gaul                             as gaul,
 
@@ -22,15 +39,10 @@ select tc.id                               as id,
         from t_ticket_agent as agent
         where agent.ref_ticket_id = tc.id) as agent_count,
 
-       (select count("id") > 0
-        from t_ticket_agent as agent
-        where agent.ref_ticket_id = tc.id
-          and agent.status = 'PROGRESS')   as wip,
-
-       (select agent.ref_user_id
-        from t_ticket_agent as agent
-        where agent.ref_ticket_id = tc.id
-          and agent.status = 'PROGRESS')   as wip_by,
+       (ag.id IS NOT NULL)                 as wip,
+       ag.id                               as wip_id,
+       ag.status                           as wip_status,
+       ag.ref_user_id                      as wip_by,
 
        asset.paths                         as assets,
 
@@ -41,4 +53,5 @@ select tc.id                               as id,
 from t_ticket as tc
          join t_issue issue on tc.ref_issue_id = issue.id
          left join t_ticket_asset asset on asset.ref_ticket_id = tc.id
-group by tc.id, issue.product, asset.paths
+         left join t_ticket_agent ag on ag.ref_ticket_id = tc.id and ag.status = 'PROGRESS'
+group by tc.id, issue.product, asset.paths, ag.id, ag.status, ag.ref_user_id

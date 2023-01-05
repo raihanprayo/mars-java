@@ -6,5 +6,10 @@ import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 
 public interface TicketSummaryQueryService extends BaseQueryService<TicketSummary, TicketSummaryCriteria> {
 
+    TicketSummary findByIdOrNo(String id);
+
     long countByProduct(Product product, boolean currentUser);
+
+    boolean isWorkInProgressByTicketId(String ticketId);
+    boolean isWorkInProgressByTicketId(String ticketId, boolean byCurrentUser);
 }

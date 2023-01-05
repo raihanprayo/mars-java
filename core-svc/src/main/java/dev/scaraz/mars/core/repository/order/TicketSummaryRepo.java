@@ -6,11 +6,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface TicketSummaryRepo extends
         JpaRepository<TicketSummary, String>,
         JpaSpecificationExecutor<TicketSummary> {
 
-    long countByProduct(Product product);
+    Optional<TicketSummary> findByIdOrNo(String id, String no);
+
+    long countByProductAndWipIsFalse(Product product);
     long countByProductAndWipById(Product product, String userId);
 }

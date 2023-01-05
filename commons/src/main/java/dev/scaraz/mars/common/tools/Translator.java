@@ -2,7 +2,6 @@ package dev.scaraz.mars.common.tools;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -15,19 +14,21 @@ import java.util.Locale;
 @Component
 @ConditionalOnClass(MessageSource.class)
 public class Translator {
-    private static MessageSource instance;
+    public static final Locale
+            LANG_EN = Locale.ENGLISH,
+            LANG_ID = Locale.forLanguageTag("id-ID");
+    private static volatile MessageSource instance;
 
     public Translator(ObjectProvider<MessageSource> source) {
         instance = source.getIfAvailable();
     }
 
     public static String tr(String code, Object... args) {
-        if (instance == null) return code;
-        return instance.getMessage(code, interceptArgs(args), LocaleContextHolder.getLocale());
+        return tr(code, LocaleContextHolder.getLocale(), args);
     }
 
 
-    public static String tr(String code, Locale locale, Object[] args) {
+    public static String tr(String code, Locale locale, Object... args) {
         if (instance == null) return code;
         return instance.getMessage(code, interceptArgs(args), locale);
     }

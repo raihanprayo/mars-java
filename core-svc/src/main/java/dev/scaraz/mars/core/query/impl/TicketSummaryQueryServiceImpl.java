@@ -1,10 +1,15 @@
 package dev.scaraz.mars.core.query.impl;
 
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
+import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.query.spec.TicketSummarySpecBuilder;
 import dev.scaraz.mars.core.repository.order.TicketSummaryRepo;
 import dev.scaraz.mars.core.util.SecurityUtil;
@@ -48,6 +53,12 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
     }
 
     @Override
+    public TicketSummary findByIdOrNo(String id) {
+        return repo.findByIdOrNo(id, id)
+                .orElseThrow(() -> NotFoundException.entity(Ticket.class, "id/no", id));
+    }
+
+    @Override
     public long count() {
         return repo.count();
     }
@@ -63,6 +74,29 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
             User usr = SecurityUtil.getCurrentUser();
             if (usr != null) return repo.countByProductAndWipById(product, usr.getId());
         }
-        return repo.countByProduct(product);
+        return repo.countByProductAndWipIsFalse(product);
     }
+
+    @Override
+    public boolean isWorkInProgressByTicketId(String ticketId) {
+        return isWorkInProgressByTicketId(ticketId, false);
+    }
+
+    @Override
+    public boolean isWorkInProgressByTicketId(String ticketId, boolean currentUser) {
+        TicketSummaryCriteria criteria = TicketSummaryCriteria.builder()
+                .id(new StringFilter().setEq(ticketId))
+                .wip(new BooleanFilter().setEq(true))
+                .build();
+
+        if (currentUser) {
+            User user = SecurityUtil.getCurrentUser();
+            criteria.setWipBy(UserCriteria.builder()
+                    .id(new StringFilter().setEq(user.getId()))
+                    .build());
+        }
+
+        return repo.exists(specBuilder.createSpec(criteria));
+    }
+
 }

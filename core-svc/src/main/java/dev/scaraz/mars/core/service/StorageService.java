@@ -9,8 +9,11 @@ import dev.scaraz.mars.core.repository.order.TicketAssetRepo;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -30,6 +33,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class StorageService {
     public static final String TICKET_STORAGE_PATH = "/tickets";
+    public static final List<String> IMAGE_MIME_TYPE = List.of(
+            MediaType.IMAGE_JPEG_VALUE,
+            MediaType.IMAGE_PNG_VALUE,
+            "image/webp"
+    );
 
     private final MarsProperties marsProperties;
 
@@ -47,7 +55,6 @@ public class StorageService {
             storage.toFile().mkdirs();
         }
 
-
         String outputTicketNo = TICKET_STORAGE_PATH + "/" + no;
         TicketAsset asset = new TicketAsset();
 
@@ -62,30 +69,79 @@ public class StorageService {
             asset.setTicket(ticket);
             asset.addPath(outputTicketNo + "/" + filename);
 
-            log.debug("DOWNLOADING PHOTO TO {}", outputPath);
             botService.getClient().downloadFile(
                     botService.getClient().execute(getFile).getFilePath(),
                     outputPath.toFile()
             );
+            log.debug("DOWNLOADED PHOTO TO {}", outputPath);
         }
         catch (TelegramApiException e) {
             e.printStackTrace();
             log.error(e.getMessage());
         }
 
-        if (asset.size() > 0)
+        if (asset.size() > 0) {
+            log.debug("ADD {} TICKET ASSET(S) -- NO={}", asset.size(), ticket.getNo());
             asset = tcAssetRepo.save(asset);
+        }
 
         return asset;
     }
 
-    public TicketAsset addPhotoForAgent(TicketAgent agent) {
-        return null;
+    public TicketAsset addPhotoForAgent(Ticket ticket, TicketAgent agent, Collection<MultipartFile> photos) {
+        String no = ticket.getNo();
+        Path storage = Path.of(marsProperties.getDirectory().get(DirectoryAlias.STORAGE))
+                .resolve("tickets")
+                .resolve(no);
+
+        if (!Files.exists(storage)) {
+            storage.toFile().mkdirs();
+        }
+
+        String outputTicketNo = TICKET_STORAGE_PATH + "/" + no;
+        TicketAsset asset = TicketAsset.builder()
+                .agent(agent)
+                .build();
+
+        AtomicInteger counter = new AtomicInteger();
+        for (MultipartFile photo : photos) {
+            int index = counter.getAndIncrement();
+
+            String contentType = photo.getContentType();
+            if (contentType == null) continue;
+            else if (!IMAGE_MIME_TYPE.contains(contentType)) continue;
+
+            String filename = agent.getId() + "_" + index + (contentType.equals(IMAGE_MIME_TYPE.get(0)) ?
+                    ".jpeg" : contentType.equals(IMAGE_MIME_TYPE.get(1)) ?
+                    ".png" : ".webp");
+
+            try {
+                Path outputPath = storage.resolve(filename);
+                FileUtils.writeByteArrayToFile(outputPath.toFile(), photo.getBytes());
+                asset.addPath(outputTicketNo + "/" + filename);
+            }
+            catch (IOException e) {
+            }
+        }
+
+        if (asset.size() > 0) {
+            log.debug("ADD {} AGENT ASSET(S) -- TICKET NO={} AGENT={}", asset.size(),
+                    ticket.getNo(),
+                    agent.getId());
+            asset = tcAssetRepo.save(asset);
+        }
+
+        return asset;
     }
 
     @Async
     public void addPhotoForTicketAsync(Collection<PhotoSize> photos, Ticket ticket) {
         this.addPhotoForTicket(photos, ticket);
+    }
+
+    @Async
+    public void addPhotoForAgentAsync(Ticket ticket, TicketAgent agent, Collection<MultipartFile> photos) {
+        this.addPhotoForAgent(ticket, agent, photos);
     }
 
 }

@@ -21,6 +21,7 @@ public class TicketAgentSpecBuilder extends AuditableSpec<TicketAgent, TicketAge
             spec = nonNull(spec, criteria.getId(), TicketAgent_.id);
 
             spec = nonNull(spec, criteria.getTicketId(), TicketAgent_.ticket, Ticket_.id);
+            spec = nonNull(spec, criteria.getTicketNo(), TicketAgent_.ticket, Ticket_.no);
             spec = nonNull(spec, criteria.getUserId(), TicketAgent_.user, User_.id);
 
             if (criteria.getUser() != null) {

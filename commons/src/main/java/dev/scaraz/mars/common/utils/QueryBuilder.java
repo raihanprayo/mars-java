@@ -22,7 +22,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super E, T> attr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.create(filter, attr);
+        return spec.and(QueryFieldUtil.create(filter, attr));
     }
 
     protected <T, A1> Specification<E> nonNull(
@@ -32,7 +32,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super A1, T> valAttr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.create(filter, attr1, valAttr);
+        return spec.and(QueryFieldUtil.create(filter, attr1, valAttr));
     }
 
     protected <T, A1, A2> Specification<E> nonNull(
@@ -43,7 +43,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super A2, T> valAttr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.create(filter, attr1, attr2, valAttr);
+        return spec.and(QueryFieldUtil.create(filter, attr1, attr2, valAttr));
     }
 
     protected <T, A1> Specification<E> nonNull(
@@ -53,7 +53,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super A1, T> valAttr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.create(filter, attr1, valAttr);
+        return spec.and(QueryFieldUtil.create(filter, attr1, valAttr));
     }
 
     protected <T, A1, A2> Specification<E> nonNull(
@@ -64,7 +64,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super A2, T> valAttr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.create(filter, attr1, attr2, valAttr);
+        return spec.and(QueryFieldUtil.create(filter, attr1, attr2, valAttr));
     }
 
 
@@ -75,7 +75,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super E, String> attr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.createReadable(filter, attr);
+        return spec.and(QueryFieldUtil.createReadable(filter, attr));
     }
 
     protected <A1> Specification<E> nonNull(
@@ -85,7 +85,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super A1, String> valAttr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.createReadable(filter, attr1, valAttr);
+        return spec.and(QueryFieldUtil.createReadable(filter, attr1, valAttr));
     }
 
     protected <A1, A2> Specification<E> nonNull(
@@ -96,7 +96,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super A2, String> valAttr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.createReadable(filter, attr1, attr2, valAttr);
+        return spec.and(QueryFieldUtil.createReadable(filter, attr1, attr2, valAttr));
     }
 
 
@@ -107,7 +107,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super E, T> attr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.createRange(filter, attr);
+        return spec.and(QueryFieldUtil.createRange(filter, attr));
     }
 
     protected <T extends Comparable<? super T>, A1> Specification<E> nonNull(
@@ -117,7 +117,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super A1, T> valAttr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.createRange(filter, attr1, valAttr);
+        return spec.and(QueryFieldUtil.createRange(filter, attr1, valAttr));
     }
 
     protected <T extends Comparable<? super T>, A1, A2> Specification<E> nonNull(
@@ -128,7 +128,7 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             SingularAttribute<? super A2, T> valAttr
     ) {
         if (filter == null) return spec;
-        return QueryFieldUtil.createRange(filter, attr1, attr2, valAttr);
+        return spec.and(QueryFieldUtil.createRange(filter, attr1, attr2, valAttr));
     }
 
 }

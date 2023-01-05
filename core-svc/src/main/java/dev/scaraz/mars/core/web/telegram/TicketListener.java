@@ -11,6 +11,7 @@ import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
+import dev.scaraz.mars.core.repository.cache.CacheTicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.Util;
@@ -18,10 +19,10 @@ import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.annotation.Text;
-import dev.scaraz.mars.telegram.util.ParseMode;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
@@ -39,8 +40,9 @@ public class TicketListener {
     private final TicketQueryService queryService;
     private final TicketAgentQueryService agentQueryService;
     private final TicketBotService botService;
+    private final CacheTicketConfirmRepo confirmRepo;
 
-    @TelegramCommand(commands = "/report", description = "Register new ticker/order")
+    @TelegramCommand(commands = {"/report", "/lapor"}, description = "Register new ticker/order")
     public SendMessage registerReport(
             @TgAuth User user,
             @Text String text,
@@ -61,7 +63,7 @@ public class TicketListener {
                     message.getPhoto()
             );
 
-            log.info("Sending Success notif");
+            log.info("Reply with success message");
             return SendMessage.builder()
                     .chatId(message.getChatId())
                     .text(Translator.tr("ticket.registration.success", ticket.getNo()))
@@ -70,10 +72,12 @@ public class TicketListener {
         catch (Exception ex) {
             ex.printStackTrace();
             log.error(ex.getMessage());
+
+            log.warn("Reply with fail message");
             return SendMessage.builder()
                     .chatId(message.getChatId())
                     .text(TelegramUtil.esc(ex.getMessage()))
-                    .parseMode(ParseMode.MarkdownV2.name())
+                    .parseMode(ParseMode.MARKDOWNV2)
                     .build();
         }
     }
@@ -81,10 +85,11 @@ public class TicketListener {
     @TelegramCommand(commands = "/take", description = "take ticket by order no")
     public SendMessage takeTicket(@TgAuth User user, @Text String text) {
         try {
+            log.info("TAKE ACTION BY {}", user.getTelegramId());
             Ticket ticket = botService.take(text);
             return SendMessage.builder()
                     .chatId(user.getTelegramId())
-                    .text(Translator.tr("ticket.take.success", ticket.getNo()))
+                    .text(Translator.tr("tg.ticket.wip.agent", ticket.getNo()))
                     .build();
         }
         catch (Exception ex) {
@@ -92,8 +97,8 @@ public class TicketListener {
             log.error(ex.getMessage());
             return SendMessage.builder()
                     .chatId(user.getTelegramId())
-                    .text(TelegramUtil.esc(ex.getMessage()))
-                    .parseMode(ParseMode.MarkdownV2.name())
+                    .text(TelegramUtil.exception(ex))
+                    .parseMode(ParseMode.MARKDOWNV2)
                     .build();
         }
     }
@@ -101,7 +106,38 @@ public class TicketListener {
 
     @TelegramCommand(commands = "/close", description = "close ticket")
     public void closeTicket(@TgAuth User user, @Text String text, Message message) {
+        // NOTE:
+        // Parsing format: /close <ticket-no> [description]
+        // required no tiket
+        // optional description
 
+        if (message.getReplyToMessage() != null) {
+            long messageId = message
+                    .getReplyToMessage()
+                    .getMessageId();
+
+            confirmRepo.findById(messageId).ifPresent(confirm -> {
+                log.info("TICKET CLOSE CONFIRMATION -- MESSAGE ID={}", messageId);
+                botService.confirmedClose(messageId, true, text);
+            });
+        }
+    }
+
+
+    @TelegramCommand(commands = "/reopen", description = "close ticket")
+    public void reopenTicket(@TgAuth User user, @Text String text, Message message) {
+        // NOTE:
+        // Parsing format: /close <ticket-no> [description]
+        // required no tiket
+        // optional description
+
+        if (message.getReplyToMessage() != null) {
+            long messageId = message.getMessageId();
+            confirmRepo.findById(messageId).ifPresent(confirm -> {
+                log.info("TICKET REOPEN CONFIRMATION -- MESSAGE ID={}", messageId);
+                botService.confirmedClose(messageId, false, text);
+            });
+        }
     }
 
     private TicketForm parseTicketRegistration(String text) {
@@ -135,6 +171,10 @@ public class TicketListener {
         }
 
         return form;
+    }
+
+    private void parseCloseCommand(String text) {
+
     }
 
     private void applyForm(TicketForm form, String fieldValue, String fieldName) {

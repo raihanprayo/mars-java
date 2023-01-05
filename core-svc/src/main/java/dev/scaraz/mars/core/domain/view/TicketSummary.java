@@ -1,11 +1,10 @@
 package dev.scaraz.mars.core.domain.view;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
-import dev.scaraz.mars.common.tools.enums.Product;
-import dev.scaraz.mars.common.tools.enums.TcSource;
-import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.common.tools.enums.Witel;
+import dev.scaraz.mars.common.tools.enums.*;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.Issue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -62,10 +61,12 @@ public class TicketSummary extends AuditableEntity {
     @Column(name = "gaul")
     private int gaulCount = 0;
 
-    @Column(name = "ref_issue_id")
-    private String issueId;
+    @ManyToOne
+    @JoinColumn(name = "ref_issue_id")
+    private Issue issue;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private Product product;
 
     @Column(name = "agent_count")
@@ -74,7 +75,15 @@ public class TicketSummary extends AuditableEntity {
     @Column
     private boolean wip;
 
+    @Column(name="wip_id")
+    private String wipId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "wip_status")
+    private AgStatus wipStatus;
+
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "wip_by")
     private User wipBy;
 

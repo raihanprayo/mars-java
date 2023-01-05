@@ -43,6 +43,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         Cookie[] cookies = request.getCookies();
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.isNoneBlank(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+//            log.debug("AUTH FROM BEARER");
             try {
                 String token = bearerToken.substring(BEARER_PREFIX.length());
                 JwtToken jwt = JwtUtil.decode(token);
@@ -51,7 +52,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext()
                         .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
 
-                LocaleContextHolder.setLocale(user.getSetting().getLang());
+                LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
             }
             catch (SignatureException |
                    ExpiredJwtException |
@@ -61,7 +62,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
         else if (cookies != null && cookies.length != 0) {
-            log.debug("AUTH FROM COOKIE {}", List.of(cookies));
+//            log.debug("AUTH FROM COOKIE");
             for (Cookie cookie : cookies) {
                 if (!cookie.getName().equals(AppConstants.Auth.COOKIE_TOKEN)) {
                     continue;
@@ -69,12 +70,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
                 String token = cookie.getValue();
                 JwtToken jwt = JwtUtil.decode(token);
+                try {
+                    User user = userQueryService.findById(jwt.getUserId());
+                    SecurityContextHolder.getContext()
+                            .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
 
-                User user = userQueryService.findById(jwt.getUserId());
-                SecurityContextHolder.getContext()
-                        .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
-
-                LocaleContextHolder.setLocale(user.getSetting().getLang());
+                    LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
+                }
+                catch (Exception ex) {
+                }
             }
         }
 

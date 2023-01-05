@@ -27,7 +27,7 @@ public class TicketForm {
 
     @FormDescriptor(
             required = true,
-            alias = {"no tiket", "incidentno"})
+            alias = {"no incident", "incidentno"})
     private String incident;
 
     @FormDescriptor(
