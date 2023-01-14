@@ -31,5 +31,6 @@ public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificat
     );
 
     Optional<Ticket> findByIdOrNo(String ticketId, String ticketNo);
+    Optional<Ticket> findOneByConfirmMessageId(Long messageId);
 
 }

@@ -56,6 +56,16 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     }
 
     @Override
+    public List<Role> findAllGroupIsNull() {
+        return repo.findAllByGroupIsNull();
+    }
+
+    @Override
+    public Page<Role> findAllGroupIsNull(Pageable pageable) {
+        return repo.findAllByGroupIsNull(pageable);
+    }
+
+    @Override
     public long count() {
         return repo.count();
     }

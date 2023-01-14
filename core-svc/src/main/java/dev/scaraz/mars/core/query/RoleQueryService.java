@@ -11,4 +11,8 @@ public interface RoleQueryService extends BaseQueryService<Role, RoleCriteria> {
     Role findByIdOrName(String idOrName);
 
     Role findGroupRole(String groupId, String name);
+
+    List<Role> findAllGroupIsNull();
+
+    Page<Role> findAllGroupIsNull(Pageable pageable);
 }

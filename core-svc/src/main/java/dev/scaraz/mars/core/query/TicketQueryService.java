@@ -13,6 +13,8 @@ public interface TicketQueryService extends BaseQueryService<Ticket, TicketCrite
 
     Ticket findByIdOrNo(String idOrNo);
 
+    Ticket findByMessageId(Long messageId);
+
     long count(TicketCriteria criteria);
 
     Map<Product, Long> countProducts(@Nullable TicketAgentCriteria agentCriteria);

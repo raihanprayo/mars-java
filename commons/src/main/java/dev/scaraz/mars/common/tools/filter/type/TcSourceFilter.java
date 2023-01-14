@@ -1,6 +1,5 @@
 package dev.scaraz.mars.common.tools.filter.type;
 
-import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 
 import java.util.Collection;
@@ -42,8 +41,8 @@ public class TcSourceFilter extends EnumFilter<TcSource> {
     }
 
     @Override
-    public TcSourceFilter setNullable(boolean nullable) {
-        return (TcSourceFilter) super.setNullable(nullable);
+    public TcSourceFilter setSpecified(Boolean nullable) {
+        return (TcSourceFilter) super.setSpecified(nullable);
     }
 
     @Override

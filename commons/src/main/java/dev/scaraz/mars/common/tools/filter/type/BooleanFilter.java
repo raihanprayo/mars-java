@@ -1,6 +1,7 @@
 package dev.scaraz.mars.common.tools.filter.type;
 
 import dev.scaraz.mars.common.tools.filter.AbsFilter;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 
 import java.util.Collection;
 
@@ -16,8 +17,8 @@ public class BooleanFilter extends AbsFilter<Boolean> {
     }
 
     @Override
-    public BooleanFilter setNullable(boolean nullable) {
-        return (BooleanFilter) super.setNullable(nullable);
+    public BooleanFilter setSpecified(Boolean specified) {
+        return (BooleanFilter) super.setSpecified(specified);
     }
 
 }

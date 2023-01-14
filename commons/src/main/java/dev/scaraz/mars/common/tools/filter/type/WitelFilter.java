@@ -1,6 +1,5 @@
 package dev.scaraz.mars.common.tools.filter.type;
 
-import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.Witel;
 
 import java.util.Collection;
@@ -42,8 +41,8 @@ public class WitelFilter extends EnumFilter<Witel> {
     }
 
     @Override
-    public WitelFilter setNullable(boolean nullable) {
-        return (WitelFilter) super.setNullable(nullable);
+    public WitelFilter setSpecified(Boolean nullable) {
+        return (WitelFilter) super.setSpecified(nullable);
     }
 
     @Override

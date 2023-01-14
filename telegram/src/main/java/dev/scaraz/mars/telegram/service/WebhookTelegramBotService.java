@@ -1,22 +1,17 @@
 package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
-import dev.scaraz.mars.telegram.UpdateContextHolder;
-import dev.scaraz.mars.telegram.config.ProcessContextHolder;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.updates.SetWebhook;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.BotSession;
-
-import java.util.Optional;
 
 /**
  * Webhook implementation of Telegram Bot Service.
@@ -54,18 +49,16 @@ public class WebhookTelegramBotService extends TelegramBotService {
 
             @Override
             public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-                UpdateContextHolder.set(update);
                 self.onUpdateReceived(update);
                 try {
-                    TelegramProcessContext ctx = ProcessContextHolder.get();
+                    TelegramProcessContext ctx = TelegramContextHolder.get();
                     return ctx.getResult();
                 }
                 catch (IllegalStateException ex) {
                     return null;
                 }
                 finally {
-                    ProcessContextHolder.clear();
-                    UpdateContextHolder.clear();
+                    TelegramContextHolder.clear();
                 }
             }
 

@@ -1,6 +1,5 @@
 package dev.scaraz.mars.core.service;
 
-import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
@@ -8,6 +7,7 @@ import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.UserSetting;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.repository.credential.UserSettingRepo;
+import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
@@ -39,23 +39,25 @@ public class NotifierService {
                 user.getName());
     }
 
+    public void sendRetaken(Ticket ticket, User user) {
+        send(ticket.getSenderId(), "tg.ticket.wip.retake",
+                ticket.getNo(),
+                user.getName());
+    }
+
     public int sendConfirmation(Ticket ticket) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
-                    .keyboardRow(TC_CONFIRMATION_BTN())
+                    .keyboardRow(CONFIRMATION_QUERY_BTN())
                     .build();
 
             Locale lang = useLocale(ticket.getSenderId());
-            String[] messages = {
-                    Translator.tr("tg.ticket.confirm.header", lang, ticket.getNo()),
-                    Translator.tr("tg.ticket.confirm.footer", lang, "30 " + Translator.tr("date.minute")),
-            };
 
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
                     .parseMode(ParseMode.MARKDOWNV2)
                     .replyMarkup(markup)
-                    .text(TelegramUtil.esc(String.join("\n", messages)))
+                    .text(TelegramUtil.esc(Translator.tr("tg.ticket.confirm", lang, ticket.getNo())))
                     .build();
 
             Message msg = botService.getClient().execute(send);
@@ -66,37 +68,54 @@ public class NotifierService {
         }
     }
 
-    public void send(long telegramId, String codeOrMessage, Object... args) {
+    public int send(long telegramId, String codeOrMessage, Object... args) {
         try {
+            log.info("SENDING MESSAGE TO TELEGRAM USER {}", telegramId);
+
             String message = Translator.tr(codeOrMessage, useLocale(telegramId), args);
-            botService.getClient().execute(SendMessage.builder()
-                    .chatId(telegramId)
-                    .text(TelegramUtil.esc(message))
-                    .parseMode(ParseMode.MARKDOWNV2)
-                    .build());
+            return botService.getClient().execute(SendMessage.builder()
+                            .chatId(telegramId)
+                            .text(TelegramUtil.esc(message))
+                            .parseMode(ParseMode.MARKDOWNV2)
+                            .build())
+                    .getMessageId();
         }
         catch (TelegramApiException ex) {
             throw InternalServerException.args(ex, "error.unable.to.notify.user");
         }
     }
 
-    private Locale useLocale(long telegramId) {
+    public void safeSend(long telegramId, String codeOrMessage, Object... args) {
+        try {
+            send(telegramId, codeOrMessage, args);
+        }
+        catch (InternalServerException ex) {
+        }
+    }
+
+    public Locale useLocale(long telegramId) {
+        User currentUser = SecurityUtil.getCurrentUser();
+        if (currentUser != null && currentUser.getTelegramId() == telegramId) {
+            return currentUser.getSetting().getLang();
+        }
+
+        log.debug("GET LOCALE FROM USER SETTING");
         return userSettingRepo.findByUserTelegramId(telegramId)
                 .map(UserSetting::getLang)
                 .orElse(LocaleContextHolder.getLocale());
     }
 
-    private static List<InlineKeyboardButton> TC_CONFIRMATION_BTN() {
+    private static List<InlineKeyboardButton> CONFIRMATION_QUERY_BTN() {
         return List.of(
                 // Tidak
                 InlineKeyboardButton.builder()
                         .text(Translator.tr("text.disagree"))
-                        .callbackData(AppConstants.Ticket.CONFIRM_DISAGREE)
+                        .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
                         .build(),
                 // Ya
                 InlineKeyboardButton.builder()
                         .text(Translator.tr("text.agree"))
-                        .callbackData(AppConstants.Ticket.CONFIRM_AGREE)
+                        .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
                         .build()
         );
     }

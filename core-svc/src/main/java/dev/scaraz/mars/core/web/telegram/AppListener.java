@@ -35,7 +35,7 @@ public class AppListener {
 
         Message message = cq.getMessage();
         if (confirmRepo.existsById(Long.valueOf(message.getMessageId()))) {
-            boolean answer = AppConstants.Ticket.CONFIRM_AGREE.equals(cq.getData());
+            boolean answer = AppConstants.Telegram.CONFIRM_AGREE.equals(cq.getData());
             log.info("TICKET CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", message.getMessageId(), answer);
 
             ticketBotService.confirmedClose(

@@ -36,7 +36,7 @@ public class LongFilter extends AbsRangeFilter<Long> {
     }
 
     @Override
-    public LongFilter setNullable(boolean nullable) {
-        return (LongFilter) super.setNullable(nullable);
+    public LongFilter setSpecified(Boolean specified) {
+        return (LongFilter) super.setSpecified(specified);
     }
 }

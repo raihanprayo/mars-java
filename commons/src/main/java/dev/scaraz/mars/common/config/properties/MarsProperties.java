@@ -11,6 +11,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -33,7 +34,7 @@ public class MarsProperties {
     private I18nProperties i18n = new I18nProperties();
 
     @Setter(AccessLevel.NONE)
-    private EnumMap<DirectoryAlias, String> directory = new EnumMap<>(DirectoryAlias.class);
+    private Map<DirectoryAlias, String> directory = new EnumMap<>(DirectoryAlias.class);
 
 
     @Getter

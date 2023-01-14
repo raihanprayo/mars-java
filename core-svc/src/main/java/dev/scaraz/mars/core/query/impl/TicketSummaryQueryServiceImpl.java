@@ -20,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 
 @Slf4j
@@ -50,6 +51,11 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
     @Override
     public Page<TicketSummary> findAll(TicketSummaryCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
+    }
+
+    @Override
+    public List<String> getAllByIds(Instant from, Instant to) {
+        return repo.getAllIds(from, to);
     }
 
     @Override

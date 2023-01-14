@@ -33,11 +33,13 @@ public class TicketAsset extends TimestampEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "ref_ticket_id")
     private Ticket ticket;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @JsonIgnore
     @JoinColumn(name = "ref_agent_id")
     private TicketAgent agent;
 

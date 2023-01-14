@@ -1,9 +1,10 @@
-package dev.scaraz.mars.core.mapper;
+package dev.scaraz.mars.core.mapper.impl;
 
 import dev.scaraz.mars.common.domain.response.WhoamiDTO;
 import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.mapper.UserMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

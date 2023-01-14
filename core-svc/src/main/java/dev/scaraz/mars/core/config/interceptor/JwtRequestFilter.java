@@ -40,10 +40,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.debug("REQUEST TO {} {}", request.getMethod(), request.getRequestURL().toString());
         Cookie[] cookies = request.getCookies();
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.isNoneBlank(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-//            log.debug("AUTH FROM BEARER");
+            log.debug("AUTH FROM BEARER");
             try {
                 String token = bearerToken.substring(BEARER_PREFIX.length());
                 JwtToken jwt = JwtUtil.decode(token);
@@ -59,10 +60,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                    MalformedJwtException |
                    UnsupportedJwtException |
                    IllegalArgumentException ex) {
+                ex.printStackTrace();
+                log.error(ex.getMessage());
+
+                throw new UnauthorizedException();
             }
         }
         else if (cookies != null && cookies.length != 0) {
-//            log.debug("AUTH FROM COOKIE");
+            log.debug("AUTH FROM COOKIE");
             for (Cookie cookie : cookies) {
                 if (!cookie.getName().equals(AppConstants.Auth.COOKIE_TOKEN)) {
                     continue;
@@ -78,10 +83,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
                 }
                 catch (Exception ex) {
+                    log.error(ex.getMessage());
+
+                    throw new UnauthorizedException();
                 }
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }

@@ -3,10 +3,11 @@ package dev.scaraz.mars.core.query.criteria;
 import dev.scaraz.mars.common.tools.AuditableCriteria;
 import dev.scaraz.mars.common.tools.filter.type.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder(toBuilder = true)
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,4 +34,24 @@ public class TicketSummaryCriteria extends AuditableCriteria {
     private BooleanFilter wip;
     private UserCriteria wipBy;
 
+    public TicketSummaryCriteria copy() {
+        return TicketSummaryCriteria.builder()
+                .id(id)
+                .no(no)
+                .witel(witel)
+                .sto(sto)
+                .incidentNo(incidentNo)
+                .serviceNo(serviceNo)
+                .status(status)
+                .source(source)
+                .gaul(gaul)
+                .gaulCount(gaulCount)
+                .senderName(senderName)
+                .senderId(senderId)
+                .agentCount(agentCount)
+                .product(product)
+                .wip(wip)
+                .wipBy(wipBy)
+                .build();
+    }
 }

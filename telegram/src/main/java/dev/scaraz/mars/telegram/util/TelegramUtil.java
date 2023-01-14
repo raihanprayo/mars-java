@@ -62,7 +62,7 @@ public abstract class TelegramUtil {
                 );
             }
 
-            return null;
+            return "<unknown error>";
         }
         else {
 

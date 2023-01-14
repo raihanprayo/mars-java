@@ -4,7 +4,12 @@ import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 
+import java.time.Instant;
+import java.util.List;
+
 public interface TicketSummaryQueryService extends BaseQueryService<TicketSummary, TicketSummaryCriteria> {
+
+    List<String> getAllByIds(Instant from, Instant to);
 
     TicketSummary findByIdOrNo(String id);
 

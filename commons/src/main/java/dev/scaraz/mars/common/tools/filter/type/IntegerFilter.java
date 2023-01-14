@@ -36,7 +36,7 @@ public class IntegerFilter extends AbsRangeFilter<Integer> {
     }
 
     @Override
-    public IntegerFilter setNullable(boolean nullable) {
-        return (IntegerFilter) super.setNullable(nullable);
+    public IntegerFilter setSpecified(Boolean specified) {
+        return (IntegerFilter) super.setSpecified(specified);
     }
 }

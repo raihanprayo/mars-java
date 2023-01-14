@@ -1,8 +1,8 @@
 package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
-import dev.scaraz.mars.telegram.UpdateContextHolder;
-import dev.scaraz.mars.telegram.config.ProcessContextHolder;
+import dev.scaraz.mars.telegram.config.InternalTelegram;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
 import lombok.Getter;
@@ -92,22 +92,20 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
             @Override
             public void onUpdateReceived(Update update) {
                 CompletableFuture.runAsync(() -> {
-                    UpdateContextHolder.set(update);
 
                     self.onUpdateReceived(update);
                     try {
-                        TelegramProcessContext ctx = ProcessContextHolder.get();
+                        TelegramProcessContext ctx = TelegramContextHolder.get();
                         if (ctx.hasResult()) this.execute(ctx.getResult());
                     }
                     catch (TelegramApiException | IllegalStateException ex) {
-                        ProcessContextHolder.update(c -> c.cycle(ProcessCycle.SEND));
-                        ProcessContextHolder.getIfAvailable(ctx ->
+                        InternalTelegram.update(c -> c.cycle(ProcessCycle.SEND));
+                        TelegramContextHolder.getIfAvailable(ctx ->
                                 ctx.getProcessor().handleExceptions(self, update, ex)
                         );
                     }
 
-                    ProcessContextHolder.clear();
-                    UpdateContextHolder.clear();
+                    TelegramContextHolder.clear();
                 }, self.executor);
             }
         };

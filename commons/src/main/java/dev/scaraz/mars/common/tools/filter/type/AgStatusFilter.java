@@ -1,7 +1,6 @@
 package dev.scaraz.mars.common.tools.filter.type;
 
 import dev.scaraz.mars.common.tools.enums.AgStatus;
-import dev.scaraz.mars.common.tools.enums.Product;
 
 import java.util.Collection;
 
@@ -42,8 +41,8 @@ public class AgStatusFilter extends EnumFilter<AgStatus> {
     }
 
     @Override
-    public AgStatusFilter setNullable(boolean nullable) {
-        return (AgStatusFilter) super.setNullable(nullable);
+    public AgStatusFilter setSpecified(Boolean nullable) {
+        return (AgStatusFilter) super.setSpecified(nullable);
     }
 
     @Override

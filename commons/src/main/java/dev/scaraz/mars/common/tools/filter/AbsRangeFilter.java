@@ -48,7 +48,7 @@ public abstract class AbsRangeFilter<T extends Comparable<? super T>> extends Ab
     }
 
     @Override
-    public AbsRangeFilter<T> setNullable(boolean nullable) {
-        return (AbsRangeFilter<T>) super.setNullable(nullable);
+    public AbsRangeFilter<T> setSpecified(Boolean specified) {
+        return (AbsRangeFilter<T>) super.setSpecified(specified);
     }
 }

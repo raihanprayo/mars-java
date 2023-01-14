@@ -12,6 +12,7 @@ import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.repository.cache.CacheTicketConfirmRepo;
+import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.Util;
@@ -41,6 +42,8 @@ public class TicketListener {
     private final TicketAgentQueryService agentQueryService;
     private final TicketBotService botService;
     private final CacheTicketConfirmRepo confirmRepo;
+
+    private final NotifierService notifierService;
 
     @TelegramCommand(commands = {"/report", "/lapor"}, description = "Register new ticker/order")
     public SendMessage registerReport(
@@ -87,9 +90,11 @@ public class TicketListener {
         try {
             log.info("TAKE ACTION BY {}", user.getTelegramId());
             Ticket ticket = botService.take(text);
+
             return SendMessage.builder()
                     .chatId(user.getTelegramId())
-                    .text(Translator.tr("tg.ticket.wip.agent", ticket.getNo()))
+                    .text(TelegramUtil.esc(Translator.tr("tg.ticket.wip.agent", ticket.getNo())))
+                    .parseMode(ParseMode.MARKDOWNV2)
                     .build();
         }
         catch (Exception ex) {
@@ -132,7 +137,10 @@ public class TicketListener {
         // optional description
 
         if (message.getReplyToMessage() != null) {
-            long messageId = message.getMessageId();
+            long messageId = message
+                    .getReplyToMessage()
+                    .getMessageId();
+
             confirmRepo.findById(messageId).ifPresent(confirm -> {
                 log.info("TICKET REOPEN CONFIRMATION -- MESSAGE ID={}", messageId);
                 botService.confirmedClose(messageId, false, text);
@@ -171,10 +179,6 @@ public class TicketListener {
         }
 
         return form;
-    }
-
-    private void parseCloseCommand(String text) {
-
     }
 
     private void applyForm(TicketForm form, String fieldValue, String fieldName) {

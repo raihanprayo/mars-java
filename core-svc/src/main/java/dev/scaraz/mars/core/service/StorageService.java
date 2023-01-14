@@ -18,11 +18,9 @@ import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -47,7 +45,7 @@ public class StorageService {
 
     public TicketAsset addPhotoForTicket(Collection<PhotoSize> photos, Ticket ticket) {
         String no = ticket.getNo();
-        Path storage = Path.of(marsProperties.getDirectory().get(DirectoryAlias.STORAGE))
+        Path storage = Path.of(marsProperties.getDirectory().get(DirectoryAlias.SHARED))
                 .resolve("tickets")
                 .resolve(no);
 
@@ -90,7 +88,7 @@ public class StorageService {
 
     public TicketAsset addPhotoForAgent(Ticket ticket, TicketAgent agent, Collection<MultipartFile> photos) {
         String no = ticket.getNo();
-        Path storage = Path.of(marsProperties.getDirectory().get(DirectoryAlias.STORAGE))
+        Path storage = Path.of(marsProperties.getDirectory().get(DirectoryAlias.SHARED))
                 .resolve("tickets")
                 .resolve(no);
 

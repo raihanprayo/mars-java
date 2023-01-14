@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
+import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
@@ -24,11 +25,13 @@ import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.SecurityUtil;
-import dev.scaraz.mars.telegram.UpdateContextHolder;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,32 +59,42 @@ public class TicketFlowServiceImpl implements TicketFlowService {
     private final LogTicketService logTicketService;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public Ticket take(String ticketIdOrNo) {
+        // Pengambilan tiket dengan kondisi tiket belum dikerjakan
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 
-        if (summaryQueryService.isWorkInProgressByTicketId(ticket.getId()))
+        if (summaryQueryService.isWorkInProgressByTicketId(ticket.getId())) {
             throw BadRequestException.args("error.ticket.taken");
+        }
 
         User user = SecurityUtil.getCurrentUser();
-        TicketAgent agent = agentRepo.save(TicketAgent.builder()
-                .ticket(ticket)
-                .user(user)
-                .status(AgStatus.PROGRESS)
-                .build());
+        if (user != null) {
+            TcStatus prevStatus = ticket.getStatus();
+            TicketAgent agent = agentRepo.save(TicketAgent.builder()
+                    .ticket(ticket)
+                    .user(user)
+                    .status(AgStatus.PROGRESS)
+                    .build());
 
-        ticket.setStatus(TcStatus.PROGRESS);
-        notifierService.sendTaken(ticket, user);
+            ticket.setStatus(TcStatus.PROGRESS);
 
-        logTicketService.add(LogTicket.builder()
-                .ticket(ticket)
-                .prev(TcStatus.OPEN)
-                .curr(ticket.getStatus())
-                .agent(agent)
-                .message(LOG_WORK_IN_PROGRESS)
-                .build());
+            boolean isPreviousStatusOpen = prevStatus == TcStatus.OPEN;
+            if (isPreviousStatusOpen) notifierService.sendTaken(ticket, user);
+            else notifierService.sendRetaken(ticket, user);
 
-        return service.save(ticket);
+            logTicketService.add(LogTicket.builder()
+                    .ticket(ticket)
+                    .prev(prevStatus)
+                    .curr(ticket.getStatus())
+                    .agent(agent)
+                    .message(isPreviousStatusOpen ? LOG_WORK_IN_PROGRESS : LOG_REWORK_IN_PROGRESS)
+                    .build());
+
+            return service.save(ticket);
+        }
+
+        throw InternalServerException.args("Unable to decide which user as agent");
     }
 
     @Override
@@ -103,8 +116,9 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 TcStatus.CLOSED,
                 form.getNote());
 
-        ticket.setStatus(TcStatus.CONFIRMATION);
         int messageId = notifierService.sendConfirmation(ticket);
+        ticket.setStatus(TcStatus.CONFIRMATION);
+        ticket.setConfirmMessageId((long) messageId);
 
         ticketConfirmRepo.save(CacheTicketConfirm.builder()
                 .id(messageId)
@@ -148,6 +162,11 @@ public class TicketFlowServiceImpl implements TicketFlowService {
             storageService.addPhotoForAgentAsync(ticket, agent, List.of(form.getFiles()));
 
         ticket.setStatus(TcStatus.DISPATCH);
+
+        notifierService.send(ticket.getSenderId(),
+                "tg.ticket.update.dispatch",
+                ticket.getNo());
+
         logTicketService.add(LogTicket.builder()
                 .ticket(ticket)
                 .prev(TcStatus.PROGRESS)
@@ -161,26 +180,31 @@ public class TicketFlowServiceImpl implements TicketFlowService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Ticket confirm(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form) {
+        log.info("TICKET CONFIRM REQUEST OF NO {} -- REOPEN ? {}", ticketIdOrNo, reopen);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 
         if (ticket.getStatus() != TcStatus.CONFIRMATION)
             throw BadRequestException.args("error.ticket.illegal.close.confirm.state");
 
+        TicketAgent prevAgent = agentQueryService.findAll(
+                TicketAgentCriteria.builder()
+                        .ticketId(new StringFilter().setEq(ticket.getId()))
+                        .build(),
+                PageRequest.of(0, 1, Sort.Direction.DESC, "createdAt")
+        ).stream().findFirst().orElseThrow();
+
         if (reopen) {
             ticket.setStatus(TcStatus.REOPEN);
+            ticket.setConfirmMessageId(null);
 
-            TicketAgent prevAgent = agentQueryService.findAll(
-                    TicketAgentCriteria.builder()
-                            .ticketId(new StringFilter().setEq(ticket.getId()))
-                            .build(),
-                    PageRequest.of(0, 1, Sort.Direction.DESC, "createdAt")
-            ).stream().findFirst().orElseThrow();
-
+            String reopenDesc = StringUtils.isNoneBlank(form.getNote()) ?
+                    form.getNote() : "<no description>";
 
             agentRepo.save(TicketAgent.builder()
+                    .ticket(ticket)
                     .status(AgStatus.PROGRESS)
                     .user(prevAgent.getUser())
-                    .ticket(ticket)
+                    .reopenDescription(reopenDesc)
                     .build());
 
             logTicketService.add(LogTicket.builder()
@@ -189,30 +213,56 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                     .curr(ticket.getStatus())
                     .message(LOG_REOPEN)
                     .build());
+
+            notifierService.safeSend(
+                    prevAgent.getUser().getTelegramId(),
+                    "tg.ticket.confirm.reopen.agent",
+                    ticket.getNo(),
+                    reopenDesc);
         }
         else {
             ticket.setStatus(TcStatus.CLOSED);
+            ticket.setConfirmMessageId(null);
 
-            String message;
-            if (UpdateContextHolder.hasUpdate()) message = LOG_CONFIRMED_CLOSE;
-            else {
-                message = LOG_AUTO_CLOSE;
-                notifierService.send(ticket.getSenderId(),
-                        "tg.ticket.notice.auto-close",
-                        ticket.getNo()
+            String logMessage;
+            if (TelegramContextHolder.hasContext()) {
+                logMessage = LOG_CONFIRMED_CLOSE;
+                String message = Translator.tr(
+                        "tg.ticket.confirm.closed",
+                        ticket.getNo(),
+                        Translator.tr("app.done.watermark")
                 );
+
+                notifierService.send(ticket.getSenderId(), message);
+                notifierService.safeSend(prevAgent.getUser().getTelegramId(),
+                        "tg.ticket.confirm.closed.agent",
+                        ticket.getNo(),
+                        Translator.tr("app.done.watermark",
+                                notifierService.useLocale(prevAgent.getUser().getTelegramId())));
+            }
+            else {
+                logMessage = LOG_AUTO_CLOSE;
+                notifierService.send(ticket.getSenderId(),
+                        "tg.ticket.confirm.auto-closed",
+                        ticket.getNo());
             }
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)
                     .prev(TcStatus.CONFIRMATION)
                     .curr(ticket.getStatus())
-                    .message(message)
+                    .message(logMessage)
                     .build());
         }
 
 
         return service.save(ticket);
+    }
+
+    @Async
+    @Override
+    public void confirmAsync(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form) {
+        confirm(ticketIdOrNo, reopen, form);
     }
 
 }

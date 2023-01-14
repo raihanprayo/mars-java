@@ -31,9 +31,7 @@ public class CacheExpireListener {
 
         CacheTicketConfirm data = (CacheTicketConfirm) event.getValue();
         String ticketNo = data.getNo();
-        ticketFlowService.confirm(ticketNo, false, TicketStatusFormDTO.builder()
-                .note("no confirmation, auto close ticket")
-                .build());
+        ticketFlowService.confirm(ticketNo, false, new TicketStatusFormDTO());
     }
 
 }

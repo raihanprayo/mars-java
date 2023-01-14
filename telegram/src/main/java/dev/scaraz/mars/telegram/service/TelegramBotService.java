@@ -1,7 +1,8 @@
 package dev.scaraz.mars.telegram.service;
 
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
-import dev.scaraz.mars.telegram.config.ProcessContextHolder;
+import dev.scaraz.mars.telegram.config.InternalTelegram;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.config.TelegramArgumentMapper;
 import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
 import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
@@ -81,27 +82,27 @@ public abstract class TelegramBotService implements AutoCloseable {
         try {
             if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
             else {
-                ProcessContextHolder.update(b -> b.update(update).processor(processor).cycle(ProcessCycle.PROCESS));
+                InternalTelegram.update(b -> b.update(update).processor(processor).cycle(ProcessCycle.PROCESS));
                 try {
                     processor.process(this, update)
-                            .ifPresent(m -> ProcessContextHolder.update(b -> b.result(m)));
+                            .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
                 }
                 catch (Exception e) {
                     log.warn("Fail to process update {}", update.getUpdateId(), e);
                     processor.handleExceptions(this, update, e)
-                            .ifPresent(m -> ProcessContextHolder.update(b -> b.result(m)));
+                            .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
                 }
             }
         }
         catch (Exception ex) {
             ex.printStackTrace();
             log.error(ex.getMessage());
-            ProcessContextHolder.clear();
+            TelegramContextHolder.clear();
         }
     }
 
     public Optional<BotApiMethod<?>> processHandler(TelegramHandler commandHandler, Object[] arguments) throws Exception {
-        ProcessContextHolder.update(b -> b.handler(commandHandler).handlerArguments(arguments));
+        InternalTelegram.update(b -> b.handler(commandHandler).handlerArguments(arguments));
 
         Method method = commandHandler.getMethod();
         Class<?> methodReturnType = method.getReturnType();

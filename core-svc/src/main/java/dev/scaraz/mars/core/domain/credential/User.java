@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.credential;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
@@ -7,11 +8,15 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.security.core.AuthenticatedPrincipal;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -22,7 +27,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "t_user")
-public class User extends AuditableEntity implements AuthenticatedPrincipal {
+public class User extends AuditableEntity implements AuthenticatedPrincipal, UserDetails {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -44,6 +49,7 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal {
     @Column
     private boolean active;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ref_group_id")
     private Group group;
@@ -131,4 +137,42 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal {
             this.credential.setUser(this);
     }
 
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return getRoles().stream()
+                .filter(r -> !r.isGroupRole())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getPassword() {
+        return Optional.ofNullable(getCredential())
+                .map(UserCredential::getPassword)
+                .orElse(null);
+    }
+
+    @Override
+    public String getUsername() {
+        return getName();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return isActive();
+    }
 }

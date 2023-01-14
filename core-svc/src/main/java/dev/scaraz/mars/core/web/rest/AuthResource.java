@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
+import dev.scaraz.mars.common.domain.request.RefreshTokenReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.domain.response.WhoamiDTO;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
@@ -80,8 +81,11 @@ public class AuthResource {
                 .build();
     }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(HttpServletRequest request, @RequestBody(required = false) String refreshToken) {
+    @PostMapping(path = "/refresh")
+    public ResponseEntity<?> refresh(
+            HttpServletRequest request,
+            @RequestBody(required = false) RefreshTokenReqDTO req
+    ) {
         Cookie[] cookies = request.getCookies();
 
         if (cookies != null) {
@@ -94,7 +98,7 @@ public class AuthResource {
             }
         }
         else {
-            AuthResDTO authResult = authService.refresh(refreshToken);
+            AuthResDTO authResult = authService.refresh(req.getRefreshToken());
             return attachJwtCookie(authResult);
         }
 
@@ -127,4 +131,5 @@ public class AuthResource {
                 .header("Set-Cookie", cookieRefreshToken.toString())
                 .body(authResult);
     }
+
 }

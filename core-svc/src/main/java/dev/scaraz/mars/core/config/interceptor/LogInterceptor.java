@@ -28,14 +28,14 @@ public class LogInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        HandlerMethod method = (HandlerMethod) handler;
-        String methodName = String.format("%s.%s", method.getBeanType().getSimpleName(), method.getMethod().getName());
-
-        String url = request.getRequestURL().toString();
-        if (request.getQueryString() != null)
-            url += "?" + request.getQueryString();
-
         try {
+            HandlerMethod method = (HandlerMethod) handler;
+            String methodName = String.format("%s.%s", method.getBeanType().getSimpleName(), method.getMethod().getName());
+
+            String url = request.getRequestURL().toString();
+            if (request.getQueryString() != null)
+                url += "?" + request.getQueryString();
+
             log.info("[{}] INCOMING REQUEST TO {} {} FROM {}",
                     methodName,
                     request.getMethod(),
@@ -44,11 +44,7 @@ public class LogInterceptor implements HandlerInterceptor {
             );
         }
         catch (Exception ex) {
-            log.info("[{}] INCOMING REQUEST TO {} FROM {}",
-                    methodName,
-                    request.getMethod(),
-                    url
-            );
+            log.info("INCOMING REQUEST TO {}", request.getMethod());
         }
         return true;
     }

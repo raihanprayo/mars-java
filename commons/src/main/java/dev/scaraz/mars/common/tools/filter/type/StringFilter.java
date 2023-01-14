@@ -5,7 +5,6 @@ import dev.scaraz.mars.common.tools.filter.ReadableFilter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -34,8 +33,8 @@ public class StringFilter extends AbsFilter<String> implements ReadableFilter<St
     }
 
     @Override
-    public StringFilter setNullable(boolean nullable) {
-        return (StringFilter) super.setNullable(nullable);
+    public StringFilter setSpecified(Boolean specified) {
+        return (StringFilter) super.setSpecified(specified);
     }
 
     @Override
@@ -43,7 +42,7 @@ public class StringFilter extends AbsFilter<String> implements ReadableFilter<St
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("eq", eq)
                 .append("in", in)
-                .append("nullable", nullable)
+                .append("nullable", specified)
                 .append("negated", negated)
                 .append("like", like)
                 .toString();

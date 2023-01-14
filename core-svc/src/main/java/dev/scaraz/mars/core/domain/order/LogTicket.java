@@ -1,6 +1,10 @@
 package dev.scaraz.mars.core.domain.order;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.scaraz.mars.common.tools.converter.InstantDeserializer;
+import dev.scaraz.mars.common.tools.converter.InstantSerializer;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -52,6 +56,8 @@ public class LogTicket {
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
+    @JsonSerialize(using = InstantSerializer.class)
+    @JsonDeserialize(using = InstantDeserializer.class)
     private Instant createdAt;
 
 }

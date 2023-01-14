@@ -1,8 +1,7 @@
 package dev.scaraz.mars.common.tools.filter.type;
 
-import dev.scaraz.mars.common.tools.filter.AbsFilter;
 import dev.scaraz.mars.common.tools.filter.AbsRangeFilter;
-import dev.scaraz.mars.common.tools.filter.ReadableFilter;
+import dev.scaraz.mars.common.tools.filter.Filter;
 import lombok.Getter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -48,8 +47,8 @@ public class EnumFilter<T extends Enum<? super T>> extends AbsRangeFilter<T> {
     }
 
     @Override
-    public EnumFilter<T> setNullable(boolean nullable) {
-        return (EnumFilter<T>) super.setNullable(nullable);
+    public EnumFilter<T> setSpecified(Boolean specified) {
+        return (EnumFilter<T>) super.setSpecified(specified);
     }
 
     @Override
@@ -62,7 +61,7 @@ public class EnumFilter<T extends Enum<? super T>> extends AbsRangeFilter<T> {
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("eq", eq)
                 .append("in", in)
-                .append("nullable", nullable)
+                .append("nullable", specified)
                 .append("negated", negated)
                 .append("gt", gt)
                 .append("gte", gte)

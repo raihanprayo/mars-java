@@ -19,11 +19,14 @@ import dev.scaraz.mars.core.service.credential.GroupService;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.AuthSource;
+import dev.scaraz.mars.core.util.DelegateUser;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +36,7 @@ import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Auth.*;
 
@@ -56,9 +60,37 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional(readOnly = true)
+    public User loadUserByUsername(String username) throws UsernameNotFoundException {
+        // bisa nik, telegramId, email, & username
+        Optional<User> user = userRepo.findByNik(username);
+
+        // Cari dengan telegram id
+        if (user.isEmpty()) {
+            try {
+                long telegramId = Long.parseLong(username);
+                user = userRepo.findByTelegramId(telegramId);
+            }
+            catch (NumberFormatException ex) {
+            }
+        }
+
+        // Cari dengan username atau email
+        if (user.isEmpty()) {
+            user = userRepo.findByCredentialUsernameOrCredentialEmail(username, username);
+        }
+
+        // Jika masih ga ada
+        if (user.isEmpty())
+            throw new UsernameNotFoundException("No user found");
+
+        return user.get();
+    }
+
+    @Override
     @Transactional
     public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
-        User user = userQueryService.loadUserByUsername(authReq.getNik()).getUser();
+        User user = loadUserByUsername(authReq.getNik());
 
         if (!user.hasRole("admin")) {
             if (!user.canLogin()) {
@@ -206,5 +238,4 @@ public class AuthServiceImpl implements AuthService {
                 .text("registration success")
                 .allowSendingWithoutReply(true);
     }
-
 }

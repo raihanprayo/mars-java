@@ -2,8 +2,11 @@ package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
+import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.ResourceUtil;
+import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.TicketAgent;
 import dev.scaraz.mars.core.domain.order.TicketAsset;
@@ -14,6 +17,7 @@ import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.repository.order.LogTicketRepo;
 import dev.scaraz.mars.core.repository.order.TicketAssetRepo;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.SecurityUtil;
@@ -36,7 +40,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 
 @RestController
-@RequestMapping("/api/ticket")
+@RequestMapping("/ticket")
 public class TicketResource {
 
     private final TicketService service;
@@ -47,17 +51,16 @@ public class TicketResource {
     private final TicketSummaryQueryService summaryQueryService;
 
     private final TicketAssetRepo assetRepo;
+    private final LogTicketRepo logTicketRepo;
 
     @GetMapping
     public ResponseEntity<?> findAll(TicketSummaryCriteria criteria, Pageable pageable) {
         HttpHeaders headers = new HttpHeaders();
-        attachProductCountHeader(headers, false);
-
         if (criteria.getWip() == null)
             criteria.setWip(new BooleanFilter().setEq(false));
 
         Page<TicketSummary> page = summaryQueryService.findAll(criteria, pageable);
-
+        attachProductCountHeader(headers, criteria.copy(), false);
         return ResourceUtil.pagination(page, headers, "/api/ticket");
     }
 
@@ -80,7 +83,7 @@ public class TicketResource {
         }
         else {
             HttpHeaders headers = new HttpHeaders();
-            attachProductCountHeader(headers, true);
+            attachProductCountHeader(headers, criteria.copy(), true);
 
             Page<TicketSummary> page = summaryQueryService.findAll(criteria, pageable);
             return ResourceUtil.pagination(page, headers, "/api/ticket/inbox");
@@ -102,10 +105,10 @@ public class TicketResource {
     @GetMapping("/agents/{ticketIdOrNo}")
     public ResponseEntity<?> findAgents(@PathVariable String ticketIdOrNo, TicketAgentCriteria criteria) {
         try {
-            UUID.fromString(ticketIdOrNo);
+            UUID uuid = UUID.fromString(ticketIdOrNo);
             criteria.setTicketId(new StringFilter().setEq(ticketIdOrNo));
         }
-        catch (Exception e) {
+        catch (IllegalArgumentException e) {
             criteria.setTicketNo(new StringFilter().setEq(ticketIdOrNo));
         }
 
@@ -136,16 +139,55 @@ public class TicketResource {
         );
     }
 
-    private void attachProductCountHeader(HttpHeaders headers, boolean currentUser) {
-        headers.add("Tc-Count", String.valueOf(
-                summaryQueryService.countByProduct(Product.INTERNET, currentUser)
-        ));
-        headers.add("Tc-Count", String.valueOf(
-                summaryQueryService.countByProduct(Product.IPTV, currentUser)
-        ));
-        headers.add("Tc-Count", String.valueOf(
-                summaryQueryService.countByProduct(Product.VOICE, currentUser)
-        ));
+    @GetMapping("/logs/{ticketIdOrNo}")
+    public ResponseEntity<?> getLogs(
+            @PathVariable String ticketIdOrNo
+    ) {
+        List<LogTicket> logs = logTicketRepo.findAllByTicketIdOrTicketNo(ticketIdOrNo, ticketIdOrNo);
+        return ResponseEntity.ok(logs);
+    }
+
+    private void attachProductCountHeader(HttpHeaders headers, TicketSummaryCriteria criteria, boolean currentUser) {
+        if (currentUser) {
+            User usr = SecurityUtil.getCurrentUser();
+            if (usr != null) {
+                UserCriteria userCriteria = UserCriteria.builder()
+                        .id(new StringFilter(usr.getId()))
+                        .build();
+
+                long countInternet = summaryQueryService.count(criteria.toBuilder()
+                        .product(new ProductFilter().setEq(Product.INTERNET))
+                        .wipBy(userCriteria)
+                        .build());
+                long countIptv = summaryQueryService.count(criteria.toBuilder()
+                        .product(new ProductFilter().setEq(Product.IPTV))
+                        .wipBy(userCriteria)
+                        .build());
+                long countVoice = summaryQueryService.count(criteria.toBuilder()
+                        .product(new ProductFilter().setEq(Product.VOICE))
+                        .wipBy(userCriteria)
+                        .build());
+
+                headers.add("Tc-Count", String.valueOf(countInternet));
+                headers.add("Tc-Count", String.valueOf(countIptv));
+                headers.add("Tc-Count", String.valueOf(countVoice));
+            }
+        }
+        else {
+            long countInternet = summaryQueryService.count(criteria.toBuilder()
+                    .product(new ProductFilter().setEq(Product.INTERNET))
+                    .build());
+            long countIptv = summaryQueryService.count(criteria.toBuilder()
+                    .product(new ProductFilter().setEq(Product.IPTV))
+                    .build());
+            long countVoice = summaryQueryService.count(criteria.toBuilder()
+                    .product(new ProductFilter().setEq(Product.VOICE))
+                    .build());
+
+            headers.add("Tc-Count", String.valueOf(countInternet));
+            headers.add("Tc-Count", String.valueOf(countIptv));
+            headers.add("Tc-Count", String.valueOf(countVoice));
+        }
     }
 
 }

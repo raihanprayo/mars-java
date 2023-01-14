@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.order;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
@@ -35,21 +36,22 @@ public class TicketAgent extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     private TcStatus closeStatus;
 
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ref_ticket_id")
     private Ticket ticket;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "ref_user_id")
     private User user;
 
     @Column
     private String description;
 
-    @Column
+    @Column(updatable = false)
     private String reopenDescription;
 
-    @OneToOne(mappedBy = "agent", fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "agent")
     private TicketAsset assets;
-
 }

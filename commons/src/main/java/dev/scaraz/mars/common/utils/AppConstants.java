@@ -12,9 +12,9 @@ public interface AppConstants {
         String COOKIE_REFRESH_TOKEN = "RF-MARS";
     }
 
-    interface Ticket {
-        String CONFIRM_AGREE = "TC-CON-AGREE";
-        String CONFIRM_DISAGREE = "TC-CON-DISAGREE";
+    interface Telegram {
+        String CONFIRM_AGREE = "ANS_AGREE";
+        String CONFIRM_DISAGREE = "ANS_DISAGREE";
     }
 
 }

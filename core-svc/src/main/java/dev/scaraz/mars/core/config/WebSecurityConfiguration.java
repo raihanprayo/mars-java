@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.config;
 
+import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.core.config.interceptor.JwtRequestFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,20 +35,24 @@ public class WebSecurityConfiguration {
 
     private final JwtRequestFilter jwtRequestFilter;
 
+    private final MarsProperties marsProperties;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(SALT);
     }
 
+
+
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration
-
                 .getAuthenticationManager();
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.debug("CORS {}", marsProperties.getCors().getAllowedOrigins());
         return http
                 .cors().and()
                 .csrf(AbstractHttpConfigurer::disable)

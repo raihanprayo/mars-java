@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.TicketAgent;
+import dev.scaraz.mars.core.query.BaseQueryService;
 import dev.scaraz.mars.core.repository.order.LogTicketRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

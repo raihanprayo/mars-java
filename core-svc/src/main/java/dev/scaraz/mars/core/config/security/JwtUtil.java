@@ -62,7 +62,8 @@ public class JwtUtil {
         claims.setIssuedAt(Date.from(issuedAt));
         claims.setExpiration(Date.from(issuedAt.plus(expiredIn, timeUnit)));
 
-        claims.put("rfs", asRefreshToken);
+        if (asRefreshToken) claims.put("rfs", true);
+
         claims.put("name", user.getName());
         claims.put("tg", user.getTelegramId());
         claims.put("group", group);
@@ -98,10 +99,16 @@ public class JwtUtil {
                 .name((String) groupDecoded.get("name"))
                 .build();
 
+        boolean refresher = false;
+        try {
+            refresher = decode.get("rfs", Boolean.class);
+        }
+        catch (Exception ex) {}
+
         return JwtToken.builder()
                 .id(decode.getId())
                 .audience(decode.getAudience())
-                .refresher(decode.get("rfs", Boolean.class))
+                .refresher(refresher)
                 .userId(decode.getSubject())
                 .issuedAt(decode.getIssuedAt().toInstant())
                 .expiredAt(decode.getExpiration().toInstant())

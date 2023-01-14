@@ -18,7 +18,7 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 
 @RestController
-@RequestMapping("/api/ticket/wip")
+@RequestMapping("/ticket/wip")
 public class TicketWipResource {
 
     private final TicketService service;

@@ -47,6 +47,12 @@ public class TicketQueryServiceImpl implements TicketQueryService {
     }
 
     @Override
+    public Ticket findByMessageId(Long messageId) {
+        return repo.findOneByConfirmMessageId(messageId)
+                .orElseThrow(() -> NotFoundException.entity(Ticket.class, "messageId", messageId));
+    }
+
+    @Override
     public List<Ticket> findAll() {
         return repo.findAll();
     }

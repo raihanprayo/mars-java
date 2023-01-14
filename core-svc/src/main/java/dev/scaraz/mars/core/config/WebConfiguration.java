@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.config;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.converter.EnumsConverter;
+import dev.scaraz.mars.common.tools.converter.StringToLocalDateConverter;
 import dev.scaraz.mars.core.config.interceptor.LogInterceptor;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.util.SecurityUtil;
@@ -52,6 +53,7 @@ public class WebConfiguration implements WebMvcConfigurer, LocaleResolver {
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
+        registry.addConverter(new StringToLocalDateConverter());
     }
 
     @Override

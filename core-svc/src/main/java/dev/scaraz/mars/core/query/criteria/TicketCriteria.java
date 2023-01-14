@@ -3,10 +3,11 @@ package dev.scaraz.mars.core.query.criteria;
 import dev.scaraz.mars.common.tools.AuditableCriteria;
 import dev.scaraz.mars.common.tools.filter.type.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
-@Builder
+@SuperBuilder(toBuilder = true)
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor

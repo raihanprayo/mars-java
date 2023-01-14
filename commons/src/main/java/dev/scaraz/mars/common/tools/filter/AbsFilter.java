@@ -3,7 +3,6 @@ package dev.scaraz.mars.common.tools.filter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -16,7 +15,7 @@ public abstract class AbsFilter<T> implements Filter<T> {
 
     protected T eq;
     protected Collection<T> in;
-    protected boolean nullable = true;
+    protected Boolean specified;
     protected boolean negated = false;
 
     public AbsFilter<T> setEq(T value) {
@@ -29,8 +28,8 @@ public abstract class AbsFilter<T> implements Filter<T> {
         return this;
     }
 
-    public AbsFilter<T> setNullable(boolean nullable) {
-        this.nullable = nullable;
+    public AbsFilter<T> setSpecified(Boolean specified) {
+        this.specified = specified;
         return this;
     }
 
@@ -44,7 +43,7 @@ public abstract class AbsFilter<T> implements Filter<T> {
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("eq", eq)
                 .append("in", in)
-                .append("nullable", nullable)
+                .append("nullable", specified)
                 .append("negated", negated)
                 .toString();
     }

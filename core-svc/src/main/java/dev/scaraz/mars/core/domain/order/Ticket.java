@@ -65,6 +65,9 @@ public class Ticket extends AuditableEntity {
     @Column(updatable = false)
     private int gaul = 0;
 
+    @Column(name = "con_message_id")
+    private Long confirmMessageId;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ref_issue_id", updatable = false)
     private Issue issue;

@@ -8,12 +8,13 @@ public interface Filter<T> extends Serializable {
 
     Filter<T> setIn(Collection<T> value);
 
-    Filter<T> setNullable(boolean nullish);
+    Filter<T> setSpecified(Boolean specified);
 
     T getEq();
     Collection<T> getIn();
 
     Filter<T> setNegated(boolean negated);
     boolean isNegated();
-    boolean isNullable();
+
+    Boolean getSpecified();
 }

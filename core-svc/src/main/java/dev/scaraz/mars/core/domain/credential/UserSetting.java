@@ -7,6 +7,8 @@ import lombok.*;
 import javax.persistence.*;
 import java.util.Locale;
 
+import static dev.scaraz.mars.common.tools.Translator.LANG_ID;
+
 @Getter
 @Setter
 @ToString
@@ -30,6 +32,6 @@ public class UserSetting extends AuditableEntity {
 
     @Column(name = "language")
     @Builder.Default
-    private Locale lang = Locale.ENGLISH;
+    private Locale lang = LANG_ID;
 
 }

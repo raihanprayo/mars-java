@@ -27,7 +27,6 @@ public class Translator {
         return tr(code, LocaleContextHolder.getLocale(), args);
     }
 
-
     public static String tr(String code, Locale locale, Object... args) {
         if (instance == null) return code;
         return instance.getMessage(code, interceptArgs(args), locale);

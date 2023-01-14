@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.credential;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -23,6 +24,7 @@ public class GroupSetting extends AuditableEntity {
     private long id;
 
     @OneToOne
+    @JsonIgnore
     @ToString.Exclude
     @JoinColumn(name = "ref_group_id", updatable = false)
     private Group group;

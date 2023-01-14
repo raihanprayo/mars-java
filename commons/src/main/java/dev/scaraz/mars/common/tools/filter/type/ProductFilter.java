@@ -41,8 +41,8 @@ public class ProductFilter extends EnumFilter<Product> {
     }
 
     @Override
-    public ProductFilter setNullable(boolean nullable) {
-        return (ProductFilter) super.setNullable(nullable);
+    public ProductFilter setSpecified(Boolean nullable) {
+        return (ProductFilter) super.setSpecified(nullable);
     }
 
     @Override

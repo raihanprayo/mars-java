@@ -37,7 +37,7 @@ public class InstantFilter extends AbsRangeFilter<Instant> {
     }
 
     @Override
-    public InstantFilter setNullable(boolean nullable) {
-        return (InstantFilter) super.setNullable(nullable);
+    public InstantFilter setSpecified(Boolean specified) {
+        return (InstantFilter) super.setSpecified(specified);
     }
 }

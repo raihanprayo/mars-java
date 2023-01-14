@@ -23,6 +23,8 @@ public class QueryFieldUtil {
             return Equals.spec(filter.getEq(), negated, attribute);
         if (filter.getIn() != null)
             return Inclusion.spec(filter.getIn(), negated, attribute);
+        if (filter.getSpecified() != null)
+            return Specified.spec(filter.getSpecified(), attribute);
 
         return null;
     }
@@ -38,6 +40,8 @@ public class QueryFieldUtil {
             return Equals.spec(filter.getEq(), negated, attr1, valAttr);
         if (filter.getIn() != null)
             return Inclusion.spec(filter.getIn(), negated, attr1, valAttr);
+        if (filter.getSpecified() != null)
+            return Specified.spec(filter.getSpecified(), attr1, valAttr);
 
         return null;
     }
@@ -54,6 +58,8 @@ public class QueryFieldUtil {
             return Equals.spec(filter.getEq(), negated, attr1, attr2, valAttr);
         if (filter.getIn() != null)
             return Inclusion.spec(filter.getIn(), negated, attr1, attr2, valAttr);
+        if (filter.getSpecified() != null)
+            return Specified.spec(filter.getSpecified(), attr1, attr2, valAttr);
 
         return null;
     }
@@ -69,6 +75,8 @@ public class QueryFieldUtil {
             return Equals.spec(filter.getEq(), negated, attr1, valAttr);
         if (filter.getIn() != null)
             return Inclusion.spec(filter.getIn(), negated, attr1, valAttr);
+        if (filter.getSpecified() != null)
+            return Specified.spec(filter.getSpecified(), attr1, valAttr);
 
         return null;
     }
@@ -85,6 +93,8 @@ public class QueryFieldUtil {
             return Equals.spec(filter.getEq(), negated, attr1, attr2, valAttr);
         if (filter.getIn() != null)
             return Inclusion.spec(filter.getIn(), negated, attr1, attr2, valAttr);
+        if (filter.getSpecified() != null)
+            return Specified.spec(filter.getSpecified(), attr1, attr2, valAttr);
 
         return null;
     }
@@ -187,6 +197,12 @@ public class QueryFieldUtil {
     }
 
     public static class Equals {
+        private static <T> Predicate equals(CriteriaBuilder b, Path<T> path, boolean negate, T value) {
+            return negate ?
+                    b.notEqual(path, value) :
+                    b.equal(path, value);
+        }
+
         public static <T, E, A1, A2, A3, A4> Specification<E> spec(
                 T value,
                 boolean negate,
@@ -199,9 +215,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> path = r.get(attr1).get(attr2).get(attr3).get(attr4)
                         .get(valAttr);
-                return negate ?
-                        b.notEqual(path, value) :
-                        b.equal(path, value);
+                return equals(b, path, negate, value);
             };
         }
 
@@ -216,9 +230,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> path = r.get(attr1).get(attr2).get(attr3)
                         .get(valAttr);
-                return negate ?
-                        b.notEqual(path, value) :
-                        b.equal(path, value);
+                return equals(b, path, negate, value);
             };
         }
 
@@ -232,9 +244,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> path = r.get(attr1).get(attr2)
                         .get(valAttr);
-                return negate ?
-                        b.notEqual(path, value) :
-                        b.equal(path, value);
+                return equals(b, path, negate, value);
             };
         }
 
@@ -245,10 +255,9 @@ public class QueryFieldUtil {
                 SingularAttribute<? super A1, T> valAttr
         ) {
             return (r, q, b) -> {
-                Path<T> path = r.get(attr1).get(valAttr);
-                return negate ?
-                        b.notEqual(path, value) :
-                        b.equal(path, value);
+                Path<T> path = r.get(attr1)
+                        .get(valAttr);
+                return equals(b, path, negate, value);
             };
         }
 
@@ -259,9 +268,7 @@ public class QueryFieldUtil {
         ) {
             return (r, q, b) -> {
                 Path<T> path = r.get(valAttr);
-                return negate ?
-                        b.notEqual(path, value) :
-                        b.equal(path, value);
+                return equals(b, path, negate, value);
             };
         }
 
@@ -275,9 +282,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> path = r.join(attr1).get(attr2)
                         .get(valAttr);
-                return negate ?
-                        b.notEqual(path, value) :
-                        b.equal(path, value);
+                return equals(b, path, negate, value);
             };
         }
 
@@ -288,15 +293,20 @@ public class QueryFieldUtil {
                 SingularAttribute<? super A1, T> valAttr
         ) {
             return (r, q, b) -> {
-                Path<T> path = r.join(attr1).get(valAttr);
-                return negate ?
-                        b.notEqual(path, value) :
-                        b.equal(path, value);
+                Path<T> path = r.join(attr1)
+                        .get(valAttr);
+                return equals(b, path, negate, value);
             };
         }
     }
 
     public static class Inclusion {
+        private static <T> Predicate inclusion(CriteriaBuilder b, Path<T> path, boolean negate, Collection<T> values) {
+            CriteriaBuilder.In<T> in = b.in(path);
+            for (T value : values) in.value(value);
+            return negate ? in.not() : in;
+        }
+
         public static <T, E, A1, A2, A3, A4> Specification<E> spec(
                 Collection<T> values,
                 boolean negate,
@@ -308,9 +318,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> tPath = r.get(attr1).get(attr2).get(attr3).get(attr4)
                         .get(valAttr);
-                CriteriaBuilder.In<T> in = b.in(tPath);
-                for (T value : values) in.value(value);
-                return negate ? in.not() : in;
+                return inclusion(b, tPath, negate, values);
             };
         }
 
@@ -324,9 +332,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> tPath = r.get(attr1).get(attr2).get(attr3)
                         .get(valAttr);
-                CriteriaBuilder.In<T> in = b.in(tPath);
-                for (T value : values) in.value(value);
-                return negate ? in.not() : in;
+                return inclusion(b, tPath, negate, values);
             };
         }
 
@@ -339,9 +345,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> tPath = r.get(attr1).get(attr2)
                         .get(valAttr);
-                CriteriaBuilder.In<T> in = b.in(tPath);
-                for (T value : values) in.value(value);
-                return negate ? in.not() : in;
+                return inclusion(b, tPath, negate, values);
             };
         }
 
@@ -353,9 +357,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> tPath = r.get(attr1)
                         .get(valAttr);
-                CriteriaBuilder.In<T> in = b.in(tPath);
-                for (T value : values) in.value(value);
-                return negate ? in.not() : in;
+                return inclusion(b, tPath, negate, values);
             };
         }
 
@@ -365,9 +367,7 @@ public class QueryFieldUtil {
                 SingularAttribute<? super E, T> valAttr) {
             return (r, q, b) -> {
                 Path<T> tPath = r.get(valAttr);
-                CriteriaBuilder.In<T> in = b.in(tPath);
-                for (T value : values) in.value(value);
-                return negate ? in.not() : in;
+                return inclusion(b, tPath, negate, values);
             };
         }
 
@@ -381,9 +381,7 @@ public class QueryFieldUtil {
                 Path<T> tPath = r.join(attr1)
                         .get(valAttr);
 
-                CriteriaBuilder.In<T> in = b.in(tPath);
-                for (T value : values) in.value(value);
-                return negate ? in.not() : in;
+                return inclusion(b, tPath, negate, values);
             };
         }
 
@@ -396,14 +394,18 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> tPath = r.join(attr1).get(attr2)
                         .get(valAttr);
-                CriteriaBuilder.In<T> in = b.in(tPath);
-                for (T value : values) in.value(value);
-                return negate ? in.not() : in;
+                return inclusion(b, tPath, negate, values);
             };
         }
     }
 
     public static class Like {
+        private static Predicate like(CriteriaBuilder b, Path<String> path, boolean negate, String wrappedLike) {
+            return negate ?
+                    b.notLike(b.lower(path), wrappedLike) :
+                    b.like(b.lower(path), wrappedLike);
+        }
+
         public static <E, A1, A2, A3, A4> Specification<E> spec(
                 String value,
                 boolean negate,
@@ -415,11 +417,9 @@ public class QueryFieldUtil {
         ) {
             String wrappedLike = ("%" + value + "%").toLowerCase();
             return (r, q, b) -> {
-                Path<String> path = r.get(attr1).get(attr2).get(attr3).get(attr4)
+                Path<String> tPath = r.get(attr1).get(attr2).get(attr3).get(attr4)
                         .get(valAttr);
-                return negate ?
-                        b.notLike(b.lower(path), wrappedLike) :
-                        b.like(b.lower(path), wrappedLike);
+                return like(b, tPath, negate, wrappedLike);
             };
         }
 
@@ -435,9 +435,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<String> tPath = r.get(attr1).get(attr2).get(attr3)
                         .get(valAttr);
-                return negate ?
-                        b.notLike(b.lower(tPath), wrappedLike) :
-                        b.like(b.lower(tPath), wrappedLike);
+                return like(b, tPath, negate, wrappedLike);
             };
         }
 
@@ -452,9 +450,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<String> tPath = r.get(attr1).get(attr2)
                         .get(valAttr);
-                return negate ?
-                        b.notLike(b.lower(tPath), wrappedLike) :
-                        b.like(b.lower(tPath), wrappedLike);
+                return like(b, tPath, negate, wrappedLike);
             };
         }
 
@@ -468,9 +464,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<String> tPath = r.get(attr1)
                         .get(valAttr);
-                return negate ?
-                        b.notLike(b.lower(tPath), wrappedLike) :
-                        b.like(b.lower(tPath), wrappedLike);
+                return like(b, tPath, negate, wrappedLike);
             };
         }
 
@@ -482,96 +476,19 @@ public class QueryFieldUtil {
             String wrappedLike = ("%" + value + "%").toLowerCase();
             return (r, q, b) -> {
                 Path<String> tPath = r.get(valAttr);
-                return negate ?
-                        b.notLike(b.lower(tPath), wrappedLike) :
-                        b.like(b.lower(tPath), wrappedLike);
+                return like(b, tPath, negate, wrappedLike);
             };
         }
 
     }
 
     public static class GreaterThan {
-        public static <T extends Comparable, E, A1, A2, A3, A4> Specification<E> spec(
-                T value,
-                boolean equality,
-                SingularAttribute<? super E, A1> attr1,
-                SingularAttribute<? super A1, A2> attr2,
-                SingularAttribute<? super A2, A3> attr3,
-                SingularAttribute<? super A3, A4> attr4,
-                SingularAttribute<? super A4, T> valAttr
-        ) {
-            return (r, q, b) -> {
-                Path<T> path = r.get(attr1).get(attr2).get(attr3).get(attr4)
-                        .get(valAttr);
-                return equality ?
-                        b.greaterThanOrEqualTo(path, value) :
-                        b.greaterThan(path, value);
-            };
-        }
 
-        public static <T extends Comparable, E, A1, A2, A3> Specification<E> spec(
-                T value,
-                boolean equality,
-                SingularAttribute<? super E, A1> attr1,
-                SingularAttribute<? super A1, A2> attr2,
-                SingularAttribute<? super A2, A3> attr3,
-                SingularAttribute<? super A3, T> valAttr
-        ) {
-            return (r, q, b) -> {
-                Path<T> path = r.get(attr1).get(attr2).get(attr3)
-                        .get(valAttr);
-                return equality ?
-                        b.greaterThanOrEqualTo(path, value) :
-                        b.greaterThan(path, value);
-            };
+        private static <T extends Comparable<? super T>> Predicate greaterThan(CriteriaBuilder b, Path<T> path, boolean equality, T value) {
+            return equality ?
+                    b.lessThanOrEqualTo(path, value) :
+                    b.lessThan(path, value);
         }
-
-        public static <T extends Comparable, E, A1, A2> Specification<E> spec(
-                T value,
-                boolean equality,
-                SingularAttribute<? super E, A1> attr1,
-                SingularAttribute<? super A1, A2> attr2,
-                SingularAttribute<? super A2, T> valAttr
-        ) {
-            return (r, q, b) -> {
-                Path<T> path = r.get(attr1).get(attr2)
-                        .get(valAttr);
-                return equality ?
-                        b.greaterThanOrEqualTo(path, value) :
-                        b.greaterThan(path, value);
-            };
-        }
-
-        public static <T extends Comparable, E, A1> Specification<E> spec(
-                T value,
-                boolean equality,
-                SingularAttribute<? super E, A1> attr1,
-                SingularAttribute<? super A1, T> valAttr
-        ) {
-            return (r, q, b) -> {
-                Path<T> path = r.get(attr1)
-                        .get(valAttr);
-                return equality ?
-                        b.greaterThanOrEqualTo(path, value) :
-                        b.greaterThan(path, value);
-            };
-        }
-
-        public static <T extends Comparable, E> Specification<E> spec(
-                T value,
-                boolean equality,
-                SingularAttribute<? super E, T> valAttr
-        ) {
-            return (r, q, b) -> {
-                Path<T> path = r.get(valAttr);
-                return equality ?
-                        b.greaterThanOrEqualTo(path, value) :
-                        b.greaterThan(path, value);
-            };
-        }
-    }
-
-    public static class LessThan {
 
         public static <T extends Comparable<? super T>, E, A1, A2, A3, A4> Specification<E> spec(
                 T value,
@@ -585,9 +502,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> path = r.get(attr1).get(attr2).get(attr3).get(attr4)
                         .get(valAttr);
-                return equality ?
-                        b.lessThanOrEqualTo(path, value) :
-                        b.lessThan(path, value);
+                return greaterThan(b, path, equality, value);
             };
         }
 
@@ -602,9 +517,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> path = r.get(attr1).get(attr2).get(attr3)
                         .get(valAttr);
-                return equality ?
-                        b.lessThanOrEqualTo(path, value) :
-                        b.lessThan(path, value);
+                return greaterThan(b, path, equality, value);
             };
         }
 
@@ -618,9 +531,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> path = r.get(attr1).get(attr2)
                         .get(valAttr);
-                return equality ?
-                        b.lessThanOrEqualTo(path, value) :
-                        b.lessThan(path, value);
+                return greaterThan(b, path, equality, value);
             };
         }
 
@@ -633,9 +544,7 @@ public class QueryFieldUtil {
             return (r, q, b) -> {
                 Path<T> path = r.get(attr1)
                         .get(valAttr);
-                return equality ?
-                        b.lessThanOrEqualTo(path, value) :
-                        b.lessThan(path, value);
+                return greaterThan(b, path, equality, value);
             };
         }
 
@@ -646,9 +555,178 @@ public class QueryFieldUtil {
         ) {
             return (r, q, b) -> {
                 Path<T> path = r.get(valAttr);
-                return equality ?
-                        b.lessThanOrEqualTo(path, value) :
-                        b.lessThan(path, value);
+                return greaterThan(b, path, equality, value);
+            };
+        }
+    }
+
+    public static class LessThan {
+
+        private static <T extends Comparable<? super T>> Predicate lessThan(CriteriaBuilder b, Path<T> path, boolean equality, T value) {
+            return equality ?
+                    b.lessThanOrEqualTo(path, value) :
+                    b.lessThan(path, value);
+        }
+
+        public static <T extends Comparable<? super T>, E, A1, A2, A3, A4> Specification<E> spec(
+                T value,
+                boolean equality,
+                SingularAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, A2> attr2,
+                SingularAttribute<? super A2, A3> attr3,
+                SingularAttribute<? super A3, A4> attr4,
+                SingularAttribute<? super A4, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(attr1).get(attr2).get(attr3).get(attr4)
+                        .get(valAttr);
+                return lessThan(b, path, equality, value);
+            };
+        }
+
+        public static <T extends Comparable<? super T>, E, A1, A2, A3> Specification<E> spec(
+                T value,
+                boolean equality,
+                SingularAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, A2> attr2,
+                SingularAttribute<? super A2, A3> attr3,
+                SingularAttribute<? super A3, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(attr1).get(attr2).get(attr3)
+                        .get(valAttr);
+                return lessThan(b, path, equality, value);
+            };
+        }
+
+        public static <T extends Comparable<? super T>, E, A1, A2> Specification<E> spec(
+                T value,
+                boolean equality,
+                SingularAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, A2> attr2,
+                SingularAttribute<? super A2, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(attr1).get(attr2)
+                        .get(valAttr);
+                return lessThan(b, path, equality, value);
+            };
+        }
+
+        public static <T extends Comparable<? super T>, E, A1> Specification<E> spec(
+                T value,
+                boolean equality,
+                SingularAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(attr1)
+                        .get(valAttr);
+                return lessThan(b, path, equality, value);
+            };
+        }
+
+        public static <T extends Comparable<? super T>, E> Specification<E> spec(
+                T value,
+                boolean equality,
+                SingularAttribute<? super E, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(valAttr);
+                return lessThan(b, path, equality, value);
+            };
+        }
+    }
+
+    public interface Specified {
+        private static <E> Predicate nullable(CriteriaBuilder b, Path<E> path, boolean specified) {
+            return specified ? b.isNotNull(path) : b.isNull(path);
+        }
+
+        static <T, E, A1, A2, A3, A4> Specification<E> spec(
+                boolean specified,
+                SingularAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, A2> attr2,
+                SingularAttribute<? super A2, A3> attr3,
+                SingularAttribute<? super A3, A4> attr4,
+                SingularAttribute<? super A4, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(attr1).get(attr2).get(attr3).get(attr4)
+                        .get(valAttr);
+                return nullable(b, path, specified);
+            };
+        }
+
+        static <T, E, A1, A2, A3> Specification<E> spec(
+                boolean specified,
+                SingularAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, A2> attr2,
+                SingularAttribute<? super A2, A3> attr3,
+                SingularAttribute<? super A3, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(attr1).get(attr2).get(attr3)
+                        .get(valAttr);
+                return nullable(b, path, specified);
+            };
+        }
+
+        static <T, E, A1, A2> Specification<E> spec(
+                boolean specified,
+                SingularAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, A2> attr2,
+                SingularAttribute<? super A2, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(attr1).get(attr2)
+                        .get(valAttr);
+                return nullable(b, path, specified);
+            };
+        }
+
+        static <T, E, A1> Specification<E> spec(
+                boolean specified,
+                SingularAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(attr1).get(valAttr);
+                return nullable(b, path, specified);
+            };
+        }
+
+        static <T, E> Specification<E> spec(
+                boolean specified,
+                SingularAttribute<? super E, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.get(valAttr);
+                return nullable(b, path, specified);
+            };
+        }
+
+        static <T, E, A1, A2> Specification<E> spec(
+                boolean specified,
+                SetAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, A2> attr2,
+                SingularAttribute<? super A2, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.join(attr1).get(attr2)
+                        .get(valAttr);
+                return nullable(b, path, specified);
+            };
+        }
+
+        static <T, E, A1> Specification<E> spec(
+                boolean specified,
+                SetAttribute<? super E, A1> attr1,
+                SingularAttribute<? super A1, T> valAttr
+        ) {
+            return (r, q, b) -> {
+                Path<T> path = r.join(attr1).get(valAttr);
+                return nullable(b, path, specified);
             };
         }
     }

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 
 @RestController
-@RequestMapping("/api/issue")
+@RequestMapping("/issue")
 public class IssueResource {
 
     private final IssueQueryService queryService;

@@ -59,7 +59,7 @@ logging:
   logback:
     rollingpolicy:
       max-file-size: 10MB
-      file-name-pattern: ${LOG_ARCHIVE:logs/archive/etax-%d{yyyy-MM-dd}.%i.log}
+      file-name-pattern: ${LOG_ARCHIVE:logs/archive/mars-core-%d{yyyy-MM-dd}.%i.log}
   charset:
     console: utf-8
     file: utf-8
@@ -74,7 +74,7 @@ mars:
     allow-credentials: on
     exposed-headers: Tc-Count, X-Total-Count, X-Sort
   directory:
-    storage: ${MARS_DIRECTORY_STORAGE:D:/TMP/mars}
+    shared: ${MARS_SHARED_DIRECTORY:D:/TMP/mars}
 
 telegram:
   type: long_polling
