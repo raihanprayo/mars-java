@@ -30,14 +30,6 @@ public class Role extends AuditableEntity implements GrantedAuthority {
     @Column(name = "\"order\"")
     private long order;
 
-    @ManyToOne
-    @JoinColumn(name = "ref_group_id", updatable = false)
-    private Group group;
-
-    public boolean isGroupRole() {
-        return group != null;
-    }
-
     @Override
     public String getAuthority() {
         return name;
@@ -61,7 +53,6 @@ public class Role extends AuditableEntity implements GrantedAuthority {
                 .append(getOrder(), role.getOrder())
                 .append(getId(), role.getId())
                 .append(getName(), role.getName())
-                .append(getGroup(), role.getGroup())
                 .isEquals();
     }
 
@@ -72,7 +63,6 @@ public class Role extends AuditableEntity implements GrantedAuthority {
                 .append(getId())
                 .append(getName())
                 .append(getOrder())
-                .append(getGroup())
                 .toHashCode();
     }
 }

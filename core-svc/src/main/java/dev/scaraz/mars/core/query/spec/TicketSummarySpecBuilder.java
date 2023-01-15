@@ -2,8 +2,10 @@ package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
 import dev.scaraz.mars.core.domain.credential.User_;
+import dev.scaraz.mars.core.domain.order.Issue_;
 import dev.scaraz.mars.core.domain.view.TicketSummary_;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,6 +42,10 @@ public class TicketSummarySpecBuilder extends AuditableSpec<TicketSummary, Ticke
                 spec = nonNull(spec, wip.getName(), TicketSummary_.wipBy, User_.name);
                 spec = nonNull(spec, wip.getNik(), TicketSummary_.wipBy, User_.nik);
                 spec = nonNull(spec, wip.getTelegramId(), TicketSummary_.wipBy, User_.telegramId);
+            }
+            if (criteria.getIssue() != null) {
+                IssueCriteria issue = criteria.getIssue();
+                spec = nonNull(spec, issue.getId(), TicketSummary_.issue, Issue_.id);
             }
         }
 

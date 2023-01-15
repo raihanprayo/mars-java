@@ -16,38 +16,27 @@ create table t_group_setting
 (
     id                  serial primary key,
     ref_group_id        varchar(37) unique not null,
-    ref_default_role_id varchar(37),
 
     can_login           bool                        default false,
 
     created_at          timestamp(0)       not null default CURRENT_TIMESTAMP,
     created_by          varchar(255)       not null,
     updated_at          timestamp(0)                default CURRENT_TIMESTAMP,
-    updated_by          varchar(255),
-
-    constraint fk_ref_group_id foreign key (ref_group_id) references t_group (id)
+    updated_by          varchar(255)
 );
 
 
 create table t_role
 (
-    id           varchar(37) primary key,
-    name         varchar(255) not null,
-    "order"      int4         not null,
+    id         varchar(37) primary key,
+    name       varchar(255) not null,
+    "order"    int4         not null,
 
-    ref_group_id varchar(37),
-
-    created_at   timestamp(0) not null default CURRENT_TIMESTAMP,
-    created_by   varchar(255) not null,
-    updated_at   timestamp(0)          default CURRENT_TIMESTAMP,
-    updated_by   varchar(255),
-
-    constraint fk_ref_group_id foreign key (ref_group_id) references t_group (id)
+    created_at timestamp(0) not null default CURRENT_TIMESTAMP,
+    created_by varchar(255) not null,
+    updated_at timestamp(0)          default CURRENT_TIMESTAMP,
+    updated_by varchar(255)
 );
-
-alter table t_group_setting
-    add constraint fk_ref_default_role_id foreign key (ref_default_role_id) references t_role (id);
-
 
 create table t_user
 (
@@ -55,7 +44,7 @@ create table t_user
     name         varchar(255)       not null,
     nik          varchar(50) unique not null,
     phone        varchar(50)        not null,
-    tg_id        bigint unique      not null,
+    tg_id        bigint unique,
 
     active       bool                        default false,
 

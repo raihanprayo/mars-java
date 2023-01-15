@@ -19,10 +19,9 @@ public class UserMapperImpl implements UserMapper {
 
         List<String> appRole = new ArrayList<>();
         List<String> groupRole = new ArrayList<>();
-        for (Role role : user.getRoles()) {
-            if (role.isGroupRole()) groupRole.add(role.getName());
-            else appRole.add(role.getName());
-        }
+        for (Role role : user.getRoles())
+            appRole.add(role.getName());
+
 
         Group group = user.getGroup();
         return WhoamiDTO.builder()
@@ -39,6 +38,8 @@ public class UserMapperImpl implements UserMapper {
                         .roles(groupRole)
                         .build())
                 .build();
-    };
+    }
+
+    ;
 
 }

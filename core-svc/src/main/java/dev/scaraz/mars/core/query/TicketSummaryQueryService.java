@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface TicketSummaryQueryService extends BaseQueryService<TicketSummary, TicketSummaryCriteria> {
 
+    List<TicketSummary> getGaulRelatedByIdOrNo(String tcIdOrNo);
+
     List<String> getAllByIds(Instant from, Instant to);
 
     TicketSummary findByIdOrNo(String id);

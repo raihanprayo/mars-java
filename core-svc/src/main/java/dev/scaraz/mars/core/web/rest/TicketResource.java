@@ -96,6 +96,12 @@ public class TicketResource {
         return new ResponseEntity<>(ticket, HttpStatus.OK);
     }
 
+    @GetMapping("/{ticketIdOrNo}/relation")
+    public ResponseEntity<?> getRelations(@PathVariable String ticketIdOrNo) {
+        List<TicketSummary> summaries = summaryQueryService.getGaulRelatedByIdOrNo(ticketIdOrNo);
+        return ResponseEntity.ok(summaries);
+    }
+
     @GetMapping("/agents")
     public ResponseEntity<?> findAgents(TicketAgentCriteria criteria, Pageable pageable) {
         Page<TicketAgent> page = agentQueryService.findAll(criteria, pageable);

@@ -20,7 +20,9 @@ public class CoreAuthenticationToken extends AbstractAuthenticationToken {
         this.source = source;
         this.principal = new DelegateUser(user);
         this.credentials = user.getCredential();
-        super.setAuthenticated(true);
+
+        if (user.isActive())
+            super.setAuthenticated(true);
     }
 
     @Override

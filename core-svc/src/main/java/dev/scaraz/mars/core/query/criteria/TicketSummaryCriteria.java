@@ -34,6 +34,8 @@ public class TicketSummaryCriteria extends AuditableCriteria {
     private BooleanFilter wip;
     private UserCriteria wipBy;
 
+    private IssueCriteria issue;
+
     public TicketSummaryCriteria copy() {
         return TicketSummaryCriteria.builder()
                 .id(id)

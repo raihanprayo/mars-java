@@ -45,19 +45,6 @@ public class Group extends AuditableEntity {
     @OneToMany(mappedBy = "group")
     private Set<User> members = new HashSet<>();
 
-    @JsonIgnore
-    @Builder.Default
-    @ToString.Exclude
-    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    private Set<Role> roles = new HashSet<>();
-
-    public void addRole(Role role) {
-        roles.add(role);
-    }
-    public void addRoles(Role... roles) {
-        this.roles.addAll(Set.of(roles));
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -101,11 +88,6 @@ public class Group extends AuditableEntity {
     protected void prePersist() {
         if (this.setting.getGroup() == null)
             this.setting.setGroup(this);
-
-        for (Role role : roles) {
-            if (role.getGroup() == null)
-                role.setGroup(this);
-        }
     }
 
 }

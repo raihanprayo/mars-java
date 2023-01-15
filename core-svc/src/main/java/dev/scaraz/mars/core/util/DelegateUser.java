@@ -21,9 +21,7 @@ public class DelegateUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles().stream()
-                .filter(r -> !r.isGroupRole())
-                .collect(Collectors.toList());
+        return user.getRoles();
     }
 
     @Override

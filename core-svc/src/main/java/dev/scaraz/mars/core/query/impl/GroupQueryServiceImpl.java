@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.query.impl;
 
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.query.GroupQueryService;
 import dev.scaraz.mars.core.query.criteria.GroupCriteria;
@@ -40,6 +41,12 @@ public class GroupQueryServiceImpl implements GroupQueryService {
     @Override
     public Page<Group> findAll(GroupCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
+    }
+
+    @Override
+    public Group findByIdOrName(String idOrName) {
+        return repo.findByIdOrName(idOrName, idOrName)
+                .orElseThrow(() -> NotFoundException.entity(Group.class, "id/name", idOrName));
     }
 
     @Override

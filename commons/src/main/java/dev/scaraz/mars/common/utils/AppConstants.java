@@ -17,4 +17,12 @@ public interface AppConstants {
         String CONFIRM_DISAGREE = "ANS_DISAGREE";
     }
 
+
+    interface Authority {
+        String ADMIN_ROLE = "admin";
+        String USER_ROLE = "user";
+
+        String ADMIN_NIK = "000001413914";
+    }
+
 }

@@ -25,14 +25,8 @@ public class RoleQueryServiceImpl implements RoleQueryService {
 
     @Override
     public Role findByIdOrName(String idOrName) {
-        return repo.findByIdOrNameAndGroupIsNull(idOrName, idOrName)
+        return repo.findByIdOrName(idOrName, idOrName)
                 .orElseThrow(() -> NotFoundException.entity(Role.class, "id/name", idOrName));
-    }
-
-    @Override
-    public Role findGroupRole(String groupId, String name) {
-        return repo.findByNameAndGroupId(name, groupId)
-                .orElseThrow(() -> NotFoundException.entity(Role.class, "group/name", String.format("%s/%s", groupId, name)));
     }
 
     @Override
@@ -53,16 +47,6 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     @Override
     public Page<Role> findAll(RoleCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
-    }
-
-    @Override
-    public List<Role> findAllGroupIsNull() {
-        return repo.findAllByGroupIsNull();
-    }
-
-    @Override
-    public Page<Role> findAllGroupIsNull(Pageable pageable) {
-        return repo.findAllByGroupIsNull(pageable);
     }
 
     @Override

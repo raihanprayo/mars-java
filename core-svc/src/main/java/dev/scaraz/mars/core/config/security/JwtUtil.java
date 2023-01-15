@@ -68,7 +68,6 @@ public class JwtUtil {
         claims.put("tg", user.getTelegramId());
         claims.put("group", group);
         claims.put("roles", user.getRoles().stream()
-                .filter(r -> !r.isGroupRole())
                 .map(Role::getName)
                 .collect(Collectors.toList()));
 

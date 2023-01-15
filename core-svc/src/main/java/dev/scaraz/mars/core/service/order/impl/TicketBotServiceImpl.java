@@ -50,7 +50,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     private final LogTicketService logTicketService;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public Ticket registerForm(TicketForm form, Collection<PhotoSize> photos) {
         Issue issue = issueQueryService.findById(form.getIssue())
                 .orElseThrow();

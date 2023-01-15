@@ -9,6 +9,7 @@ import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
 import dev.scaraz.mars.common.exception.web.AccessDeniedException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.config.security.JwtUtil;
@@ -19,13 +20,11 @@ import dev.scaraz.mars.core.service.credential.GroupService;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.AuthSource;
-import dev.scaraz.mars.core.util.DelegateUser;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,6 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuditProvider auditProvider;
     private final GroupRepo groupRepo;
-    private final GroupService groupService;
 
     private final RoleRepo roleRepo;
     private final RolesRepo rolesRepo;
@@ -91,8 +89,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
         User user = loadUserByUsername(authReq.getNik());
-
-        if (!user.hasRole("admin")) {
+        if (!user.hasRole(AppConstants.Authority.ADMIN_ROLE)) {
             if (!user.canLogin()) {
                 throw new AccessDeniedException("auth.group.disable.login", user.getGroup().getName());
             }
@@ -141,6 +138,9 @@ public class AuthServiceImpl implements AuthService {
     public User authenticateFromBot(long telegramId) {
         try {
             User user = userQueryService.findByTelegramId(telegramId);
+            if (!user.isActive())
+                throw new TgUnauthorizedError("Your account is not active, try to contact your administrator");
+
             SecurityContextHolder.getContext().setAuthentication(
                     new CoreAuthenticationToken(AuthSource.TELEGRAM, user)
             );
@@ -190,6 +190,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public SendMessage.SendMessageBuilder registerFromBot(
             MessageEntity entity,
             Message message) {
@@ -212,7 +213,7 @@ public class AuthServiceImpl implements AuthService {
 
         Group group = groupRepo.findByNameIgnoreCase(groupName)
                 .orElseThrow(() -> NotFoundException.entity(Group.class, "name", groupName));
-        Role appRole = roleRepo.findByNameAndGroupIsNull("user")
+        Role appRole = roleRepo.findByName("user")
                 .orElseThrow(() -> NotFoundException.entity(Role.class, "name", "user"));
 
         User user = userService.createFromBot(group, TelegramCreateUserDTO.builder()
@@ -226,10 +227,6 @@ public class AuthServiceImpl implements AuthService {
                 Roles.builder()
                         .user(user)
                         .role(appRole)
-                        .build(),
-                Roles.builder()
-                        .user(user)
-                        .role(group.getSetting().getDefaultRole())
                         .build()
         ));
 

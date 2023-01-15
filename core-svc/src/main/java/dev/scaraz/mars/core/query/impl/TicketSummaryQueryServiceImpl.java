@@ -3,11 +3,13 @@ package dev.scaraz.mars.core.query.impl;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
+import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
+import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.query.spec.TicketSummarySpecBuilder;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -51,6 +54,28 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
     @Override
     public Page<TicketSummary> findAll(TicketSummaryCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
+    }
+
+    @Override
+    public List<TicketSummary> getGaulRelatedByIdOrNo(String tcIdOrNo) {
+        TicketSummary tc = findByIdOrNo(tcIdOrNo);
+        Instant createdAt = tc.getCreatedAt()
+                .minusSeconds(1);
+
+        Instant weekAgo = createdAt.atZone(ZoneId.of("Asia/Jakarta"))
+                .minusDays(7)
+                .toInstant();
+
+        return findAll(TicketSummaryCriteria.builder()
+                .id(new StringFilter().setNegated(true).setEq(tc.getId()))
+                .serviceNo(new StringFilter().setEq(tc.getServiceNo()))
+                .issue(IssueCriteria.builder()
+                        .id(new StringFilter().setEq(tc.getIssue().getId()))
+                        .build())
+                .createdAt(new InstantFilter()
+                        .setGte(weekAgo)
+                        .setLte(createdAt))
+                .build());
     }
 
     @Override

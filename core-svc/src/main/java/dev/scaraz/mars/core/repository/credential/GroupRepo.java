@@ -11,4 +11,7 @@ import java.util.Optional;
 public interface GroupRepo extends JpaRepository<Group, String>, JpaSpecificationExecutor<Group> {
     Optional<Group> findByName(String name);
     Optional<Group> findByNameIgnoreCase(String name);
+
+    Optional<Group> findByIdOrName(String id, String name);
+
 }

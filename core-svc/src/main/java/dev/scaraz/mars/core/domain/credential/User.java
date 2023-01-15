@@ -12,10 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
@@ -82,19 +79,11 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     }
 
     public boolean hasRole(String name) {
-        return roles.stream().anyMatch(e -> !e.isGroupRole() && e.getName().equalsIgnoreCase(name));
+        return roles.stream().anyMatch(e -> e.getName().equalsIgnoreCase(name));
     }
 
     public boolean hasRole(Role role) {
-        return roles.stream().anyMatch(r -> !r.isGroupRole() && r.equals(role));
-    }
-
-    public boolean hasGroupRole(String name) {
-        return roles.stream().anyMatch(e -> e.isGroupRole() && e.getName().equalsIgnoreCase(name));
-    }
-
-    public boolean hasGroupRole(Role role) {
-        return roles.stream().anyMatch(r -> r.isGroupRole() && r.equals(role));
+        return roles.stream().anyMatch(r -> r.equals(role));
     }
 
     public boolean canLogin() {
@@ -139,9 +128,7 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return getRoles().stream()
-                .filter(r -> !r.isGroupRole())
-                .collect(Collectors.toList());
+        return getRoles();
     }
 
     @Override

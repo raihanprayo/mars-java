@@ -16,12 +16,6 @@ public class RoleMapperImpl implements RoleMapper {
         if (role == null) return null;
         return RoleDTO.builder()
                 .name(role.getName())
-                .group(Optional.ofNullable(role.getGroup())
-                        .map(g -> RoleGroupDTO.builder()
-                                .id(g.getId())
-                                .name(g.getName())
-                                .build())
-                        .orElse(null))
                 .build();
     }
 

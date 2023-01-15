@@ -82,4 +82,16 @@ public class UserQueryServiceImpl implements UserQueryService {
                         User.class, "telegramId", tgId));
     }
 
+    @Override
+    public User findByNik(String nik) {
+        return repo.findByNik(nik)
+                .orElseThrow(() -> NotFoundException.entity(User.class, "nik", nik));
+    }
+
+    @Override
+    public boolean existByNik(String nik) {
+        return repo.findByNik(nik)
+                .isPresent();
+    }
+
 }

@@ -13,17 +13,9 @@ import java.util.Optional;
 @Repository
 public interface RoleRepo extends JpaRepository<Role, String>, JpaSpecificationExecutor<Role> {
 
-    List<Role> findAllByGroupIsNull();
-    Page<Role> findAllByGroupIsNull(Pageable pageable);
-    List<Role> findAllByGroupIsNotNull();
+    Optional<Role> findByName(String name);
+    Optional<Role> findByIdOrName(String id, String name);
 
-    List<Role> findAllByGroupId(String groupId);
-
-    Optional<Role> findByNameAndGroupIsNull(String name);
-    Optional<Role> findByIdOrNameAndGroupIsNull(String id, String name);
-    Optional<Role> findByNameAndGroupId(String name, String groupId);
-
-    boolean existsByNameAndGroupIsNull(String name);
-    boolean existsByNameAndGroupId(String name, String groupId);
+    boolean existsByName(String name);
 
 }

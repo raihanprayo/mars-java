@@ -1,12 +1,17 @@
 package dev.scaraz.mars.core.service;
 
+import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Role;
+import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.order.IssueRepo;
 import dev.scaraz.mars.core.service.credential.GroupService;
 import dev.scaraz.mars.core.service.credential.RoleService;
+import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.service.order.IssueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,13 +19,18 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class InitializerService {
+
+    private final UserService userService;
+    private final UserQueryService userQueryService;
 
     private final GroupRepo groupRepo;
     private final GroupService groupService;
@@ -34,12 +44,28 @@ public class InitializerService {
     @Async
     @Transactional
     public void preInitRoles() {
-        Map<String, Integer> names = Map.of(
-                "admin", 100,
-                "user", 1);
-        for (String name : names.keySet()) {
-            Optional<Role> roleOpt = roleRepo.findByNameAndGroupIsNull(name);
-            if (roleOpt.isEmpty()) roleService.create(name, names.get(name));
+        Role adminRole;
+        if (roleRepo.existsByName(AppConstants.Authority.ADMIN_ROLE)) {
+            adminRole = roleRepo.findByName(AppConstants.Authority.ADMIN_ROLE)
+                    .orElseThrow();
+        }
+        else adminRole = roleService.create(AppConstants.Authority.ADMIN_ROLE, 100);
+
+        if (!roleRepo.existsByName(AppConstants.Authority.USER_ROLE))
+            roleService.create(AppConstants.Authority.USER_ROLE, 1);
+
+        if (!userQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
+            log.debug("CREATE DEFAULT ADMIN USER");
+            User admin = userService.create(CreateUserDTO.builder()
+                    .name("Administrator")
+                    .phone("00000000000")
+                    .nik(AppConstants.Authority.ADMIN_NIK)
+                    .username("admin")
+                    .active(true)
+                    .roles(List.of(adminRole.getId()))
+                    .build());
+
+            userService.updatePassword(admin, "admin");
         }
     }
 

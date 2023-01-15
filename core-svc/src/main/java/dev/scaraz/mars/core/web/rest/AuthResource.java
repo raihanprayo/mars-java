@@ -41,10 +41,8 @@ public class AuthResource {
         WhoamiDTO whoamiDTO = userMapper.fromUser(user);
 
         List<Roles> roles = rolesRepo.findAllByUserId(user.getId());
-        for (Roles map : roles) {
-            if (map.getRole().isGroupRole()) whoamiDTO.getGroup().getRoles().add(map.getRole().getName());
-            else whoamiDTO.getRoles().add(map.getRole().getName());
-        }
+        for (Roles map : roles)
+            whoamiDTO.getRoles().add(map.getRole().getName());
 
         return ResponseEntity.ok(whoamiDTO);
     }

@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.service.credential;
 
+import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.domain.credential.User;
@@ -18,6 +19,8 @@ public interface UserService extends UserDetailsPasswordService {
     UserCredential save(UserCredential credential);
 
     UserSetting save(UserSetting credential);
+
+    User create(CreateUserDTO user);
 
     @Transactional
     User createFromBot(Group group, TelegramCreateUserDTO req);

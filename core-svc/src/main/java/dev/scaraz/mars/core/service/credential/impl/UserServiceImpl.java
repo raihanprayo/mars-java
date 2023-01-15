@@ -1,19 +1,26 @@
 package dev.scaraz.mars.core.service.credential.impl;
 
+import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.credential.*;
+import dev.scaraz.mars.core.query.GroupQueryService;
+import dev.scaraz.mars.core.query.RoleQueryService;
+import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.repository.credential.*;
-import dev.scaraz.mars.core.service.credential.GroupService;
+import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.DelegateUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,6 +32,11 @@ public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
     private final UserCredentialRepo credentialRepo;
     private final UserSettingRepo settingRepo;
+
+    private final RoleQueryService roleQueryService;
+    private final RoleService roleService;
+
+    private final GroupQueryService groupQueryService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -45,10 +57,46 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDetails updatePassword(UserDetails user, String newPassword) {
-        User account = ((DelegateUser) user).getUser();
+        User account;
+        if (user instanceof DelegateUser) account = ((DelegateUser) user).getUser();
+        else account = (User) user;
+
         account.getCredential().setPassword(passwordEncoder.encode(newPassword));
         credentialRepo.save(account.getCredential());
         return user;
+    }
+
+    @Override
+    @Transactional
+    public User create(CreateUserDTO req) {
+        User nuser = save(User.builder()
+                .name(req.getName())
+                .nik(req.getNik())
+                .phone(req.getPhone())
+                .active(Optional.ofNullable(req.getActive()).orElse(true))
+                .credential(UserCredential.builder()
+                        .email(req.getEmail())
+                        .username(req.getUsername())
+                        .build())
+                .build());
+
+        if (req.getRoles().size() > 0) {
+            List<Role> roles = roleQueryService.findAll(RoleCriteria.builder()
+                    .id(new StringFilter().setIn(req.getRoles()))
+                    .build());
+            roleService.addUserRoles(nuser, roles.toArray(new Role[0]));
+        }
+        else {
+            Role roleUser = roleQueryService.findByIdOrName("user");
+            roleService.addUserRoles(nuser, roleUser);
+        }
+
+        if (req.getGroup() != null) {
+            Group group = groupQueryService.findByIdOrName(req.getGroup());
+            nuser.setGroup(group);
+        }
+
+        return save(nuser);
     }
 
     @Override

@@ -34,7 +34,7 @@ public class AuthArgResolver implements TelegramAnnotationArgResolver {
     }
 
     @Override
-    public Object resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+    public User resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
         TgAuth md = mp.getParameterAnnotation(TgAuth.class);
         long id = update.getMessage().getFrom().getId();
         try {

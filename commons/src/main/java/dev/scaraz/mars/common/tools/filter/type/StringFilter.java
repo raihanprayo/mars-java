@@ -38,6 +38,11 @@ public class StringFilter extends AbsFilter<String> implements ReadableFilter<St
     }
 
     @Override
+    public StringFilter setNegated(boolean negated) {
+        return (StringFilter) super.setNegated(negated);
+    }
+
+    @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.JSON_STYLE)
                 .append("eq", eq)

@@ -28,18 +28,12 @@ public class GroupServiceImpl implements GroupService {
             throw BadRequestException.duplicateEntity(Group.class, "name", name);
 
         log.info("CREATE NEW GROUP WITH NAME {}", name);
-        Group group = repo.save(Group.builder()
+        return repo.save(Group.builder()
                 .name(name)
                 .setting(GroupSetting.builder()
                         .canLogin(canLogin)
                         .build())
                 .build());
-
-        group.addRoles(
-                roleService.createGroupRole("supervisor", 2, group.getId(), false),
-                roleService.createGroupRole("member", 1, group.getId(), true)
-        );
-        return group;
     }
 
 }
