@@ -150,11 +150,11 @@ public class QueryFieldUtil {
         if (spec == null) {
             spec = Specification.where(null);
 
-            if (filter.getGt() != null) spec.and(GreaterThan.spec(filter.getGt(), false, attribute));
-            else if (filter.getGte() != null) spec.and(GreaterThan.spec(filter.getGt(), true, attribute));
+            if (filter.getGt() != null) spec = spec.and(GreaterThan.spec(filter.getGt(), false, attribute));
+            else if (filter.getGte() != null) spec = spec.and(GreaterThan.spec(filter.getGt(), true, attribute));
 
-            if (filter.getLt() != null) spec.and(LessThan.spec(filter.getLt(), false, attribute));
-            else if (filter.getLte() != null) spec.and(LessThan.spec(filter.getLte(), true, attribute));
+            if (filter.getLt() != null) spec = spec.and(LessThan.spec(filter.getLt(), false, attribute));
+            else if (filter.getLte() != null) spec = spec.and(LessThan.spec(filter.getLte(), true, attribute));
         }
         return spec;
     }

@@ -40,7 +40,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        log.debug("REQUEST TO {} {}", request.getMethod(), request.getRequestURL().toString());
         Cookie[] cookies = request.getCookies();
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.isNoneBlank(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
@@ -50,10 +49,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 JwtToken jwt = JwtUtil.decode(token);
 
                 User user = userQueryService.findById(jwt.getUserId());
-                SecurityContextHolder.getContext()
-                        .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
-
-                LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
+                authenticate(user);
             }
             catch (SignatureException |
                    ExpiredJwtException |
@@ -73,14 +69,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     continue;
                 }
 
-                String token = cookie.getValue();
-                JwtToken jwt = JwtUtil.decode(token);
                 try {
+                    String token = cookie.getValue();
+                    JwtToken jwt = JwtUtil.decode(token);
                     User user = userQueryService.findById(jwt.getUserId());
-                    SecurityContextHolder.getContext()
-                            .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
-
-                    LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
+                    authenticate(user);
+                    break;
                 }
                 catch (Exception ex) {
                     log.error(ex.getMessage());
@@ -90,5 +84,15 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private void authenticate(User user) {
+        if (!user.isActive())
+            throw new UnauthorizedException("Please contact your administrator to activate your account");
+
+        SecurityContextHolder.getContext()
+                .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
+
+        LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
     }
 }

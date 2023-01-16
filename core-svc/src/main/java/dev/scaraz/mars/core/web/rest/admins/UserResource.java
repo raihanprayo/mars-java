@@ -1,8 +1,11 @@
 package dev.scaraz.mars.core.web.rest.admins;
 
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
+import dev.scaraz.mars.common.domain.request.UserUpdateDashboardDTO;
+import dev.scaraz.mars.common.domain.response.UserDTO;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.service.credential.UserService;
@@ -21,25 +24,39 @@ import javax.validation.Valid;
 @Slf4j
 @RequiredArgsConstructor
 
-@PreAuthorize("hasRole('admin')")
 @RestController
-@RequestMapping("/internal/user")
+@RequestMapping("/user")
 public class UserResource {
+
+    private final CredentialMapper credentialMapper;
 
     private final UserService userService;
     private final UserQueryService userQueryService;
 
     @GetMapping
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<?> findAll(UserCriteria criteria, Pageable pageable) {
-        Page<User> page = userQueryService.findAll(criteria, pageable);
-        return ResourceUtil.pagination(page, "/internal/admin");
+        Page<UserDTO> page = userQueryService.findAll(criteria, pageable)
+                .map(credentialMapper::toDTO);
+        return ResourceUtil.pagination(page, "/user");
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<?> register(@ModelAttribute @Valid CreateUserDTO req) {
         User user = userService.create(req);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(user);
+                .body(credentialMapper.toDTO(user));
+    }
+
+    @PreAuthorize("hasRole('admin')")
+    @PutMapping("/partial/{userId}")
+    public ResponseEntity<?> updateUser(
+            @PathVariable String userId,
+            @RequestBody UserUpdateDashboardDTO req
+    ) {
+        User user = userService.updatePartial(userId, req);
+        return ResponseEntity.ok(credentialMapper.toDTO(user));
     }
 
 }

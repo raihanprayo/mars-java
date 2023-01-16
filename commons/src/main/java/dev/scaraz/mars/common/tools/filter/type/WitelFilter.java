@@ -36,11 +36,6 @@ public class WitelFilter extends EnumFilter<Witel> {
     }
 
     @Override
-    public WitelFilter setIn(Witel... in) {
-        return (WitelFilter) super.setIn(in);
-    }
-
-    @Override
     public WitelFilter setSpecified(Boolean nullable) {
         return (WitelFilter) super.setSpecified(nullable);
     }

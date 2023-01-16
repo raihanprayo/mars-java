@@ -6,6 +6,7 @@ import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@ToString(callSuper = true)
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -13,4 +14,5 @@ public abstract class AuditableCriteria extends TimestampCriteria {
 
     private StringFilter createdBy;
     private StringFilter updatedBy;
+
 }

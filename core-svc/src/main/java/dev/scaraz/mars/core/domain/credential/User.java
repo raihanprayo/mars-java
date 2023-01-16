@@ -41,24 +41,25 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     private String phone;
 
     @Column(name = "tg_id")
-    private long telegramId;
+    private Long telegramId;
 
     @Column
     private boolean active;
 
     @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ref_group_id")
     private Group group;
 
-    @Builder.Default
     @ToString.Exclude
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Builder.Default
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserCredential credential = new UserCredential();
 
-    @Builder.Default
     @ToString.Exclude
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @Builder.Default
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserSetting setting = new UserSetting();
 
     @ToString.Exclude
@@ -66,25 +67,10 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "t_roles",
-            joinColumns = @JoinColumn(name = "ref_role_id"),
-            inverseJoinColumns = @JoinColumn(name = "ref_user_id"))
+            schema = "mars",
+            joinColumns = @JoinColumn(name = "ref_user_id"),
+            inverseJoinColumns = @JoinColumn(name = "ref_role_id"))
     private Set<Role> roles = new HashSet<>();
-
-    public void addRole(Role role) {
-        roles.add(role);
-    }
-
-    public void addRoles(Role... roles) {
-        this.roles.addAll(Set.of(roles));
-    }
-
-    public boolean hasRole(String name) {
-        return roles.stream().anyMatch(e -> e.getName().equalsIgnoreCase(name));
-    }
-
-    public boolean hasRole(Role role) {
-        return roles.stream().anyMatch(r -> r.equals(role));
-    }
 
     public boolean canLogin() {
         return Optional.ofNullable(group)
@@ -127,11 +113,13 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     }
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return getRoles();
     }
 
     @Override
+    @JsonIgnore
     public String getPassword() {
         return Optional.ofNullable(getCredential())
                 .map(UserCredential::getPassword)
@@ -139,26 +127,31 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     }
 
     @Override
+    @JsonIgnore
     public String getUsername() {
         return getName();
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return isActive();
     }

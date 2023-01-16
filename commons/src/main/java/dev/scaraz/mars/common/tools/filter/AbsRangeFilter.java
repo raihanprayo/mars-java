@@ -3,10 +3,12 @@ package dev.scaraz.mars.common.tools.filter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.Collection;
 
 @Getter
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class AbsRangeFilter<T extends Comparable<? super T>> extends AbsFilter<T> implements RangeFilter<T> {

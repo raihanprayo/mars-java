@@ -89,7 +89,7 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
         User user = loadUserByUsername(authReq.getNik());
-        if (!user.hasRole(AppConstants.Authority.ADMIN_ROLE)) {
+        if (!rolesRepo.existsByUserIdAndRoleName(user.getId(), AppConstants.Authority.ADMIN_ROLE)) {
             if (!user.canLogin()) {
                 throw new AccessDeniedException("auth.group.disable.login", user.getGroup().getName());
             }
@@ -116,6 +116,8 @@ public class AuthServiceImpl implements AuthService {
             if (!passwordMatch) {
                 throw new UnauthorizedException("auth.user.invalid.password");
             }
+            else if (!user.isActive())
+                throw new UnauthorizedException("Please contact your administrator to activate your account");
         }
 
         Instant issuedAt = Instant.now();

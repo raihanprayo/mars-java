@@ -1,39 +1,47 @@
 package dev.scaraz.mars.core.util;
 
+import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.UserCredential;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-@Builder
-@RequiredArgsConstructor
 public class DelegateUser implements UserDetails {
 
     @Getter
-    private final User user;
+    private final String id;
+
+    private final String username;
+    private final Collection<Role> authorities;
+    private final boolean active;
+
+    private final String password;
+
+    public DelegateUser(User user) {
+        this.active = user.isActive();
+        this.authorities = user.getRoles();
+        this.password = user.getCredential().getPassword();
+        this.username = user.getName();
+        this.id = user.getId();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles();
+        return authorities;
     }
 
     @Override
     public String getPassword() {
-        return Optional.ofNullable(user.getCredential())
-                .map(UserCredential::getPassword)
-                .orElse(null);
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return user.getName();
+        return username;
     }
 
     @Override
@@ -53,6 +61,6 @@ public class DelegateUser implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.isActive();
+        return active;
     }
 }

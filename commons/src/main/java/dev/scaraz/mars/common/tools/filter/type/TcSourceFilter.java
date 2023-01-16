@@ -36,11 +36,6 @@ public class TcSourceFilter extends EnumFilter<TcSource> {
     }
 
     @Override
-    public TcSourceFilter setIn(TcSource... in) {
-        return (TcSourceFilter) super.setIn(in);
-    }
-
-    @Override
     public TcSourceFilter setSpecified(Boolean nullable) {
         return (TcSourceFilter) super.setSpecified(nullable);
     }

@@ -28,7 +28,7 @@ public class Role extends AuditableEntity implements GrantedAuthority {
     private String name;
 
     @Column(name = "\"order\"")
-    private long order;
+    private int order;
 
     @Override
     public String getAuthority() {

@@ -10,7 +10,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @Setter
 @SuperBuilder(toBuilder = true)
-@ToString
+@ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserCriteria extends AuditableCriteria {
@@ -23,5 +23,6 @@ public class UserCriteria extends AuditableCriteria {
     private BooleanFilter active;
 
     private GroupCriteria group;
+    private RoleCriteria roles;
     private UserCredentialCriteria credential;
 }

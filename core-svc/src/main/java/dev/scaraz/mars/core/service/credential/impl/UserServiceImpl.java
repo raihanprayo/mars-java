@@ -2,11 +2,13 @@ package dev.scaraz.mars.core.service.credential.impl;
 
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
+import dev.scaraz.mars.common.domain.request.UserUpdateDashboardDTO;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.credential.*;
 import dev.scaraz.mars.core.query.GroupQueryService;
 import dev.scaraz.mars.core.query.RoleQueryService;
+import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.repository.credential.*;
 import dev.scaraz.mars.core.service.credential.RoleService;
@@ -19,8 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,6 +34,7 @@ public class UserServiceImpl implements UserService {
 
     private final AuditProvider auditProvider;
     private final UserRepo userRepo;
+    private final UserQueryService userQueryService;
     private final UserCredentialRepo credentialRepo;
     private final UserSettingRepo settingRepo;
 
@@ -39,6 +44,8 @@ public class UserServiceImpl implements UserService {
     private final GroupQueryService groupQueryService;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final RolesRepo rolesRepo;
 
     @Override
     public User save(User user) {
@@ -58,8 +65,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetails updatePassword(UserDetails user, String newPassword) {
         User account;
-        if (user instanceof DelegateUser) account = ((DelegateUser) user).getUser();
-        else account = (User) user;
+        if (user instanceof User) account = (User) user;
+        else {
+            account = userQueryService.findById(((DelegateUser) user).getId());
+        }
 
         account.getCredential().setPassword(passwordEncoder.encode(newPassword));
         credentialRepo.save(account.getCredential());
@@ -115,6 +124,43 @@ public class UserServiceImpl implements UserService {
         finally {
             auditProvider.clear();
         }
+    }
+
+    @Override
+    @Transactional
+    public User updatePartial(String userId, UserUpdateDashboardDTO dto) {
+        log.info("PARTIAL DATA USER UPDATE {}", dto);
+        User user = userQueryService.findById(userId);
+
+        if (dto.getNik() != null) user.setNik(dto.getNik());
+        if (dto.getPhone() != null) user.setPhone(dto.getPhone());
+        if (dto.getActive() != null) user.setActive(dto.getActive());
+
+        if (dto.getRoles() != null) {
+            List<String> removedIds = dto.getRoles().getRemoved();
+            List<String> selectedIds = dto.getRoles().getSelected();
+
+            rolesRepo.deleteByUserIdAndRoleIdIn(userId, removedIds);
+
+            Set<Role> roles = new HashSet<>();
+            for (String roleId : selectedIds) {
+                Role role = roleQueryService.findByIdOrName(roleId);
+                if (rolesRepo.existsByUserIdAndRoleName(userId, role.getName())) {
+                    roles.add(role);
+                    continue;
+                }
+
+                rolesRepo.save(Roles.builder()
+                        .user(user)
+                        .role(role)
+                        .build());
+                roles.add(role);
+            }
+
+            user.setRoles(roles);
+        }
+
+        return save(user);
     }
 
 }

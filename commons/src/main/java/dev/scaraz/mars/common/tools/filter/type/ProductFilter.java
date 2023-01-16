@@ -36,11 +36,6 @@ public class ProductFilter extends EnumFilter<Product> {
     }
 
     @Override
-    public ProductFilter setIn(Product... in) {
-        return (ProductFilter) super.setIn(in);
-    }
-
-    @Override
     public ProductFilter setSpecified(Boolean nullable) {
         return (ProductFilter) super.setSpecified(nullable);
     }

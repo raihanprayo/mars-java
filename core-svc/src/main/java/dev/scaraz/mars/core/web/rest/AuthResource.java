@@ -9,7 +9,7 @@ import dev.scaraz.mars.common.exception.web.UnauthorizedException;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Roles;
 import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.mapper.UserMapper;
+import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.repository.credential.RolesRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.util.SecurityUtil;
@@ -32,19 +32,12 @@ public class AuthResource {
 
     private final MarsProperties marsProperties;
     private final AuthService authService;
-    private final UserMapper userMapper;
-    private final RolesRepo rolesRepo;
+    private final CredentialMapper credentialMapper;
 
     @GetMapping("/whoami")
     public ResponseEntity<?> whoami() {
         User user = SecurityUtil.getCurrentUser();
-        WhoamiDTO whoamiDTO = userMapper.fromUser(user);
-
-        List<Roles> roles = rolesRepo.findAllByUserId(user.getId());
-        for (Roles map : roles)
-            whoamiDTO.getRoles().add(map.getRole().getName());
-
-        return ResponseEntity.ok(whoamiDTO);
+        return ResponseEntity.ok(credentialMapper.fromUser(user));
     }
 
     @PostMapping(value = "/authorize")
@@ -57,6 +50,7 @@ public class AuthResource {
         }
 
         return attachJwtCookie(authResult);
+//        return ResponseEntity.ok(authResult);
     }
 
     @PostMapping("/unauthorize")

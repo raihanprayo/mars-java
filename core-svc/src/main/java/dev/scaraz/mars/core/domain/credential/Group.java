@@ -16,6 +16,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 
@@ -31,19 +32,14 @@ public class Group extends AuditableEntity {
     @Column
     private String name;
 
-    @ManyToOne
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_group_id")
     private Group parent;
 
     @Builder.Default
     @OneToOne(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private GroupSetting setting = new GroupSetting();
-
-    @JsonIgnore
-    @Builder.Default
-    @ToString.Exclude
-    @OneToMany(mappedBy = "group")
-    private Set<User> members = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
@@ -57,7 +53,6 @@ public class Group extends AuditableEntity {
                 .appendSuper(super.equals(group))
                 .append(getId(), group.getId())
                 .append(getName(), group.getName())
-                .append(getParent(), group.getParent())
                 .append(getSetting(), group.getSetting())
                 .isEquals();
     }
@@ -68,19 +63,8 @@ public class Group extends AuditableEntity {
                 .appendSuper(super.hashCode())
                 .append(getId())
                 .append(getName())
-                .append(getParent())
                 .append(getSetting())
                 .toHashCode();
-    }
-
-    @Override
-    public String toString() {
-        return "Group{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", parent=" + Optional.ofNullable(parent).map(Group::getId).orElse(null) +
-                ", setting=" + setting +
-                '}';
     }
 
     @PreUpdate

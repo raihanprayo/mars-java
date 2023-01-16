@@ -23,10 +23,10 @@ public class GroupSetting extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne
     @JsonIgnore
     @ToString.Exclude
     @JoinColumn(name = "ref_group_id", updatable = false)
+    @OneToOne(fetch = FetchType.LAZY)
     private Group group;
 
     @Getter(AccessLevel.NONE)

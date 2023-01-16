@@ -50,10 +50,6 @@ public class JwtUtil {
                                      ChronoUnit timeUnit,
                                      Instant issuedAt,
                                      boolean asRefreshToken) {
-        Map<String, Object> group = Map.of(
-                "id", user.getGroup().getId(),
-                "name", user.getGroup().getName()
-        );
 
         Claims claims = new DefaultClaims();
         claims.setId(UUID.randomUUID().toString());
@@ -66,10 +62,17 @@ public class JwtUtil {
 
         claims.put("name", user.getName());
         claims.put("tg", user.getTelegramId());
-        claims.put("group", group);
         claims.put("roles", user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toList()));
+
+        if (user.getGroup() != null) {
+            Map<String, Object> group = Map.of(
+                    "id", user.getGroup().getId(),
+                    "name", user.getGroup().getName()
+            );
+            claims.put("group", group);
+        }
 
         return JwtResult.builder()
                 .id(claims.getId())
@@ -91,20 +94,15 @@ public class JwtUtil {
         Claims decode = jws.getBody();
 
         List<String> roles = (List<String>) decode.get("roles");
-        Map<String, Object> groupDecoded = (Map<String, Object>) decode.get("group");
-
-        JwtToken.JwtGroupToken group = JwtToken.JwtGroupToken.builder()
-                .id((String) groupDecoded.get("id"))
-                .name((String) groupDecoded.get("name"))
-                .build();
 
         boolean refresher = false;
         try {
             refresher = decode.get("rfs", Boolean.class);
         }
-        catch (Exception ex) {}
+        catch (Exception ex) {
+        }
 
-        return JwtToken.builder()
+        JwtToken.JwtTokenBuilder jwt = JwtToken.builder()
                 .id(decode.getId())
                 .audience(decode.getAudience())
                 .refresher(refresher)
@@ -113,23 +111,18 @@ public class JwtUtil {
                 .expiredAt(decode.getExpiration().toInstant())
                 .name(decode.get("name", String.class))
                 .telegram(decode.get("tg", Long.class))
-                .roles(roles)
-                .group(group)
-                .build();
-    }
+                .roles(roles);
 
-    public static boolean validate(String token) {
-        try {
-            Jwts.parserBuilder()
-                    .setSigningKey(secret.get())
-                    .build()
-                    .parseClaimsJws(token);
-            return true;
+        Map<String, Object> groupDecoded = (Map<String, Object>) decode.get("group");
+        if (groupDecoded != null) {
+            JwtToken.JwtGroupToken group = JwtToken.JwtGroupToken.builder()
+                    .id((String) groupDecoded.get("id"))
+                    .name((String) groupDecoded.get("name"))
+                    .build();
+            jwt.group(group);
         }
-        catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException |
-               IllegalArgumentException ex) {
-            return false;
-        }
+
+        return jwt.build();
     }
 
 }

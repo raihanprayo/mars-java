@@ -34,6 +34,5 @@ public class WhoamiDTO {
     public static class Group {
         private String id;
         private String name;
-        private List<String> roles;
     }
 }

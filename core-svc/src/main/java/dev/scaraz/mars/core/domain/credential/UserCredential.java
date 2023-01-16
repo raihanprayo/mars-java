@@ -22,10 +22,10 @@ public class UserCredential extends AuditableEntity implements CredentialsContai
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @OneToOne
     @JsonIgnore
     @ToString.Exclude
     @JoinColumn(name = "ref_user_id")
+    @OneToOne(fetch = FetchType.LAZY)
     private User user;
 
     @Column

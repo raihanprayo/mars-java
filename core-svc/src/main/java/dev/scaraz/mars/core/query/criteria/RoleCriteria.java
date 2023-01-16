@@ -16,6 +16,4 @@ public class RoleCriteria extends AuditableCriteria {
     private StringFilter id;
     private StringFilter name;
     private LongFilter order;
-
-    private GroupCriteria group;
 }

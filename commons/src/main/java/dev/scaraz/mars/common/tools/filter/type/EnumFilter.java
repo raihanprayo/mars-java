@@ -42,10 +42,6 @@ public class EnumFilter<T extends Enum<? super T>> extends AbsRangeFilter<T> {
         return (EnumFilter<T>) super.setIn(in);
     }
 
-    public EnumFilter<T> setIn(T... in) {
-        return (EnumFilter<T>) super.setIn(List.of(in));
-    }
-
     @Override
     public EnumFilter<T> setSpecified(Boolean specified) {
         return (EnumFilter<T>) super.setSpecified(specified);

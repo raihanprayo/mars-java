@@ -14,8 +14,13 @@ import java.util.List;
 @AllArgsConstructor
 public class TicketPieChartDTO {
 
+    @Builder.Default
     private List<PieChartDTO<String>> age = new ArrayList<>();
+
+    @Builder.Default
     private List<PieChartDTO<String>> actionAge = new ArrayList<>();
+
+    @Builder.Default
     private List<PieChartDTO<String>> responseAge = new ArrayList<>();
 
     @Builder.Default

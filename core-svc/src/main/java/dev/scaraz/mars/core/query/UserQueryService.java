@@ -3,12 +3,8 @@ package dev.scaraz.mars.core.query;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.util.DelegateUser;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
-import java.util.List;
 
 public interface UserQueryService extends UserDetailsService, BaseQueryService<User, UserCriteria> {
 

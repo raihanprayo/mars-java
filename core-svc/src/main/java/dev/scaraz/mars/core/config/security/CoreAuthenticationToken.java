@@ -19,7 +19,13 @@ public class CoreAuthenticationToken extends AbstractAuthenticationToken {
         super(user.getRoles());
         this.source = source;
         this.principal = new DelegateUser(user);
-        this.credentials = user.getCredential();
+
+        UserCredential credential = user.getCredential();
+        this.credentials = UserCredential.builder()
+                .id(credential.getId())
+                .email(credential.getEmail())
+                .password(credential.getPassword())
+                .build();
 
         if (user.isActive())
             super.setAuthenticated(true);

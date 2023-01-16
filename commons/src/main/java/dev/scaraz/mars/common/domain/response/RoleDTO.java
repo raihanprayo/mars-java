@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoleDTO {
+
+    private String id;
     private String name;
-    private RoleGroupDTO group;
+    private Integer order;
 }

@@ -36,11 +36,6 @@ public class AgStatusFilter extends EnumFilter<AgStatus> {
     }
 
     @Override
-    public AgStatusFilter setIn(AgStatus... in) {
-        return (AgStatusFilter) super.setIn(in);
-    }
-
-    @Override
     public AgStatusFilter setSpecified(Boolean nullable) {
         return (AgStatusFilter) super.setSpecified(nullable);
     }

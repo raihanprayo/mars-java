@@ -10,4 +10,9 @@ import java.util.Optional;
 @Repository
 public interface RolesRepo extends JpaRepository<Roles, String> {
     List<Roles> findAllByUserId(String userId);
+
+    boolean existsByUserIdAndRoleName(String userId, String role);
+
+    void deleteByUserIdAndRoleIdIn(String userId, List<String> roleId);
+
 }
