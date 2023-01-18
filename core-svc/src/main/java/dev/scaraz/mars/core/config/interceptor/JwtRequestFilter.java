@@ -47,6 +47,9 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 String token = bearerToken.substring(BEARER_PREFIX.length());
                 JwtToken jwt = JwtUtil.decode(token);
 
+                if (jwt.isRefresher())
+                    throw new UnauthorizedException("Invalid access token");
+
                 User user = userQueryService.findById(jwt.getUserId());
                 authenticate(user);
             }

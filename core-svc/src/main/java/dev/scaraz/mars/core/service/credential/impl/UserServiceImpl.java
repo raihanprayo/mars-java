@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -110,7 +111,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User createFromBot(Group group, TelegramCreateUserDTO req) {
+    public User createFromBot(@Nullable Group group, TelegramCreateUserDTO req) {
         auditProvider.setName(req.getName());
         try {
             return userRepo.saveAndFlush(User.builder()
@@ -120,6 +121,8 @@ public class UserServiceImpl implements UserService {
                     .telegramId(req.getTelegramId())
                     .group(group)
                     .active(true)
+                    .witel(req.getWitel())
+                    .subregion(req.getSubregion())
                     .build());
         }
         finally {

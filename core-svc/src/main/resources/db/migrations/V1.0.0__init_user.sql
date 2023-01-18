@@ -14,15 +14,15 @@ create table t_group
 );
 create table t_group_setting
 (
-    id                  serial primary key,
-    ref_group_id        varchar(37) unique not null,
+    id           serial primary key,
+    ref_group_id varchar(37) unique not null,
 
-    can_login           bool                        default false,
+    can_login    bool                        default false,
 
-    created_at          timestamp(0)       not null default CURRENT_TIMESTAMP,
-    created_by          varchar(255)       not null,
-    updated_at          timestamp(0)                default CURRENT_TIMESTAMP,
-    updated_by          varchar(255)
+    created_at   timestamp(0)       not null default CURRENT_TIMESTAMP,
+    created_by   varchar(255)       not null,
+    updated_at   timestamp(0)                default CURRENT_TIMESTAMP,
+    updated_by   varchar(255)
 );
 
 
@@ -47,6 +47,8 @@ create table t_user
     tg_id        bigint unique,
 
     active       bool                        default false,
+    witel        varchar(15),
+    sub_region   varchar(50),
 
     ref_group_id varchar(37),
 

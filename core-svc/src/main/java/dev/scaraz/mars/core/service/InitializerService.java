@@ -1,11 +1,15 @@
 package dev.scaraz.mars.core.service;
 
+import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.core.domain.AppConfig;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.repository.AppConfigRepo;
 import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.order.IssueRepo;
@@ -29,6 +33,9 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class InitializerService {
 
+    private final MarsProperties marsProperties;
+    private final AppConfigRepo appConfigRepo;
+
     private final UserService userService;
     private final UserQueryService userQueryService;
 
@@ -40,6 +47,12 @@ public class InitializerService {
 
     private final IssueRepo issueRepo;
     private final IssueService issueService;
+
+    public void checkWitel() {
+        Witel witel = marsProperties.getWitel();
+        if (witel == null)
+            throw new IllegalStateException("Unknown Witel region, please set first from environtment 'MARS_WITEL'");
+    }
 
     @Async
     @Transactional
@@ -107,6 +120,21 @@ public class InitializerService {
             if (issueRepo.existsByNameAndProduct(name, names.get(name))) continue;
             issueService.create(name, names.get(name), null);
         }
+    }
+
+    @Async
+    public void preInitAppConfig() {
+        appConfigRepo.findById(AppConstants.Config.CLOSE_CONFIRM_ID_DURATION_SEC)
+                .orElseGet(() -> appConfigRepo.save(AppConfig.builder()
+                        .id(AppConstants.Config.CLOSE_CONFIRM_ID_DURATION_SEC)
+                        .name("close-confirm-duration")
+                        .type(AppConfig.Type.NUMBER)
+                        .classType(Integer.class.getCanonicalName())
+                        .value(String.valueOf(30))
+                        .description("Lama waktu yang diperlukan untuk menunggu requestor menjawab konfirmasi sebelum tiket close")
+                        .build()));
+
+
     }
 
 }

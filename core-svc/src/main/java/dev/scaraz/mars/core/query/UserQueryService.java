@@ -18,4 +18,6 @@ public interface UserQueryService extends UserDetailsService, BaseQueryService<U
     User findByNik(String nik);
 
     boolean existByNik(String nik);
+
+    boolean existByCriteria(UserCriteria criteria);
 }

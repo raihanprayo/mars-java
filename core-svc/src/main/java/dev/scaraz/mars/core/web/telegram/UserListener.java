@@ -1,12 +1,16 @@
 package dev.scaraz.mars.core.web.telegram;
 
 import dev.scaraz.mars.common.tools.Translator;
+import dev.scaraz.mars.core.domain.cache.BotRegistration;
+import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
+import dev.scaraz.mars.core.service.credential.UserBotService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.annotation.Text;
+import dev.scaraz.mars.telegram.annotation.UserId;
 import dev.scaraz.mars.telegram.util.MessageEntityType;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
@@ -30,19 +34,13 @@ public class UserListener {
 
     private final UserService userService;
 
-    @TelegramCommand(commands = "/register")
-    public SendMessage register(User user, Message message) {
-        log.info("User {}", user);
+    private final UserBotService userBotService;
+    private final BotRegistrationRepo registrationRepo;
 
-        if (!authService.isUserRegistered(user.getId())) {
-            for (MessageEntity entity : message.getEntities()) {
-                if (!MessageEntityType.is(entity, MessageEntityType.BOT_COMMAND)) continue;
-
-                return authService.registerFromBot(entity, message)
-                        .text(TelegramUtil.WELCOME_MESSAGE())
-                        .parseMode(ParseMode.MARKDOWNV2)
-                        .build();
-            }
+    @TelegramCommand(commands = {"/register", "/reg"})
+    public SendMessage register(@UserId long telegramId, Message message) {
+        if (!authService.isUserRegistered(telegramId)) {
+            return userBotService.start(telegramId);
         }
 
         return SendMessage.builder()
@@ -55,7 +53,6 @@ public class UserListener {
     public SendMessage setting(@TgAuth dev.scaraz.mars.core.domain.credential.User user,
                                @Text String text
     ) {
-
         if (checkSettingFormat(text)) {
             String[] split = text.split("[ =]");
             String cmd = split[0];
@@ -83,6 +80,24 @@ public class UserListener {
             }
         }
 
+        return null;
+    }
+
+    @TelegramCommand(commands = "/reg_reset")
+    public SendMessage registrationReset(@UserId long telegramId) {
+        if (registrationRepo.existsById(telegramId)) return userBotService.start(telegramId);
+        return null;
+    }
+
+    @TelegramCommand(commands = "/end")
+    public SendMessage registrationForceEnd(@UserId long telegramId) {
+        if (registrationRepo.existsById(telegramId)) {
+            registrationRepo.deleteById(telegramId);
+            return SendMessage.builder()
+                    .chatId(telegramId)
+                    .text("Menghentikan proses registrasi")
+                    .build();
+        }
         return null;
     }
 

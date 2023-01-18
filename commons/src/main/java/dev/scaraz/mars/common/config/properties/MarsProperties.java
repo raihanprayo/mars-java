@@ -20,7 +20,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "mars", ignoreUnknownFields = false)
 public class MarsProperties {
 
-    private Witel instance;
+    private Witel witel;
 
     private String secret;
 
@@ -38,7 +38,6 @@ public class MarsProperties {
 
     @Setter(AccessLevel.NONE)
     private Map<DirectoryAlias, String> directory = new EnumMap<>(DirectoryAlias.class);
-
 
     @Getter
     @Setter
@@ -66,5 +65,6 @@ public class MarsProperties {
         private boolean withDefaults = true;
         private List<String> externals = new ArrayList<>();
     }
+
 
 }

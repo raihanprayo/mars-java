@@ -27,6 +27,11 @@ public interface AppConstants {
 
     interface Cache {
         String TC_CONFIRM_NS = "tc:confirm";
+        String USR_REGISTRATION_NS = "usr:register";
+    }
+
+    interface Config {
+        long CLOSE_CONFIRM_ID_DURATION_SEC = 1;
     }
 
 }

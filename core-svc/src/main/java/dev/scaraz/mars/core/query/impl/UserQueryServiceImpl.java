@@ -94,4 +94,9 @@ public class UserQueryServiceImpl implements UserQueryService {
                 .isPresent();
     }
 
+    @Override
+    public boolean existByCriteria(UserCriteria criteria) {
+        return repo.exists(specBuilder.createSpec(criteria));
+    }
+
 }

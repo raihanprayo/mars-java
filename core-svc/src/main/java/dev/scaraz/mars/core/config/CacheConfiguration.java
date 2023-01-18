@@ -30,7 +30,6 @@ import java.time.Duration;
 @Configuration
 @EnableCaching
 @EnableConfigurationProperties(RedisProperties.class)
-@ImportAutoConfiguration({RedisAutoConfiguration.class})
 @EnableRedisRepositories(
         basePackages = "dev.scaraz.mars.core.repository.cache",
         enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP,

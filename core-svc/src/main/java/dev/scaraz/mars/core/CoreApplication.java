@@ -6,26 +6,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+
+import javax.annotation.PostConstruct;
 
 @Slf4j
 @RequiredArgsConstructor
 
-@SpringBootApplication(
-        exclude = {RedisAutoConfiguration.class}
-)
+@SpringBootApplication
 public class CoreApplication implements CommandLineRunner {
-
     private final InitializerService initializer;
 
     public static void main(String[] args) {
         SpringApplication.run(CoreApplication.class, args);
     }
 
+    @PostConstruct
+    public void init() {
+        initializer.checkWitel();
+    }
+
     @Override
     public void run(String... args) {
+        initializer.preInitAppConfig();
         initializer.preInitRoles();
-        initializer.preInitGroups();
+//        initializer.preInitGroups();
         initializer.preInitIssue();
     }
 }

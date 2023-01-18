@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.domain.credential;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.scaraz.mars.common.domain.AuditableEntity;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -42,6 +43,13 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
 
     @Column(name = "tg_id")
     private Long telegramId;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Witel witel;
+
+    @Column(name = "sub_region")
+    private String subregion;
 
     @Column
     private boolean active;

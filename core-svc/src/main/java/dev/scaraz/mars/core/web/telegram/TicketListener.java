@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.*;
@@ -59,7 +60,7 @@ public class TicketListener {
 
             Ticket ticket = botService.registerForm(
                     form.toBuilder()
-                            .source(getChatSource(message.getChat().getType()))
+                            .source(TcSource.fromType(message.getChat().getType()))
                             .senderId(user.getTelegramId())
                             .senderName(user.getName())
                             .build(),
@@ -255,17 +256,6 @@ public class TicketListener {
             }
         }
         return -1;
-    }
-
-    private TcSource getChatSource(String chatSource) {
-        switch (chatSource.toUpperCase()) {
-            case "PRIVATE":
-                return TcSource.PRIVATE;
-            case "GROUP":
-                return TcSource.GROUP;
-            default:
-                return TcSource.OTHER;
-        }
     }
 
 }

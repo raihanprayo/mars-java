@@ -22,7 +22,7 @@ public final class UserIdArgResolver implements TelegramAnnotationArgResolver {
     }
 
     @Override
-    public Object resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+    public Long resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
         switch (ctx.getScope()) {
             case MESSAGE:
                 return update.getMessage().getFrom().getId();

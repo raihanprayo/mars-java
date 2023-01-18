@@ -75,6 +75,9 @@ public class Ticket extends AuditableEntity {
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "ticket")
     private TicketAsset assets;
 
+    @OneToOne(mappedBy = "ticket")
+    private TicketImport imports;
+
     @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "ticket")

@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.domain.request;
 
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,4 +24,9 @@ public class TelegramCreateUserDTO {
     private long telegramId;
 
     private String groupName;
+
+    private String subregion;
+
+    private Witel witel;
+
 }
