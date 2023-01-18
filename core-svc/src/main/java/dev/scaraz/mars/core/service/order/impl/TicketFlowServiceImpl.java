@@ -7,6 +7,7 @@ import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.StatusConfirm;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.LogTicket;
@@ -19,6 +20,7 @@ import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
 import dev.scaraz.mars.core.repository.cache.StatusConfirmRepo;
 import dev.scaraz.mars.core.repository.order.TicketAgentRepo;
+import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
@@ -44,6 +46,7 @@ import java.util.List;
 @Service
 public class TicketFlowServiceImpl implements TicketFlowService {
 
+    private final AppConfigService appConfigService;
     private final TicketService service;
     private final TicketQueryService queryService;
     private final TicketSummaryQueryService summaryQueryService;
@@ -66,6 +69,12 @@ public class TicketFlowServiceImpl implements TicketFlowService {
 
         if (summaryQueryService.isWorkInProgressByTicketId(ticket.getId())) {
             throw BadRequestException.args("error.ticket.taken");
+        }
+        else if (ticket.getStatus() == TcStatus.CLOSED) {
+            throw BadRequestException.args("No tiket telah ditutup");
+        }
+        else if (ticket.getStatus() == TcStatus.PENDING) {
+            throw BadRequestException.args("No tiket dalam keadaan pending");
         }
 
         User user = SecurityUtil.getCurrentUser();
@@ -116,7 +125,11 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 TcStatus.CLOSED,
                 form.getNote());
 
-        int messageId = notifierService.sendConfirmation(ticket);
+        int minute = appConfigService.getCloseConfirm()
+                .getAsNumber()
+                .intValue();
+
+        int messageId = notifierService.sendConfirmation(ticket, minute);
         ticket.setStatus(TcStatus.CONFIRMATION);
         ticket.setConfirmMessageId((long) messageId);
 
@@ -124,7 +137,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 .id(messageId)
                 .no(ticket.getNo())
                 .status(TcStatus.CLOSED)
-                .ttl(1800)
+                .ttl(minute * 60L)
                 .build());
 
         log.info("NOTIF SENDED TO USER -- MESSAGE ID {}", messageId);

@@ -25,8 +25,8 @@ public class TelegramCreateUserDTO {
 
     private String groupName;
 
-    private String subregion;
-
     private Witel witel;
+
+    private String sto;
 
 }

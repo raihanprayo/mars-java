@@ -25,7 +25,7 @@ public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificat
 
     int countByServiceNoAndIssueIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(
             String serviceNo,
-            String issueId,
+            long issueId,
             Instant gte,
             Instant lte
     );

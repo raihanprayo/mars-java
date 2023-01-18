@@ -110,7 +110,7 @@ public class TicketQueryServiceImpl implements TicketQueryService {
     }
 
     @Override
-    public int countGaul(String issueId, String serviceNo) {
+    public int countGaul(long issueId, String serviceNo) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime weekAgo = now.minusDays(7);
         return repo.countByServiceNoAndIssueIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(

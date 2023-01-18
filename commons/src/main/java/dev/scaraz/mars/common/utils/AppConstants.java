@@ -15,6 +15,7 @@ public interface AppConstants {
     interface Telegram {
         String CONFIRM_AGREE = "ANS_AGREE";
         String CONFIRM_DISAGREE = "ANS_DISAGREE";
+        String IGNORE_WITEL = "REG_IGNORE:WITEL";
     }
 
 
@@ -31,7 +32,8 @@ public interface AppConstants {
     }
 
     interface Config {
-        long CLOSE_CONFIRM_ID_DURATION_SEC = 1;
+        long CLOSE_CONFIRM_ID_INT = 1;
+        long ALLOW_OTHER_WITEL_ID_BOOL = 2;
     }
 
 }

@@ -3,6 +3,7 @@ package dev.scaraz.mars.telegram.model;
 import dev.scaraz.mars.telegram.util.Util;
 import dev.scaraz.mars.telegram.util.enums.MessageSource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -39,9 +40,11 @@ public class TelegramMessageCommand {
         if (commandEntity != null && commandEntity.getOffset() == 0) {
             isCommand = true;
             command = commandEntity.getText();
-            argument = text
+            String temp = text
                     .substring(commandEntity.getLength())
                     .trim();
+            if (StringUtils.isBlank(temp)) argument = null;
+            else argument = temp;
         }
         else {
             command = null;

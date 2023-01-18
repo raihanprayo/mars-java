@@ -16,7 +16,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class TicketDashboardForm implements Serializable {
 
-    @NotNull
     private Witel witel;
 
     @NotNull
@@ -26,7 +25,7 @@ public class TicketDashboardForm implements Serializable {
      * Issue ID
      */
     @NotNull
-    private String issue;
+    private Long issue;
 
     @NotNull
     private String incidentNo;

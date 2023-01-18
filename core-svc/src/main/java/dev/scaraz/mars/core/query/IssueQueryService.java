@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IssueQueryService extends BaseQueryService<Issue, IssueCriteria> {
-    Optional<Issue> findById(String id);
+    Optional<Issue> findById(Long id);
 
     Optional<Issue> findOne(IssueCriteria criteria);
 

@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.service.impl;
 
+import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
@@ -47,6 +48,8 @@ import static dev.scaraz.mars.common.utils.AppConstants.Auth.*;
 @Service
 public class AuthServiceImpl implements AuthService {
 
+    private final MarsProperties marsProperties;
+
     private final AuditProvider auditProvider;
     private final GroupRepo groupRepo;
 
@@ -91,12 +94,15 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
         User user = loadUserByUsername(authReq.getNik());
-        if (!rolesRepo.existsByUserIdAndRoleName(user.getId(), AppConstants.Authority.ADMIN_ROLE)) {
-            if (!user.canLogin()) {
-                String translate = Translator.tr("auth.group.disable.login", user.getGroup().getName());
-                throw AccessDeniedException.args(translate);
-            }
+        if (marsProperties.getWitel() != user.getWitel()) {
+
         }
+//        if (!rolesRepo.existsByUserIdAndRoleName(user.getId(), AppConstants.Authority.ADMIN_ROLE)) {
+//            if (!user.canLogin()) {
+//                String translate = Translator.tr("auth.group.disable.login", user.getGroup().getName());
+//                throw AccessDeniedException.args(translate);
+//            }
+//        }
 
         boolean hasPassword = user.getCredential().getPassword() != null;
         if (!hasPassword) {

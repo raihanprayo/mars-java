@@ -25,8 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -56,7 +54,7 @@ public class InitializerService {
 
     @Async
     @Transactional
-    public void preInitRoles() {
+    public void preInitRolesAndCreateAdmin() {
         Role adminRole;
         if (roleRepo.existsByName(AppConstants.Authority.ADMIN_ROLE)) {
             adminRole = roleRepo.findByName(AppConstants.Authority.ADMIN_ROLE)
@@ -75,6 +73,7 @@ public class InitializerService {
                     .nik(AppConstants.Authority.ADMIN_NIK)
                     .username("admin")
                     .active(true)
+                    .witel(marsProperties.getWitel())
                     .roles(List.of(adminRole.getId()))
                     .build());
 
@@ -124,9 +123,9 @@ public class InitializerService {
 
     @Async
     public void preInitAppConfig() {
-        appConfigRepo.findById(AppConstants.Config.CLOSE_CONFIRM_ID_DURATION_SEC)
+        appConfigRepo.findById(AppConstants.Config.CLOSE_CONFIRM_ID_INT)
                 .orElseGet(() -> appConfigRepo.save(AppConfig.builder()
-                        .id(AppConstants.Config.CLOSE_CONFIRM_ID_DURATION_SEC)
+                        .id(AppConstants.Config.CLOSE_CONFIRM_ID_INT)
                         .name("close-confirm-duration")
                         .type(AppConfig.Type.NUMBER)
                         .classType(Integer.class.getCanonicalName())
@@ -134,7 +133,14 @@ public class InitializerService {
                         .description("Lama waktu yang diperlukan untuk menunggu requestor menjawab konfirmasi sebelum tiket close")
                         .build()));
 
-
+        appConfigRepo.findById(AppConstants.Config.ALLOW_OTHER_WITEL_ID_BOOL)
+                .orElseGet(() -> appConfigRepo.save(AppConfig.builder()
+                        .name("allow-different-witel-login")
+                        .type(AppConfig.Type.BOOLEAN)
+                        .classType(Boolean.class.getCanonicalName())
+                        .value(String.valueOf(false))
+                        .description("Memperbolehkan user dengan Witel lain untuk login ke dashboard")
+                        .build()));
     }
 
 }

@@ -19,9 +19,8 @@ import javax.persistence.*;
 public class Issue extends AuditableEntity {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
 
     @Column
     @Enumerated(EnumType.STRING)

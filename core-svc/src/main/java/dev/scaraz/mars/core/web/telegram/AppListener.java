@@ -11,13 +11,18 @@ import dev.scaraz.mars.core.repository.cache.StatusConfirmRepo;
 import dev.scaraz.mars.core.service.credential.UserBotService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.telegram.annotation.*;
+import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -73,27 +78,88 @@ public class AppListener {
         log.info("{}", gson.toJson(cq));
 
         Message message = cq.getMessage();
-        if (confirmRepo.existsById(Long.valueOf(message.getMessageId()))) {
-            boolean answer = AppConstants.Telegram.CONFIRM_AGREE.equals(cq.getData());
-            log.info("TICKET CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", message.getMessageId(), answer);
+        String queryData = cq.getData();
 
-            ticketBotService.confirmedClose(
-                    message.getMessageId(),
-                    answer,
-                    ""
-            );
+        switch (queryData) {
+            case AppConstants.Telegram.CONFIRM_AGREE:
+            case AppConstants.Telegram.CONFIRM_DISAGREE:
+                if (!confirmRepo.existsById(Long.valueOf(message.getMessageId()))) return null;
+                boolean answer = AppConstants.Telegram.CONFIRM_AGREE.equals(cq.getData());
+                log.info("TICKET CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", message.getMessageId(), answer);
+
+                ticketBotService.confirmedClose(
+                        message.getMessageId(),
+                        answer,
+                        ""
+                );
+                break;
+            case AppConstants.Telegram.IGNORE_WITEL:
+                if (!registrationRepo.existsById(telegramId)) return null;
+                BotRegistration registration = registrationRepo.findById(telegramId)
+                        .orElseThrow();
+
+                RegisterState state = registration.getState();
+                if (state == RegisterState.WITEL)
+                    return userBotService.answerWitelThenAskSubregion(registration, marsProperties.getWitel());
+
+                throw new IllegalStateException("Invalid registration state");
         }
-        else if (registrationRepo.existsById(telegramId)) {
-            BotRegistration registration = registrationRepo.findById(telegramId)
-                    .orElseThrow();
-
-            RegisterState state = registration.getState();
-            if (state == RegisterState.WITEL)
-                userBotService.answerWitelThenAskSubregion(registration, marsProperties.getWitel());
-            else throw new IllegalStateException("Invalid registration state");
-        }
-
         return null;
     }
 
+
+    @TelegramCommand(commands = "/help", isHelp = true)
+    public SendMessage help(@UserId long telegramId, @Text String arg) {
+        if (StringUtils.isNoneBlank(arg)) {
+            return detailedHelp(arg)
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .chatId(telegramId)
+                    .build();
+        }
+
+        return SendMessage.builder()
+                .chatId(telegramId)
+                .parseMode(ParseMode.MARKDOWNV2)
+                .text(TelegramUtil.esc(
+                        "Command yang tersedia:",
+                        "/report /lapor",
+                        "Untuk menginput tiket/order",
+                        "",
+                        "/take /sayaambil <no-tiket>",
+                        "Untuk mengambil tiket, dimana argument <no-tiket> adalah no tiket yang tersedia",
+                        "",
+                        "/reg /register",
+                        "Untuk melakukan registrasi user",
+                        "",
+                        "/help [cmd]",
+                        "List command yang tersedia, Dimana argument [cmd] nama command yang tersedia untuk detail penjelasan (tanpa slash)."
+//                        "/help",
+//                        "List command yang tersedia"
+                ))
+                .build();
+    }
+
+
+    private SendMessage.SendMessageBuilder detailedHelp(String arg) {
+        if (isEqual(arg, "report", "lapor")) {
+            return SendMessage.builder()
+                    .text(TelegramUtil.esc(
+                            "/report atau /lapor",
+                            "Untuk menginput tiket/order dengan menggunakan format yang tersedia",
+                            "",
+                            TelegramUtil.REPORT_FORMAT()
+                    ));
+        }
+
+        return SendMessage.builder()
+                .text("_No detailed descriptions_");
+    }
+
+    private boolean isEqual(String target, String... predicate) {
+        for (String p : predicate) {
+            boolean b = p.equalsIgnoreCase(target);
+            if (b) return true;
+        }
+        return false;
+    }
 }

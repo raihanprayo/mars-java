@@ -1,6 +1,6 @@
 create table t_issue
 (
-    id          varchar(37) primary key,
+    id          serial primary key,
     name        varchar(255) not null,
     product     varchar(50)  not null,
 
@@ -17,7 +17,7 @@ create table t_ticket
     id           varchar(37) primary key,
     no           varchar(100) unique not null,
     witel        varchar(20)         not null,
-    sto          varchar(20)         not null,
+    sto          varchar(20),
     status       varchar(20)         not null,
     source       varchar(20)         not null,
     gaul         int4                not null default 0::int4,

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface IssueRepo extends JpaRepository<Issue, String>, JpaSpecificationExecutor<Issue> {
+public interface IssueRepo extends JpaRepository<Issue, Long>, JpaSpecificationExecutor<Issue> {
     Optional<Issue> findByNameAndProduct(String name, Product product);
     boolean existsByNameAndProduct(String name, Product product);
 }

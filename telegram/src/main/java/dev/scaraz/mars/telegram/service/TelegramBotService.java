@@ -159,14 +159,14 @@ public abstract class TelegramBotService implements AutoCloseable {
     /**
      * Default help method.
      */
-    @SuppressWarnings("WeakerAccess")
-    @TelegramCommand(
-            commands = "/help",
-            isHelp = true,
-            description = "#{@loc?.t('TelegramBotService.HELP.DESC')?:'This help'}"
-    )
-    public void helpMethod() {
-    }
+//    @SuppressWarnings("WeakerAccess")
+//    @TelegramCommand(
+//            commands = "/help",
+//            isHelp = true,
+//            description = "#{@loc?.t('TelegramBotService.HELP.DESC')?:'This help'}"
+//    )
+//    public void helpMethod() {
+//    }
 
     @Override
     public void close() {

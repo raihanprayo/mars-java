@@ -33,12 +33,13 @@ public abstract class TelegramUtil {
 
 
     public static String esc(String... texts) {
-        return Arrays.stream(texts)
+        String joined = Arrays.stream(texts)
                 .map(t -> Arrays.stream(t.split("\n"))
                         .map(s -> s.replaceAll(RESERVED_CHAR_REGX, "\\\\$1"))
                         .collect(Collectors.joining("\n"))
                 )
                 .collect(Collectors.joining("\n"));
+        return joined;
     }
 
     public static String exception(Exception ex) {
@@ -85,11 +86,11 @@ public abstract class TelegramUtil {
     public static String REPORT_FORMAT() {
         Map<String, FormDescriptor> desc = TicketBotForm.getDescriptors();
 
-        String incidentAlias = String.join(",", desc.get("incident").alias());
-        String issueAlias = String.join(",", desc.get("issue").alias());
-        String productAlias = String.join(",", desc.get("product").alias());
-        String serviceAlias = String.join(",", desc.get("service").alias());
-        String descAlias = String.join(",", desc.get("description").alias());
+//        String incidentAlias = String.join(",", desc.get("incident").alias());
+//        String issueAlias = String.join(",", desc.get("issue").alias());
+//        String productAlias = String.join(",", desc.get("product").alias());
+//        String serviceAlias = String.join(",", desc.get("service").alias());
+//        String descAlias = String.join(",", desc.get("description").alias());
 
         String witelStr = Stream.of(Witel.values())
                 .map(Enum::name)
@@ -100,11 +101,6 @@ public abstract class TelegramUtil {
                 .collect(Collectors.joining("/"));
 
         return Translator.tr("tg.ticket.report.format",
-                incidentAlias,
-                issueAlias,
-                productAlias,
-                serviceAlias,
-                descAlias,
                 witelStr,
                 productStr
         );
@@ -113,7 +109,7 @@ public abstract class TelegramUtil {
     public static String WELCOME_MESSAGE() {
         return esc(
                 Translator.tr("app.welcome.text"),
-                "\\n",
+                "",
                 REPORT_FORMAT()
         );
     }

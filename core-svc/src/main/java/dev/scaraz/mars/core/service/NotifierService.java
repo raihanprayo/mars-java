@@ -45,7 +45,7 @@ public class NotifierService {
                 user.getName());
     }
 
-    public int sendConfirmation(Ticket ticket) {
+    public int sendConfirmation(Ticket ticket, int minute) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(CONFIRMATION_QUERY_BTN())
@@ -57,7 +57,10 @@ public class NotifierService {
                     .chatId(ticket.getSenderId())
                     .parseMode(ParseMode.MARKDOWNV2)
                     .replyMarkup(markup)
-                    .text(TelegramUtil.esc(Translator.tr("tg.ticket.confirm", lang, ticket.getNo())))
+                    .text(TelegramUtil.esc(Translator.tr("tg.ticket.confirm", lang,
+                            ticket.getNo(),
+                            minute + " " + Translator.tr("date.minute", lang)
+                    )))
                     .build();
 
             Message msg = botService.getClient().execute(send);

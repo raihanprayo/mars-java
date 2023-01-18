@@ -1,7 +1,6 @@
 package dev.scaraz.mars.core.domain.credential;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
@@ -14,7 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -49,7 +47,7 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     private Witel witel;
 
     @Column(name = "sub_region")
-    private String subregion;
+    private String sto;
 
     @Column
     private boolean active;
@@ -83,7 +81,7 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     public boolean canLogin() {
         return Optional.ofNullable(group)
                 .map(g -> g.getSetting().canLogin())
-                .orElse(false);
+                .orElse(true);
     }
 
     @Override

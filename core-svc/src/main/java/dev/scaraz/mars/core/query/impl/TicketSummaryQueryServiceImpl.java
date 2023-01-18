@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
+import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Ticket;
@@ -70,7 +71,7 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
                 .id(new StringFilter().setNegated(true).setEq(tc.getId()))
                 .serviceNo(new StringFilter().setEq(tc.getServiceNo()))
                 .issue(IssueCriteria.builder()
-                        .id(new StringFilter().setEq(tc.getIssue().getId()))
+                        .id(new LongFilter().setEq(tc.getIssue().getId()))
                         .build())
                 .createdAt(new InstantFilter()
                         .setGte(weekAgo)

@@ -74,7 +74,7 @@ public class UserListener {
                 else {
                     return SendMessage.builder()
                             .chatId(user.getTelegramId())
-                            .text("Accepted language only en/id (ignore-case)")
+                            .text("Bahasa yangbisa digunakan en/id (ignore-case)")
                             .build();
                 }
             }
@@ -89,7 +89,7 @@ public class UserListener {
         return null;
     }
 
-    @TelegramCommand(commands = "/end")
+    @TelegramCommand(commands = "/reg_end")
     public SendMessage registrationForceEnd(@UserId long telegramId) {
         if (registrationRepo.existsById(telegramId)) {
             registrationRepo.deleteById(telegramId);

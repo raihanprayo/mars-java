@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.domain.request;
 
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,6 +35,10 @@ public class CreateUserDTO {
     private Boolean active;
 
     private String group;
+
+    private Witel witel;
+
+    private String sto;
 
     /**
      * isi role idnya aja

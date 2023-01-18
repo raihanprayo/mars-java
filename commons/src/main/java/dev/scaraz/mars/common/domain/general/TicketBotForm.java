@@ -19,10 +19,10 @@ import java.util.TreeMap;
 @Builder(toBuilder = true)
 public class TicketBotForm {
 
-    @FormDescriptor(required = true)
+    @FormDescriptor
     private Witel witel;
 
-    @FormDescriptor(required = true)
+    @FormDescriptor
     private String sto;
 
     @FormDescriptor(
@@ -34,6 +34,7 @@ public class TicketBotForm {
             required = true,
             alias = {"jenis gangguan", "problemtype", "problem"})
     private String issue;
+    private Long issueId;
 
     @FormDescriptor(
             required = true,
@@ -47,8 +48,8 @@ public class TicketBotForm {
 
     @FormDescriptor(
             multiline = true,
-            alias = {"note"})
-    private String description;
+            alias = {"description"})
+    private String note;
 
     private TcSource source;
 

@@ -8,8 +8,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.TimeToLive;
 
 import javax.persistence.Id;
+import java.util.concurrent.TimeUnit;
 
 @Data
 @Builder
@@ -32,5 +34,9 @@ public class BotRegistration {
     private String subregion;
 
     private Witel witel;
+
+    @Builder.Default
+    @TimeToLive(unit = TimeUnit.MINUTES)
+    private long ttl = 5;
 
 }

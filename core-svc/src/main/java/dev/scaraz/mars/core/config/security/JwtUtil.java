@@ -4,6 +4,7 @@ package dev.scaraz.mars.core.config.security;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.domain.response.JwtToken;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.Role;
 import io.jsonwebtoken.*;
@@ -62,6 +63,8 @@ public class JwtUtil {
 
         claims.put("name", user.getName());
         claims.put("tg", user.getTelegramId());
+        claims.put("witel", user.getWitel());
+        claims.put("sto", user.getSto());
         claims.put("roles", user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toList()));
@@ -111,6 +114,8 @@ public class JwtUtil {
                 .expiredAt(decode.getExpiration().toInstant())
                 .name(decode.get("name", String.class))
                 .telegram(decode.get("tg", Long.class))
+                .witel(Witel.valueOf(decode.get("witel", String.class)))
+                .sto(decode.get("sto", String.class))
                 .roles(roles);
 
         Map<String, Object> groupDecoded = (Map<String, Object>) decode.get("group");

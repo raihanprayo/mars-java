@@ -84,6 +84,8 @@ public class UserServiceImpl implements UserService {
                 .nik(req.getNik())
                 .phone(req.getPhone())
                 .active(Optional.ofNullable(req.getActive()).orElse(true))
+                .witel(req.getWitel())
+                .sto(req.getSto())
                 .credential(UserCredential.builder()
                         .email(req.getEmail())
                         .username(req.getUsername())
@@ -122,7 +124,7 @@ public class UserServiceImpl implements UserService {
                     .group(group)
                     .active(true)
                     .witel(req.getWitel())
-                    .subregion(req.getSubregion())
+                    .sto(req.getSto())
                     .build());
         }
         finally {

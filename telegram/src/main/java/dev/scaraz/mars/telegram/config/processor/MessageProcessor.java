@@ -71,9 +71,9 @@ public class MessageProcessor extends TelegramProcessor {
         log.debug("Command handler: {}", optionalCommandHandler);
         if (optionalCommandHandler.isPresent()) {
             TelegramHandler handler = optionalCommandHandler.get();
-            if (handler.getTelegramCommand().filter(TelegramCommand::isHelp).isPresent()) {
-                return bot.getHelpList(update, userKey);
-            }
+//            if (handler.getTelegramCommand().filter(TelegramCommand::isHelp).isPresent()) {
+//                return bot.getHelpList(update, userKey);
+//            }
             return bot.processHandler(handler, makeArgumentList(
                     bot,
                     handler,

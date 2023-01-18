@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.domain.response;
 
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 import org.springframework.security.core.AuthenticatedPrincipal;
 
@@ -26,7 +27,11 @@ public class JwtToken implements AuthenticatedPrincipal {
 
     private String name;
 
-    private long telegram;
+    private Long telegram;
+
+    private Witel witel;
+
+    private String sto;
 
     private JwtGroupToken group;
 

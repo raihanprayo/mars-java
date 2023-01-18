@@ -8,6 +8,7 @@ import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.cache.StatusConfirm;
+import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
@@ -20,6 +21,7 @@ import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.core.service.order.TicketService;
+import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.core.util.Util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +31,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -51,21 +50,22 @@ public class TicketBotServiceImpl implements TicketBotService {
     @Override
     @Transactional
     public Ticket registerForm(TicketBotForm form, Collection<PhotoSize> photos) {
-        Issue issue = issueQueryService.findById(form.getIssue())
+        Issue issue = issueQueryService.findById(form.getIssueId())
                 .orElseThrow();
 
-        int totalGaul = queryService.countGaul(form.getIssue(), form.getService());
+        int totalGaul = queryService.countGaul(form.getIssueId(), form.getService());
 
+        User user = SecurityUtil.getCurrentUser();
         Ticket ticket = service.save(Ticket.builder()
-                .witel(form.getWitel())
-                .sto(form.getSto())
+                .witel(form.getWitel() == null ? user.getWitel() : form.getWitel())
+                .sto(form.getSto() == null ? user.getSto() : form.getSto())
                 .issue(issue)
                 .incidentNo(form.getIncident())
                 .serviceNo(form.getService())
                 .source(form.getSource())
-                .senderId(form.getSenderId())
-                .senderName(form.getSenderName())
-                .note(form.getDescription())
+                .senderId(user.getTelegramId())
+                .senderName(user.getName())
+                .note(form.getNote())
                 .gaul(totalGaul)
                 .build());
 
@@ -213,7 +213,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .build());
 
         if (issueOpt.isPresent()) {
-            form.setIssue(issueOpt.get().getId());
+            form.setIssueId(issueOpt.get().getId());
         }
         else {
             throw new TgInvalidFormError(

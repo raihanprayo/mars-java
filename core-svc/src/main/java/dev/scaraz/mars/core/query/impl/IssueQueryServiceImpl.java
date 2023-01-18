@@ -26,7 +26,7 @@ public class IssueQueryServiceImpl implements IssueQueryService {
     private final IssueSpecBuilder specBuilder;
 
     @Override
-    public Optional<Issue> findById(String id) {
+    public Optional<Issue> findById(Long id) {
         return repo.findById(id);
     }
 

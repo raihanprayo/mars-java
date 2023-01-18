@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.*;
@@ -86,7 +85,7 @@ public class TicketListener {
         }
     }
 
-    @TelegramCommand(commands = "/take", description = "take ticket by order no")
+    @TelegramCommand(commands = {"/take", "/sayaambil"}, description = "take ticket by order no")
     public SendMessage takeTicket(@TgAuth User user, @Text String text) {
         try {
             log.info("TAKE ACTION BY {}", user.getTelegramId());
@@ -162,7 +161,7 @@ public class TicketListener {
             String fieldValue = line.substring(colonIndex + 1).trim();
             String fieldName = fieldNameMatcher(line.substring(0, colonIndex));
 
-            if (fieldName == null) continue;
+            if (fieldName == null || fieldName.equals("note")) continue;
             applyForm(form, fieldValue, fieldName);
         }
 
@@ -176,7 +175,7 @@ public class TicketListener {
                     List.of(lines).subList(noteFieldIndex + 1, lines.length).stream()
             ).collect(Collectors.toList());
 
-            form.setDescription(String.join(" ", noteValue));
+            form.setNote(String.join(" ", noteValue));
         }
 
         return form;
@@ -238,7 +237,7 @@ public class TicketListener {
     }
 
     private int noteLineMatcher(String[] lines) {
-        String FIELD_NAME = "description";
+        String FIELD_NAME = "note";
         FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();

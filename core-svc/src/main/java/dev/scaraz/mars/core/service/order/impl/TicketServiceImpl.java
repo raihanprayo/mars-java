@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.service.order.impl;
 
+import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.TcSource;
@@ -25,12 +26,15 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
 
 @Service
 public class TicketServiceImpl implements TicketService {
+
+    private final MarsProperties marsProperties;
 
     private final TicketRepo repo;
 
@@ -72,7 +76,7 @@ public class TicketServiceImpl implements TicketService {
 
         int totalGaul = queryService.countGaul(form.getIssue(), form.getServiceNo());
         Ticket ticket = save(Ticket.builder()
-                .witel(form.getWitel())
+                .witel(Objects.requireNonNullElse(form.getWitel(), marsProperties.getWitel()))
                 .sto(form.getSto())
                 .issue(issue)
                 .incidentNo(form.getIncidentNo())
