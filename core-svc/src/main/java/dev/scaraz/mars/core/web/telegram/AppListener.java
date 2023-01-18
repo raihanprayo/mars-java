@@ -2,7 +2,7 @@ package dev.scaraz.mars.core.web.telegram;
 
 import com.google.gson.Gson;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.repository.cache.CacheTicketConfirmRepo;
+import dev.scaraz.mars.core.repository.cache.StatusConfirmRepo;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
@@ -20,7 +20,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class AppListener {
 
     private final TicketBotService ticketBotService;
-    private final CacheTicketConfirmRepo confirmRepo;
+    private final StatusConfirmRepo confirmRepo;
 
     private final Gson gson = new Gson();
 

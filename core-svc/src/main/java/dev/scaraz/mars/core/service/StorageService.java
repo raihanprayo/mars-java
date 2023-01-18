@@ -18,7 +18,10 @@ import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -86,6 +89,48 @@ public class StorageService {
         return asset;
     }
 
+    public TicketAsset addPhotoForTicketDashboard(Collection<MultipartFile> photos, Ticket ticket) {
+        String no = ticket.getNo();
+        Path storage = Path.of(marsProperties.getDirectory().get(DirectoryAlias.SHARED))
+                .resolve("tickets")
+                .resolve(no);
+
+        if (!Files.exists(storage)) {
+            storage.toFile().mkdirs();
+        }
+
+        String outputTicketNo = TICKET_STORAGE_PATH + "/" + no;
+        TicketAsset asset = new TicketAsset();
+        asset.setTicket(ticket);
+
+        for (MultipartFile photo : photos) {
+            if (photo.isEmpty()) continue;
+
+            String filename = photo.getOriginalFilename();
+            Path outputPath = storage.resolve(filename);
+
+            try {
+                InputStream is = photo.getInputStream();
+                try (OutputStream os = new FileOutputStream(outputPath.toFile())) {
+                    os.write(is.readAllBytes());
+                    os.flush();
+
+                    asset.addPath(outputTicketNo + "/" + filename);
+                }
+            }
+            catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        if (asset.size() > 0) {
+            log.debug("ADD {} TICKET ASSET(S) -- NO={}", asset.size(), ticket.getNo());
+            asset = tcAssetRepo.save(asset);
+        }
+
+        return asset;
+    }
+
     public TicketAsset addPhotoForAgent(Ticket ticket, TicketAgent agent, Collection<MultipartFile> photos) {
         String no = ticket.getNo();
         Path storage = Path.of(marsProperties.getDirectory().get(DirectoryAlias.SHARED))
@@ -135,6 +180,11 @@ public class StorageService {
     @Async
     public void addPhotoForTicketAsync(Collection<PhotoSize> photos, Ticket ticket) {
         this.addPhotoForTicket(photos, ticket);
+    }
+
+    @Async
+    public void addPhotoForTicketDashboardAsync(Collection<MultipartFile> photos, Ticket ticket) {
+        this.addPhotoForTicketDashboard(photos, ticket);
     }
 
     @Async

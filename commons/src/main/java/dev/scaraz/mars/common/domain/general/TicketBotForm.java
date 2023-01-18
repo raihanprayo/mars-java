@@ -17,7 +17,7 @@ import java.util.TreeMap;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class TicketForm {
+public class TicketBotForm {
 
     @FormDescriptor(required = true)
     private Witel witel;
@@ -60,7 +60,7 @@ public class TicketForm {
         if (descriptors != null) return descriptors;
 
         Map<String, FormDescriptor> map = new TreeMap<>();
-        for (Field field : TicketForm.class.getDeclaredFields()) {
+        for (Field field : TicketBotForm.class.getDeclaredFields()) {
             FormDescriptor desc = field.getAnnotation(FormDescriptor.class);
             if (desc != null) map.put(field.getName(), desc);
         }

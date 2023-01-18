@@ -1,7 +1,10 @@
 package dev.scaraz.mars.core.web.rest;
 
+import dev.scaraz.mars.common.domain.general.TicketBotForm;
+import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.core.service.order.TicketService;
@@ -26,6 +29,15 @@ public class TicketWipResource {
     private final TicketFlowService flowService;
 
     private final TicketSummaryQueryService summaryQueryService;
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> create(@ModelAttribute @Valid TicketDashboardForm form) {
+        Ticket ticket = service.create(form);
+        return new ResponseEntity<>(
+                summaryQueryService.findByIdOrNo(ticket.getId()),
+                HttpStatus.CREATED
+        );
+    }
 
     @PostMapping("/take/{ticketIdOrNo}")
     public ResponseEntity<?> takeTicket(

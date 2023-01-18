@@ -1,6 +1,7 @@
 package dev.scaraz.mars.common.config.properties;
 
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,6 +19,8 @@ import java.util.Map;
 @ToString
 @ConfigurationProperties(prefix = "mars", ignoreUnknownFields = false)
 public class MarsProperties {
+
+    private Witel instance;
 
     private String secret;
 

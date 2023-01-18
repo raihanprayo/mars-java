@@ -19,8 +19,8 @@ public interface TicketFlowService {
 
     Ticket dispatch(String ticketIdOrNo, TicketStatusFormDTO form);
 
-    Ticket confirm(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form);
+    Ticket confirmClose(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form);
 
     @Async
-    void confirmAsync(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form);
+    void confirmCloseAsync(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form);
 }

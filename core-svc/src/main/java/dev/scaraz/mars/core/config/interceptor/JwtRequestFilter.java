@@ -40,7 +40,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Cookie[] cookies = request.getCookies();
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.isNoneBlank(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
             log.debug("AUTH FROM BEARER");
@@ -58,29 +57,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                    IllegalArgumentException ex) {
                 ex.printStackTrace();
                 log.error(ex.getMessage());
-
-                throw new UnauthorizedException();
-            }
-        }
-        else if (cookies != null && cookies.length != 0) {
-            log.debug("AUTH FROM COOKIE");
-            for (Cookie cookie : cookies) {
-                if (!cookie.getName().equals(AppConstants.Auth.COOKIE_TOKEN)) {
-                    continue;
-                }
-
-                try {
-                    String token = cookie.getValue();
-                    JwtToken jwt = JwtUtil.decode(token);
-                    User user = userQueryService.findById(jwt.getUserId());
-                    authenticate(user);
-                    break;
-                }
-                catch (Exception ex) {
-                    log.error(ex.getMessage());
-
-                    throw new UnauthorizedException();
-                }
             }
         }
         filterChain.doFilter(request, response);

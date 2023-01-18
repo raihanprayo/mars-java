@@ -43,7 +43,6 @@ public class WebSecurityConfiguration {
     }
 
 
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration
@@ -66,8 +65,10 @@ public class WebSecurityConfiguration {
                 .authorizeRequests(r -> r
                         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/app/test").permitAll()
-                        .antMatchers("/auth/authorize**").permitAll()
-                        .antMatchers("/auth/refresh**").permitAll()
+                        .antMatchers(
+                                "/auth/token",
+                                "/auth/refresh"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)

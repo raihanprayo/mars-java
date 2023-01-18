@@ -7,8 +7,10 @@ import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.domain.response.JwtToken;
 import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
 import dev.scaraz.mars.common.exception.web.AccessDeniedException;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
+import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
@@ -91,7 +93,8 @@ public class AuthServiceImpl implements AuthService {
         User user = loadUserByUsername(authReq.getNik());
         if (!rolesRepo.existsByUserIdAndRoleName(user.getId(), AppConstants.Authority.ADMIN_ROLE)) {
             if (!user.canLogin()) {
-                throw new AccessDeniedException("auth.group.disable.login", user.getGroup().getName());
+                String translate = Translator.tr("auth.group.disable.login", user.getGroup().getName());
+                throw AccessDeniedException.args(translate);
             }
         }
 
@@ -161,6 +164,9 @@ public class AuthServiceImpl implements AuthService {
             String audience = decode.getAudience();
             User user = userRepo.findById(decode.getUserId())
                     .orElseThrow();
+
+            if (!decode.isRefresher())
+                throw BadRequestException.args("Invalid refresh token");
 
             Instant now = Instant.now();
             JwtResult jwtAccessToken = JwtUtil.accessToken(user, audience, now);

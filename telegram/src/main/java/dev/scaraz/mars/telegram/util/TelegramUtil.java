@@ -1,7 +1,7 @@
 package dev.scaraz.mars.telegram.util;
 
 import com.google.common.collect.ImmutableSet;
-import dev.scaraz.mars.common.domain.general.TicketForm;
+import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.exception.web.MarsException;
 import dev.scaraz.mars.common.tools.Translator;
@@ -83,7 +83,7 @@ public abstract class TelegramUtil {
     }
 
     public static String REPORT_FORMAT() {
-        Map<String, FormDescriptor> desc = TicketForm.getDescriptors();
+        Map<String, FormDescriptor> desc = TicketBotForm.getDescriptors();
 
         String incidentAlias = String.join(",", desc.get("incident").alias());
         String issueAlias = String.join(",", desc.get("issue").alias());

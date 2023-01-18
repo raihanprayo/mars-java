@@ -26,7 +26,10 @@ public class UserUpdateDashboardDTO {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UpdateRole {
+        @Builder.Default
         private List<String> removed = new ArrayList<>();
+
+        @Builder.Default
         private List<String> selected = new ArrayList<>();
     }
 }

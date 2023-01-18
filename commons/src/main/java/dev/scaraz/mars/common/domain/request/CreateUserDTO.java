@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ public class CreateUserDTO {
 
     private String username;
 
+    @NotNull
     private Boolean active;
 
     private String group;
@@ -36,6 +38,7 @@ public class CreateUserDTO {
     /**
      * isi role idnya aja
      */
+    @Min.List(@Min(1))
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 

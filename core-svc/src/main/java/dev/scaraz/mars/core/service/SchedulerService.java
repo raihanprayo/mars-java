@@ -1,10 +1,10 @@
 package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
-import dev.scaraz.mars.core.domain.cache.CacheTicketConfirm;
+import dev.scaraz.mars.core.domain.cache.StatusConfirm;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.repository.cache.CacheTicketConfirmRepo;
+import dev.scaraz.mars.core.repository.cache.StatusConfirmRepo;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static dev.scaraz.mars.common.utils.AppConstants.Cache.TC_CONFIRM_NS;
+
 @Slf4j
 @RequiredArgsConstructor
 
@@ -24,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SchedulerService {
 
     private final StringRedisTemplate stringRedisTemplate;
-    private final CacheTicketConfirmRepo cacheTicketConfirmRepo;
+    private final StatusConfirmRepo statusConfirmRepo;
     private final TicketQueryService ticketQueryService;
     private final TicketFlowService ticketFlowService;
 
@@ -38,20 +40,20 @@ public class SchedulerService {
     @Scheduled(cron = "* 0/53 * * * *")
     public void checkInvalidConfirmationTicket() {
         log.info("*** Check Any Invalid Confirmation Message {} ***", invalidRunCounter.incrementAndGet());
-        BoundSetOperations<String, String> boundSet = stringRedisTemplate.boundSetOps("tc:confirm");
+        BoundSetOperations<String, String> boundSet = stringRedisTemplate.boundSetOps(TC_CONFIRM_NS);
         Set<String> members = boundSet.members();
         if (members == null || members.isEmpty()) return;
 
         int count = 0;
         for (String member : members) {
             Long messageId = Long.valueOf(member);
-            Optional<CacheTicketConfirm> cache = cacheTicketConfirmRepo.findById(messageId);
+            Optional<StatusConfirm> cache = statusConfirmRepo.findById(messageId);
             if (cache.isEmpty()) {
                 count++;
                 log.debug("REMOVING INVALID CONFIRMATION -- MESSAGE ID {}", messageId);
                 boundSet.remove(member);
                 Ticket tc = ticketQueryService.findByMessageId(messageId);
-                ticketFlowService.confirmAsync(tc.getNo(), false, new TicketStatusFormDTO());
+                ticketFlowService.confirmCloseAsync(tc.getNo(), false, new TicketStatusFormDTO());
             }
         }
 

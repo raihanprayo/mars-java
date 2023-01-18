@@ -4,17 +4,22 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
 import dev.scaraz.mars.common.domain.request.RefreshTokenReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
+import dev.scaraz.mars.common.domain.response.JwtToken;
 import dev.scaraz.mars.common.domain.response.WhoamiDTO;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.core.config.security.JwtUtil;
 import dev.scaraz.mars.core.domain.credential.Roles;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.repository.credential.RolesRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.util.SecurityUtil;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -40,17 +46,36 @@ public class AuthResource {
         return ResponseEntity.ok(credentialMapper.fromUser(user));
     }
 
-    @PostMapping(value = "/authorize")
-    public ResponseEntity<?> authorize(@RequestBody AuthReqDTO authReq) {
+    @PostMapping(value = "/token")
+    public ResponseEntity<?> token(@RequestBody AuthReqDTO authReq) {
         AuthResDTO authResult = authService.authenticate(authReq, "mars-dashboard");
-        if (!Objects.equals(authResult.getCode(), AppConstants.Auth.SUCCESS)) {
+        if (!authResult.getCode().equals(AppConstants.Auth.SUCCESS)) {
             return ResponseEntity
                     .status(400)
                     .body(authResult);
         }
+        return ResponseEntity.ok(authResult);
+    }
 
-        return attachJwtCookie(authResult);
-//        return ResponseEntity.ok(authResult);
+    @GetMapping("/authorize")
+    public ResponseEntity<?> authorize(@RequestHeader("Authorization") String bearer) {
+        try {
+            String token = bearer.substring("Bearer ".length());
+            JwtUtil.decode(token);
+            return new ResponseEntity<>(
+                    Map.of("ok", true),
+                    HttpStatus.OK);
+        }
+        catch (ExpiredJwtException ex) {
+            return new ResponseEntity<>(
+                    Map.of("ok", false,
+                            "code", "refresh-required"),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+        catch (Exception ex) {
+            throw BadRequestException.args(ex.getMessage());
+        }
     }
 
     @PostMapping("/unauthorize")
@@ -78,23 +103,8 @@ public class AuthResource {
             HttpServletRequest request,
             @RequestBody(required = false) RefreshTokenReqDTO req
     ) {
-        Cookie[] cookies = request.getCookies();
-
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (!cookie.getName().equals(AppConstants.Auth.COOKIE_REFRESH_TOKEN))
-                    continue;
-
-                AuthResDTO authResult = authService.refresh(cookie.getValue());
-                return attachJwtCookie(authResult);
-            }
-        }
-        else {
-            AuthResDTO authResult = authService.refresh(req.getRefreshToken());
-            return attachJwtCookie(authResult);
-        }
-
-        throw new UnauthorizedException("invalid refresh token");
+        AuthResDTO authResult = authService.refresh(req.getRefreshToken());
+        return ResponseEntity.ok(authResult);
     }
 
     private ResponseEntity<?> attachJwtCookie(AuthResDTO authResult) {

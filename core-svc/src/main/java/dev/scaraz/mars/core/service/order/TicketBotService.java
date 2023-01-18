@@ -1,7 +1,6 @@
 package dev.scaraz.mars.core.service.order;
 
-import dev.scaraz.mars.common.domain.general.TicketConfirmationReply;
-import dev.scaraz.mars.common.domain.general.TicketForm;
+import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import org.springframework.transaction.annotation.Propagation;
@@ -14,7 +13,7 @@ import java.util.Collection;
 public interface TicketBotService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    Ticket registerForm(TicketForm form, Collection<PhotoSize> photos);
+    Ticket registerForm(TicketBotForm form, Collection<PhotoSize> photos);
 
     Ticket take(String ticketNo);
 
@@ -24,6 +23,6 @@ public interface TicketBotService {
             boolean closeTicket,
             @Nullable String note);
 
-    void validateForm(TicketForm form) throws TgInvalidFormError;
+    void validateForm(TicketBotForm form) throws TgInvalidFormError;
 
 }

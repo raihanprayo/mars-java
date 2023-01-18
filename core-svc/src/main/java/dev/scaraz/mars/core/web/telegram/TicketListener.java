@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.web.telegram;
 
 import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
-import dev.scaraz.mars.common.domain.general.TicketForm;
+import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.Product;
@@ -11,7 +11,7 @@ import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.repository.cache.CacheTicketConfirmRepo;
+import dev.scaraz.mars.core.repository.cache.StatusConfirmRepo;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketService;
@@ -41,7 +41,7 @@ public class TicketListener {
     private final TicketQueryService queryService;
     private final TicketAgentQueryService agentQueryService;
     private final TicketBotService botService;
-    private final CacheTicketConfirmRepo confirmRepo;
+    private final StatusConfirmRepo confirmRepo;
 
     private final NotifierService notifierService;
 
@@ -52,7 +52,7 @@ public class TicketListener {
             Message message
     ) {
         try {
-            TicketForm form = parseTicketRegistration(text);
+            TicketBotForm form = parseTicketRegistration(text);
 
             log.info("Validation Ticket Form {}", form);
             botService.validateForm(form);
@@ -148,8 +148,8 @@ public class TicketListener {
         }
     }
 
-    private TicketForm parseTicketRegistration(String text) {
-        TicketForm form = new TicketForm();
+    private TicketBotForm parseTicketRegistration(String text) {
+        TicketBotForm form = new TicketBotForm();
         String[] lines = text.split("\n");
 
         // parsing required field
@@ -181,7 +181,7 @@ public class TicketListener {
         return form;
     }
 
-    private void applyForm(TicketForm form, String fieldValue, String fieldName) {
+    private void applyForm(TicketBotForm form, String fieldValue, String fieldName) {
         try {
             switch (fieldName) {
                 case "witel":
@@ -218,7 +218,7 @@ public class TicketListener {
 
 
     private String fieldNameMatcher(String fieldName) {
-        Map<String, FormDescriptor> descriptors = TicketForm.getDescriptors();
+        Map<String, FormDescriptor> descriptors = TicketBotForm.getDescriptors();
         Set<String> formKeys = descriptors.keySet();
         for (String formKey : formKeys) {
             FormDescriptor formDescriptor = descriptors.get(formKey);
@@ -238,7 +238,7 @@ public class TicketListener {
 
     private int noteLineMatcher(String[] lines) {
         String FIELD_NAME = "description";
-        FormDescriptor formDescriptor = TicketForm.getDescriptors().get(FIELD_NAME);
+        FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
         for (int i = 0; i < lines.length; i++) {
             String line = lines[i].trim();
             int colonIndex = line.indexOf(":");

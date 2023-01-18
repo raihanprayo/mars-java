@@ -2,6 +2,10 @@ server:
   port: ${MARS_CORE_PORT:10920}
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
   application:
     name: mars-roc
   jpa:

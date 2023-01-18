@@ -119,6 +119,7 @@ public class UserServiceImpl implements UserService {
                     .phone(req.getPhone())
                     .telegramId(req.getTelegramId())
                     .group(group)
+                    .active(true)
                     .build());
         }
         finally {

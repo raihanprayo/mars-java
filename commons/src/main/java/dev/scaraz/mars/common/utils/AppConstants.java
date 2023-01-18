@@ -25,4 +25,8 @@ public interface AppConstants {
         String ADMIN_NIK = "000001413914";
     }
 
+    interface Cache {
+        String TC_CONFIRM_NS = "tc:confirm";
+    }
+
 }

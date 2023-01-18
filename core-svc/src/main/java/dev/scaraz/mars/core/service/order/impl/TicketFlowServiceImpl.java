@@ -7,7 +7,7 @@ import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.core.domain.cache.CacheTicketConfirm;
+import dev.scaraz.mars.core.domain.cache.StatusConfirm;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
@@ -17,7 +17,7 @@ import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
-import dev.scaraz.mars.core.repository.cache.CacheTicketConfirmRepo;
+import dev.scaraz.mars.core.repository.cache.StatusConfirmRepo;
 import dev.scaraz.mars.core.repository.order.TicketAgentRepo;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
@@ -51,7 +51,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
     private final TicketAgentRepo agentRepo;
     private final TicketAgentQueryService agentQueryService;
 
-    private final CacheTicketConfirmRepo ticketConfirmRepo;
+    private final StatusConfirmRepo ticketConfirmRepo;
 
     private final NotifierService notifierService;
     private final StorageService storageService;
@@ -120,9 +120,10 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         ticket.setStatus(TcStatus.CONFIRMATION);
         ticket.setConfirmMessageId((long) messageId);
 
-        ticketConfirmRepo.save(CacheTicketConfirm.builder()
+        ticketConfirmRepo.save(StatusConfirm.builder()
                 .id(messageId)
                 .no(ticket.getNo())
+                .status(TcStatus.CLOSED)
                 .ttl(1800)
                 .build());
 
@@ -177,9 +178,23 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         return service.save(ticket);
     }
 
+    @Transactional
+    public Ticket pending(String ticketIdOrNo, TicketStatusFormDTO form) {
+        log.info("PENDING FORM {}", form);
+        Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
+        TicketSummary summary = summaryQueryService.findByIdOrNo(ticketIdOrNo);
+
+        if (!summary.isWip())
+            throw BadRequestException.args("error.ticket.update.stat");
+        else if (!summary.getWipBy().getId().equals(SecurityUtil.getCurrentUser().getId()))
+            throw BadRequestException.args("error.ticket.update.stat.agent");
+
+        return service.save(ticket);
+    }
+
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public Ticket confirm(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form) {
+    public Ticket confirmClose(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form) {
         log.info("TICKET CONFIRM REQUEST OF NO {} -- REOPEN ? {}", ticketIdOrNo, reopen);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 
@@ -261,8 +276,8 @@ public class TicketFlowServiceImpl implements TicketFlowService {
 
     @Async
     @Override
-    public void confirmAsync(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form) {
-        confirm(ticketIdOrNo, reopen, form);
+    public void confirmCloseAsync(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form) {
+        confirmClose(ticketIdOrNo, reopen, form);
     }
 
 }

@@ -35,4 +35,5 @@ public class WhoamiDTO {
         private String id;
         private String name;
     }
+
 }

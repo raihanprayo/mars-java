@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
-import dev.scaraz.mars.core.domain.cache.CacheTicketConfirm;
+import dev.scaraz.mars.core.domain.cache.StatusConfirm;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
@@ -26,12 +26,12 @@ public class CacheExpireListener {
 
     @Async
     @EventListener(classes = RedisKeyExpiredEvent.class)
-    public void onCacheConfirmationExpired(RedisKeyExpiredEvent<CacheTicketConfirm> event) {
-        if (!(event.getValue() instanceof CacheTicketConfirm)) return;
+    public void onCacheConfirmationExpired(RedisKeyExpiredEvent<StatusConfirm> event) {
+        if (!(event.getValue() instanceof StatusConfirm)) return;
 
-        CacheTicketConfirm data = (CacheTicketConfirm) event.getValue();
+        StatusConfirm data = (StatusConfirm) event.getValue();
         String ticketNo = data.getNo();
-        ticketFlowService.confirm(ticketNo, false, new TicketStatusFormDTO());
+        ticketFlowService.confirmClose(ticketNo, false, new TicketStatusFormDTO());
     }
 
 }

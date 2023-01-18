@@ -14,9 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -34,22 +32,19 @@ public class UserResource {
     private final UserQueryService userQueryService;
 
     @GetMapping
-    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<?> findAll(UserCriteria criteria, Pageable pageable) {
         Page<UserDTO> page = userQueryService.findAll(criteria, pageable)
                 .map(credentialMapper::toDTO);
         return ResourceUtil.pagination(page, "/user");
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('admin')")
-    public ResponseEntity<?> register(@ModelAttribute @Valid CreateUserDTO req) {
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody @Valid CreateUserDTO req) {
         User user = userService.create(req);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(credentialMapper.toDTO(user));
     }
 
-    @PreAuthorize("hasRole('admin')")
     @PutMapping("/partial/{userId}")
     public ResponseEntity<?> updateUser(
             @PathVariable String userId,

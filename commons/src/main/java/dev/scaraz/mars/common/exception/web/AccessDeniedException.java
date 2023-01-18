@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.exception.web;
 
+import dev.scaraz.mars.common.tools.Translator;
 import org.zalando.problem.Status;
 
 public class AccessDeniedException extends MarsException {
@@ -7,7 +8,7 @@ public class AccessDeniedException extends MarsException {
     public static final String TITLE = "Access Denied";
 
     public AccessDeniedException(String title, String message, Object... args) {
-        super(Status.UNAUTHORIZED, title, message, args);
+        super(Status.FORBIDDEN, title, message, args);
     }
 
     public AccessDeniedException(String message, Object... args) {
@@ -16,6 +17,10 @@ public class AccessDeniedException extends MarsException {
 
     public AccessDeniedException() {
         this(null);
+    }
+
+    public static AccessDeniedException args(String message, Object... args) {
+        return new AccessDeniedException(message, args);
     }
 
 }
