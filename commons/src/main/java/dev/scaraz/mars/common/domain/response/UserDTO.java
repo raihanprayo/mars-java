@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.scaraz.mars.common.tools.converter.InstantDeserializer;
 import dev.scaraz.mars.common.tools.converter.InstantSerializer;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 
 import java.time.Instant;
@@ -20,7 +21,13 @@ public class UserDTO {
     private String name;
     private String nik;
     private String phone;
-    private Long telegramId;
+    private String email;
+    private Witel witel;
+    private String sto;
+
+    @Builder.Default
+    private UserTgDTO tg = new UserTgDTO();
+
     private boolean active;
 
     @JsonSerialize(using = InstantSerializer.class)
@@ -37,10 +44,16 @@ public class UserDTO {
     private List<String> roles = new ArrayList<>();
 
     @Builder.Default
-    private UserCredentialDTO credential = new UserCredentialDTO();
-
-    @Builder.Default
     private UserSettingDTO setting = new UserSettingDTO();
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserTgDTO {
+        private Long id;
+        private String username;
+    }
 
     @Data
     @Builder
@@ -50,12 +63,4 @@ public class UserDTO {
         private Locale lang;
     }
 
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class UserCredentialDTO {
-        private String email;
-        private String username;
-    }
 }

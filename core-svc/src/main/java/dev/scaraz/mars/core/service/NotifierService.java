@@ -12,7 +12,6 @@ import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -100,12 +99,12 @@ public class NotifierService {
     @Transactional(readOnly = true)
     public Locale useLocale(long telegramId) {
         User currentUser = SecurityUtil.getCurrentUser();
-        if (currentUser != null && currentUser.getTelegramId() == telegramId) {
+        if (currentUser != null && currentUser.getTg().getId() == telegramId) {
             return currentUser.getSetting().getLang();
         }
 
         log.debug("GET LOCALE FROM USER SETTING");
-        return userSettingRepo.findByUserTelegramId(telegramId)
+        return userSettingRepo.findByUserTgId(telegramId)
                 .map(UserSetting::getLang)
                 .orElse(Translator.LANG_ID);
     }

@@ -22,8 +22,6 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import java.util.List;
-
 @Slf4j
 @RequiredArgsConstructor
 
@@ -62,11 +60,25 @@ public class AppListener {
                     }
                     catch (IllegalArgumentException ex) {
                         return SendMessage.builder()
+                                .chatId(user.getId())
                                 .text("Pilihan witel salah")
                                 .build();
                     }
                 case REGION:
                     return userBotService.answerSubregionThenEnd(registration, text.trim());
+                case PAIR_NIK:
+                    return userBotService.pairAccountAnsNik(registration, text.trim());
+                case PAIR_WITEL:
+                    try {
+                        Witel witel = Witel.valueOf(text.toUpperCase());
+                        return userBotService.pairAccountAnsWitel(registration, witel);
+                    }
+                    catch (IllegalArgumentException ex) {
+                        return SendMessage.builder()
+                                .chatId(user.getId())
+                                .text("Pilihan witel salah")
+                                .build();
+                    }
             }
         }
 
@@ -74,7 +86,7 @@ public class AppListener {
     }
 
     @TelegramCallbackQuery
-    public SendMessage onCallbackQuery(CallbackQuery cq, @UserId long telegramId) {
+    public SendMessage onCallbackQuery(CallbackQuery cq, User user) {
         log.info("{}", gson.toJson(cq));
 
         Message message = cq.getMessage();
@@ -93,9 +105,13 @@ public class AppListener {
                         ""
                 );
                 break;
-            case AppConstants.Telegram.IGNORE_WITEL:
-                if (!registrationRepo.existsById(telegramId)) return null;
-                BotRegistration registration = registrationRepo.findById(telegramId)
+            case AppConstants.Telegram.REG_PAIR:
+                return userBotService.pairAccount(user.getId(), user.getUserName());
+            case AppConstants.Telegram.REG_NEW:
+                return userBotService.start(user.getId(), user.getUserName());
+            case AppConstants.Telegram.REG_IGNORE_WITEL:
+                if (!registrationRepo.existsById(user.getId())) return null;
+                BotRegistration registration = registrationRepo.findById(user.getId())
                         .orElseThrow();
 
                 RegisterState state = registration.getState();

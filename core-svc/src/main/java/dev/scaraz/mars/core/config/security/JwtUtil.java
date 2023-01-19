@@ -62,7 +62,7 @@ public class JwtUtil {
         if (asRefreshToken) claims.put("rfs", true);
 
         claims.put("name", user.getName());
-        claims.put("tg", user.getTelegramId());
+        claims.put("tg", user.getTg().getId());
         claims.put("witel", user.getWitel());
         claims.put("sto", user.getSto());
         claims.put("roles", user.getRoles().stream()

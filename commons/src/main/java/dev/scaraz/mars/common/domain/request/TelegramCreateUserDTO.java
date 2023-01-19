@@ -21,9 +21,9 @@ public class TelegramCreateUserDTO {
     @Pattern(regexp = "[0-9]*", message = "invalid phone number format")
     private String phone;
 
-    private long telegramId;
+    private long tgId;
 
-    private String groupName;
+    private String tgUsername;
 
     private Witel witel;
 

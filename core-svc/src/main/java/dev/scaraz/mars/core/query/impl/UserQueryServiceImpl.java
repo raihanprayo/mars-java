@@ -30,7 +30,7 @@ public class UserQueryServiceImpl implements UserQueryService {
     public DelegateUser loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = repo.findByNik(username);
         if (user.isEmpty())
-            user = repo.findByCredentialUsernameOrCredentialEmail(username, username);
+            user = repo.findByEmailOrTgUsername(username, username);
 
         if (user.isEmpty())
             throw new UsernameNotFoundException("cannot find user with NIK/Username " + username);
@@ -69,6 +69,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
+    public Optional<User> findOne(UserCriteria criteria) {
+        return repo.findOne(specBuilder.createSpec(criteria));
+    }
+
+    @Override
     public User findById(String id) {
         return repo.findById(id)
                 .orElseThrow(() -> NotFoundException.entity(
@@ -77,7 +82,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
     @Override
     public User findByTelegramId(long tgId) {
-        return repo.findByTelegramId(tgId)
+        return repo.findByTgId(tgId)
                 .orElseThrow(() -> NotFoundException.entity(
                         User.class, "telegramId", tgId));
     }

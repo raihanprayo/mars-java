@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.tools.AuditableCriteria;
 import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -19,10 +20,13 @@ public class UserCriteria extends AuditableCriteria {
     private StringFilter name;
     private StringFilter nik;
     private StringFilter phone;
-    private LongFilter telegramId;
+    private StringFilter email;
+    private WitelFilter witel;
+    private StringFilter sto;
+
     private BooleanFilter active;
+    private UserTgCriteria tg;
 
     private GroupCriteria group;
     private RoleCriteria roles;
-    private UserCredentialCriteria credential;
 }

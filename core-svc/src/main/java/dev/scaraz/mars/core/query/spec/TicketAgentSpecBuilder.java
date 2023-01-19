@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
+import dev.scaraz.mars.core.domain.credential.UserTg_;
 import dev.scaraz.mars.core.domain.credential.User_;
 import dev.scaraz.mars.core.domain.order.Issue_;
 import dev.scaraz.mars.core.domain.order.TicketAgent;
@@ -9,6 +10,7 @@ import dev.scaraz.mars.core.domain.order.Ticket_;
 import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.criteria.UserTgCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -29,7 +31,12 @@ public class TicketAgentSpecBuilder extends AuditableSpec<TicketAgent, TicketAge
                 spec = nonNull(spec, user.getId(), TicketAgent_.user, User_.id);
                 spec = nonNull(spec, user.getName(), TicketAgent_.user, User_.name);
                 spec = nonNull(spec, user.getNik(), TicketAgent_.user, User_.nik);
-                spec = nonNull(spec, user.getTelegramId(), TicketAgent_.user, User_.telegramId);
+
+                if (user.getTg() != null) {
+                    UserTgCriteria tg = user.getTg();
+                    spec = nonNull(spec, tg.getId(), TicketAgent_.user, User_.tg, UserTg_.id);
+                    spec = nonNull(spec, tg.getUsername(), TicketAgent_.user, User_.tg, UserTg_.username);
+                }
             }
 
             if (criteria.getTicket() != null) {

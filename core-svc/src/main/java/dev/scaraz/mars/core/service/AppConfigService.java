@@ -7,7 +7,11 @@ public interface AppConfigService {
 
     AppConfig getById(long id);
 
-    AppConfig getCloseConfirm();
+    AppConfig getCloseConfirm_int();
 
-    AppConfig getAllowLogin();
+    AppConfig getAllowLogin_bool();
+
+    AppConfig getRegistrationRequireApproval_bool();
+
+    AppConfig getSendRegistrationApproval_bool();
 }

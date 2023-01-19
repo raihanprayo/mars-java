@@ -7,6 +7,7 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.util.ClassUtils;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -41,6 +42,7 @@ public class AppConfig extends AuditableEntity {
     private String name;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private Type type;
 
     @Column(name = "class_type")
@@ -72,7 +74,7 @@ public class AppConfig extends AuditableEntity {
         this.value = value.toString();
     }
 
-    public void setAsJson(Object value) {
+    public void setAsJson(Serializable value) {
         type = Type.JSON;
         classType = value.getClass().getCanonicalName();
         this.value = gson.toJson(value);

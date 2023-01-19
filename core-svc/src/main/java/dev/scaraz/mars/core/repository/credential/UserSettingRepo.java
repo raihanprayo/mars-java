@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface UserSettingRepo extends JpaRepository<UserSetting, String> {
 
-    Optional<UserSetting> findByUserTelegramId(long telegramId);
+    Optional<UserSetting> findByUserTgId(long telegramId);
 }

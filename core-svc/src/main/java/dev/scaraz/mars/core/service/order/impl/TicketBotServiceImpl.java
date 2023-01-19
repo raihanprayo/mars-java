@@ -63,7 +63,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .incidentNo(form.getIncident())
                 .serviceNo(form.getService())
                 .source(form.getSource())
-                .senderId(user.getTelegramId())
+                .senderId(user.getTg().getId())
                 .senderName(user.getName())
                 .note(form.getNote())
                 .gaul(totalGaul)

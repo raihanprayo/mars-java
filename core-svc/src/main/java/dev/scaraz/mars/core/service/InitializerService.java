@@ -5,11 +5,9 @@ import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.domain.AppConfig;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
-import dev.scaraz.mars.core.repository.AppConfigRepo;
 import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.order.IssueRepo;
@@ -44,6 +42,8 @@ public class InitializerService {
 
     private final IssueRepo issueRepo;
     private final IssueService issueService;
+
+    private final AppConfigService appConfigService;
 
     public void checkWitel() {
         Witel witel = marsProperties.getWitel();
@@ -118,6 +118,14 @@ public class InitializerService {
             if (issueRepo.existsByNameAndProduct(name, names.get(name))) continue;
             issueService.create(name, names.get(name), null);
         }
+    }
+
+    @Async
+    public void preInitAppConfigs() {
+        appConfigService.getCloseConfirm_int();
+        appConfigService.getAllowLogin_bool();
+        appConfigService.getRegistrationRequireApproval_bool();
+        appConfigService.getSendRegistrationApproval_bool();
     }
 
 }

@@ -1,13 +1,16 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
+import dev.scaraz.mars.core.domain.credential.UserTg_;
 import dev.scaraz.mars.core.domain.credential.User_;
 import dev.scaraz.mars.core.domain.order.Issue_;
+import dev.scaraz.mars.core.domain.order.TicketAgent_;
 import dev.scaraz.mars.core.domain.view.TicketSummary_;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.criteria.UserTgCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -36,12 +39,18 @@ public class TicketSummarySpecBuilder extends AuditableSpec<TicketSummary, Ticke
             spec = nonNull(spec, criteria.getProduct(), TicketSummary_.product);
 
             spec = nonNull(spec, criteria.getWip(), TicketSummary_.wip);
+
             if (criteria.getWipBy() != null) {
                 UserCriteria wip = criteria.getWipBy();
                 spec = nonNull(spec, wip.getId(), TicketSummary_.wipBy, User_.id);
                 spec = nonNull(spec, wip.getName(), TicketSummary_.wipBy, User_.name);
                 spec = nonNull(spec, wip.getNik(), TicketSummary_.wipBy, User_.nik);
-                spec = nonNull(spec, wip.getTelegramId(), TicketSummary_.wipBy, User_.telegramId);
+
+                if (wip.getTg() != null) {
+                    UserTgCriteria tg = wip.getTg();
+                    spec = nonNull(spec, tg.getId(), TicketSummary_.wipBy, User_.tg, UserTg_.id);
+                    spec = nonNull(spec, tg.getUsername(), TicketSummary_.wipBy, User_.tg, UserTg_.username);
+                }
             }
             if (criteria.getIssue() != null) {
                 IssueCriteria issue = criteria.getIssue();

@@ -2,13 +2,11 @@ package dev.scaraz.mars.core.util;
 
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.credential.UserCredential;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public class DelegateUser implements UserDetails {
 
@@ -24,7 +22,7 @@ public class DelegateUser implements UserDetails {
     public DelegateUser(User user) {
         this.active = user.isActive();
         this.authorities = user.getRoles();
-        this.password = user.getCredential().getPassword();
+        this.password = user.getPassword();
         this.username = user.getName();
         this.id = user.getId();
     }

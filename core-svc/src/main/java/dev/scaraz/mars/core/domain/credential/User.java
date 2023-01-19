@@ -31,42 +31,52 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     private String id;
 
     @Column
-    private String name;
+    private String nik;
 
     @Column
-    private String nik;
+    private String name;
 
     @Column
     private String phone;
 
-    @Column(name = "tg_id")
-    private Long telegramId;
+    @Column(name = "email")
+    private String email;
+
+//    @Column(name = "tg_id")
+//    private Long telegramId;
 
     @Column
     @Enumerated(EnumType.STRING)
     private Witel witel;
 
-    @Column(name = "sub_region")
+    @Column(name = "sto")
     private String sto;
 
     @Column
     private boolean active;
+
+    @Column(name = "password")
+    private String password;
+
+    @Embedded
+    @Builder.Default
+    private UserTg tg = new UserTg();
+//
+//    @ToString.Exclude
+//    @Builder.Default
+//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+//    private UserCredential credential = new UserCredential();
+
+    @ToString.Exclude
+    @Builder.Default
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private UserSetting setting = new UserSetting();
 
     @JsonIgnore
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ref_group_id")
     private Group group;
-
-    @ToString.Exclude
-    @Builder.Default
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private UserCredential credential = new UserCredential();
-
-    @ToString.Exclude
-    @Builder.Default
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private UserSetting setting = new UserSetting();
 
     @ToString.Exclude
     @Builder.Default
@@ -78,12 +88,6 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
             inverseJoinColumns = @JoinColumn(name = "ref_role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    public boolean canLogin() {
-        return Optional.ofNullable(group)
-                .map(g -> g.getSetting().canLogin())
-                .orElse(true);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -93,18 +97,38 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
         User user = (User) o;
 
         return new EqualsBuilder()
-                .append(getTelegramId(), user.getTelegramId())
+                .appendSuper(super.equals(o))
+                .append(isActive(), user.isActive())
                 .append(getId(), user.getId())
                 .append(getName(), user.getName())
+                .append(getNik(), user.getNik())
+                .append(getPhone(), user.getPhone())
+                .append(getWitel(), user.getWitel())
+                .append(getSto(), user.getSto())
+                .append(getEmail(), user.getEmail())
+                .append(getPassword(), user.getPassword())
+                .append(getTg(), user.getTg())
+                .append(getGroup(), user.getGroup())
+                .append(getRoles(), user.getRoles())
                 .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
+                .appendSuper(super.hashCode())
                 .append(getId())
                 .append(getName())
-                .append(getTelegramId())
+                .append(getNik())
+                .append(getPhone())
+                .append(getWitel())
+                .append(getSto())
+                .append(isActive())
+                .append(getEmail())
+                .append(getPassword())
+                .append(getTg())
+                .append(getGroup())
+                .append(getRoles())
                 .toHashCode();
     }
 
@@ -113,9 +137,6 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     protected void prePersist() {
         if (this.setting.getUser() == null)
             this.setting.setUser(this);
-
-        if (this.credential.getUser() == null)
-            this.credential.setUser(this);
     }
 
     @Override
@@ -127,9 +148,7 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     @Override
     @JsonIgnore
     public String getPassword() {
-        return Optional.ofNullable(getCredential())
-                .map(UserCredential::getPassword)
-                .orElse(null);
+        return password;
     }
 
     @Override

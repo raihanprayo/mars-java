@@ -5,5 +5,8 @@ public enum RegisterState {
     NIK,
     PHONE,
     REGION,
-    WITEL
+    WITEL,
+
+    PAIR_NIK,
+    PAIR_WITEL
 }

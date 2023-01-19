@@ -2,11 +2,14 @@ package dev.scaraz.mars.core.service.credential.impl;
 
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
+import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
+import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
@@ -26,6 +29,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,14 +47,104 @@ public class UserBotRegistrationServiceImpl implements UserBotService {
     private final TelegramBotService botService;
 
     @Override
-    public SendMessage start(long telegramId) {
+    public SendMessage pairAccount(long telegramId, String username) {
+        try {
+            botService.getClient().execute(SendMessage.builder()
+                    .chatId(telegramId)
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.esc(
+                            "Untuk keamanan saya akan bertanya beberapa hal,",
+                            "dan jika diperlukan:",
+                            "- ketik /reg\\_end untuk menghentikan proses integrasi",
+                            "",
+                            "_Jika selama 5 menit integrasi belum selesai, proses akan dihentikan_"
+                    ))
+                    .build());
+        }
+        catch (TelegramApiException e) {
+            log.error("Unable to send header", e);
+        }
+
+        registrationRepo.save(BotRegistration.builder()
+                .id(telegramId)
+                .username(username)
+                .state(RegisterState.PAIR_NIK)
+                .build());
+
+        return SendMessage.builder()
+                .chatId(telegramId)
+                .parseMode(ParseMode.MARKDOWNV2)
+                .text(TelegramUtil.esc(
+                        "Silahkan input NIK (Nomor Induk Karyawan) anda"
+                ))
+                .build();
+    }
+
+    @Override
+    public SendMessage pairAccountAnsNik(BotRegistration registration, String ansNik) {
+        registration.setNik(ansNik);
+        registration.setState(RegisterState.PAIR_WITEL);
+        registrationRepo.save(registration);
+        return SendMessage.builder()
+                .chatId(registration.getId())
+                .parseMode(ParseMode.MARKDOWNV2)
+                .text(TelegramUtil.esc("Silahkan sebutkan *Witel* anda"))
+                .build();
+    }
+
+    @Override
+    public SendMessage pairAccountAnsWitel(BotRegistration registration, Witel ansWitel) {
+        Optional<User> optUser = userQueryService.findOne(UserCriteria.builder()
+                .nik(new StringFilter().setEq(registration.getNik()))
+                .witel(new WitelFilter().setEq(ansWitel))
+                .build());
+
+        if (optUser.isPresent()) {
+            try {
+                botService.getClient().execute(SendMessage.builder()
+                        .chatId(registration.getId())
+                        .parseMode(ParseMode.MARKDOWNV2)
+                        .text(TelegramUtil.esc("User ditemukan, melakukan penyesuaian"))
+                        .build());
+
+                registration.setWitel(ansWitel);
+                userService.pairing(optUser.get(), registration);
+                registrationRepo.deleteById(registration.getId());
+                return SendMessage.builder()
+                        .chatId(registration.getId())
+                        .parseMode(ParseMode.MARKDOWNV2)
+                        .text(TelegramUtil.esc(
+                                "Berhasil melakukan penyesuaian",
+                                "",
+                                "_Selamat Datang di *MARS-ROC2*_"
+                        ))
+                        .build();
+            }
+            catch (TelegramApiException e) {
+                throw new TgError(e);
+            }
+        }
+
+        registrationRepo.deleteById(registration.getId());
+        return SendMessage.builder()
+                .chatId(registration.getId())
+                .text(TelegramUtil.esc(
+                        "NIK: " + registration.getNik(),
+                        "Witel: " + ansWitel,
+                        "user tidak ditemukan, mengakhiri proses pairing/integrasi"
+                ))
+                .build();
+    }
+
+    @Override
+    public SendMessage start(long telegramId, String username) {
         if (!registrationRepo.existsById(telegramId)) {
             try {
                 botService.getClient().execute(SendMessage.builder()
                         .chatId(telegramId)
                         .parseMode(ParseMode.MARKDOWNV2)
                         .text(TelegramUtil.esc(
-                                "Halo dan selamat datang di *Mars ROC-2*",
+                                "Halo dan selamat datang di registrasi *Mars*",
                                 "Jika diperlukan:",
                                 "- ketik /reg\\_reset untuk mengulang proses registrasi",
                                 "- ketik /reg\\_end untuk menghentikan proses registrasi",
@@ -66,13 +160,14 @@ public class UserBotRegistrationServiceImpl implements UserBotService {
 
         registrationRepo.save(BotRegistration.builder()
                 .id(telegramId)
+                .username(username)
                 .state(RegisterState.NAME)
                 .build());
 
         return SendMessage.builder()
                 .chatId(telegramId)
                 .parseMode(ParseMode.MARKDOWNV2)
-                .text("Silahkan sebutkan nama anda")
+                .text("Silahkan sebutkan nama lengkap anda")
                 .build();
     }
 
@@ -155,7 +250,7 @@ public class UserBotRegistrationServiceImpl implements UserBotService {
                         .keyboardRow(List.of(
                                 InlineKeyboardButton.builder()
                                         .text(TelegramUtil.esc("Current"))
-                                        .callbackData(AppConstants.Telegram.IGNORE_WITEL)
+                                        .callbackData(AppConstants.Telegram.REG_IGNORE_WITEL)
                                         .build()
                         ))
                         .build())
@@ -182,15 +277,16 @@ public class UserBotRegistrationServiceImpl implements UserBotService {
     @Override
     @Transactional
     public SendMessage answerSubregionThenEnd(BotRegistration registration, @Nullable String ansSubRegion) {
-        if (ansSubRegion != null) ansSubRegion = ansSubRegion.toUpperCase();
-
         userService.createFromBot(null, TelegramCreateUserDTO.builder()
-                .telegramId(registration.getId())
+                .tgId(registration.getId())
+                .tgUsername(registration.getUsername())
                 .phone(registration.getPhone())
                 .nik(registration.getNik())
                 .name(registration.getName())
                 .witel(registration.getWitel())
-                .sto(ansSubRegion)
+                .sto(ansSubRegion == null ?
+                        null :
+                        ansSubRegion.toUpperCase())
                 .build());
 
         registrationRepo.delete(registration);

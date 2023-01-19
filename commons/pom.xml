@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>commons</artifactId>
+    <version>${mars.lib.version}</version>
     <packaging>jar</packaging>
 
     <properties>

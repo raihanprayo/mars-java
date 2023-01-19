@@ -7,13 +7,20 @@ import dev.scaraz.mars.common.tools.filter.ReadableFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
+import javax.annotation.Nullable;
 import javax.persistence.metamodel.SetAttribute;
 import javax.persistence.metamodel.SingularAttribute;
+import java.util.function.Consumer;
 
 @Slf4j
 public abstract class QueryBuilder<E, C extends Criteria> {
 
     abstract public Specification<E> createSpec(C criteria);
+
+    protected <T> void consumeNonNull(@Nullable T o, Consumer<T> consume) {
+        if (o != null) consume.accept(o);
+
+    }
 
     // Plain Filter
     protected <T> Specification<E> nonNull(

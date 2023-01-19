@@ -8,8 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-
 @Slf4j
 @RequiredArgsConstructor
 
@@ -17,12 +15,6 @@ import javax.annotation.PostConstruct;
 public class AppConfigServiceImpl implements AppConfigService {
 
     private final AppConfigRepo repo;
-
-    @PostConstruct
-    private void init() {
-        getCloseConfirm();
-        getAllowLogin();
-    }
 
     @Override
     public AppConfig save(AppConfig config) {
@@ -36,7 +28,7 @@ public class AppConfigServiceImpl implements AppConfigService {
     }
 
     @Override
-    public AppConfig getCloseConfirm() {
+    public AppConfig getCloseConfirm_int() {
         return repo.findById(AppConstants.Config.CLOSE_CONFIRM_ID_INT)
                 .orElseGet(() -> save(AppConfig.builder()
                         .id(AppConstants.Config.CLOSE_CONFIRM_ID_INT)
@@ -49,7 +41,7 @@ public class AppConfigServiceImpl implements AppConfigService {
     }
 
     @Override
-    public AppConfig getAllowLogin() {
+    public AppConfig getAllowLogin_bool() {
         return repo.findById(AppConstants.Config.ALLOW_OTHER_WITEL_ID_BOOL)
                 .orElseGet(() -> save(AppConfig.builder()
                         .id(AppConstants.Config.ALLOW_OTHER_WITEL_ID_BOOL)
@@ -58,6 +50,32 @@ public class AppConfigServiceImpl implements AppConfigService {
                         .classType(Boolean.class.getCanonicalName())
                         .value(String.valueOf(false))
                         .description("Memperbolehkan user dengan Witel lain untuk login ke dashboard")
+                        .build()));
+    }
+
+    @Override
+    public AppConfig getRegistrationRequireApproval_bool() {
+        return repo.findById(AppConstants.Config.USER_REG_APPROVAL_ID_BOOL)
+                .orElseGet(() -> save(AppConfig.builder()
+                        .id(AppConstants.Config.USER_REG_APPROVAL_ID_BOOL)
+                        .name("require-user-reg-approval")
+                        .type(AppConfig.Type.BOOLEAN)
+                        .classType(Boolean.class.getCanonicalName())
+                        .value(String.valueOf(false))
+                        .description("Registrasi user melalui bot telegram diperlukan approval dari admin")
+                        .build()));
+    }
+
+    @Override
+    public AppConfig getSendRegistrationApproval_bool() {
+        return repo.findById(AppConstants.Config.SEND_REG_APPROVAL_TO_ADMINS_ID_BOOL)
+                .orElseGet(() -> save(AppConfig.builder()
+                        .id(AppConstants.Config.SEND_REG_APPROVAL_TO_ADMINS_ID_BOOL)
+                        .name("notify-admins-user-reg-approval")
+                        .type(AppConfig.Type.BOOLEAN)
+                        .classType(Boolean.class.getCanonicalName())
+                        .value(String.valueOf(false))
+                        .description("Kirim notifikasi telegram untuk semua admin, ketika ada request approval registrasi user")
                         .build()));
     }
 

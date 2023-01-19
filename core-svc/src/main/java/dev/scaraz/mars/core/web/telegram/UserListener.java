@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.web.telegram;
 
 import dev.scaraz.mars.common.tools.Translator;
-import dev.scaraz.mars.core.domain.cache.BotRegistration;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserBotService;
@@ -11,15 +11,17 @@ import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.annotation.Text;
 import dev.scaraz.mars.telegram.annotation.UserId;
-import dev.scaraz.mars.telegram.util.MessageEntityType;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import java.util.List;
 
 import static dev.scaraz.mars.common.tools.Translator.LANG_EN;
 import static dev.scaraz.mars.common.tools.Translator.LANG_ID;
@@ -40,7 +42,26 @@ public class UserListener {
     @TelegramCommand(commands = {"/register", "/reg"})
     public SendMessage register(@UserId long telegramId, Message message) {
         if (!authService.isUserRegistered(telegramId)) {
-            return userBotService.start(telegramId);
+            return SendMessage.builder()
+                    .chatId(telegramId)
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.esc(
+                            "User tidak dikenali oleh *MARS*. Harap melakukan registrasi terlebih dahulu, ",
+                            "atau integrasi akun yang ada dengan akun telegram anda"
+                    ))
+                    .replyMarkup(InlineKeyboardMarkup.builder()
+                            .keyboardRow(List.of(
+                                    InlineKeyboardButton.builder()
+                                            .callbackData(AppConstants.Telegram.REG_PAIR)
+                                            .text("Account Pairing")
+                                            .build(),
+                                    InlineKeyboardButton.builder()
+                                            .callbackData(AppConstants.Telegram.REG_NEW)
+                                            .text("Registration")
+                                            .build()
+                            ))
+                            .build())
+                    .build();
         }
 
         return SendMessage.builder()
@@ -67,13 +88,13 @@ public class UserListener {
 
                     userService.save(user.getSetting());
                     return SendMessage.builder()
-                            .chatId(user.getTelegramId())
+                            .chatId(user.getTg().getId())
                             .text("OK")
                             .build();
                 }
                 else {
                     return SendMessage.builder()
-                            .chatId(user.getTelegramId())
+                            .chatId(user.getTg().getId())
                             .text("Bahasa yangbisa digunakan en/id (ignore-case)")
                             .build();
                 }
@@ -84,8 +105,10 @@ public class UserListener {
     }
 
     @TelegramCommand(commands = "/reg_reset")
-    public SendMessage registrationReset(@UserId long telegramId) {
-        if (registrationRepo.existsById(telegramId)) return userBotService.start(telegramId);
+    public SendMessage registrationReset(User user) {
+        if (registrationRepo.existsById(user.getId()))
+            return userBotService.start(user.getId(), user.getUserName());
+
         return null;
     }
 

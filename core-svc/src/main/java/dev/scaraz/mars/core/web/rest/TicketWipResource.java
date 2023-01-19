@@ -3,11 +3,14 @@ package dev.scaraz.mars.core.web.rest;
 import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.core.service.order.TicketService;
+import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -43,6 +46,10 @@ public class TicketWipResource {
     public ResponseEntity<?> takeTicket(
             @PathVariable String ticketIdOrNo
     ) {
+        User user = SecurityUtil.getCurrentUser();
+        if (user.getTg().getId() == null)
+            throw BadRequestException.args("Akun anda belum terintgrasi dengan akun telegram");
+
         flowService.take(ticketIdOrNo);
         return new ResponseEntity<>(
                 summaryQueryService.findByIdOrNo(ticketIdOrNo),

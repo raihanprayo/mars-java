@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class BotRegistration {
     @Id
     private long id;
-
+    private String username;
 
     private RegisterState state;
 

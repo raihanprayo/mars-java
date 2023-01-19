@@ -15,7 +15,9 @@ public interface AppConstants {
     interface Telegram {
         String CONFIRM_AGREE = "ANS_AGREE";
         String CONFIRM_DISAGREE = "ANS_DISAGREE";
-        String IGNORE_WITEL = "REG_IGNORE:WITEL";
+        String REG_IGNORE_WITEL = "REG:IGNORE_WITEL";
+        String REG_NEW = "REG:NEW";
+        String REG_PAIR = "REG:PAIR";
     }
 
 
@@ -29,11 +31,14 @@ public interface AppConstants {
     interface Cache {
         String TC_CONFIRM_NS = "tc:confirm";
         String USR_REGISTRATION_NS = "usr:register";
+        String USR_APPROVAL_NS = "usr:approval";
     }
 
     interface Config {
         long CLOSE_CONFIRM_ID_INT = 1;
         long ALLOW_OTHER_WITEL_ID_BOOL = 2;
+        long USER_REG_APPROVAL_ID_BOOL = 3;
+        long SEND_REG_APPROVAL_TO_ADMINS_ID_BOOL = 4;
     }
 
 }

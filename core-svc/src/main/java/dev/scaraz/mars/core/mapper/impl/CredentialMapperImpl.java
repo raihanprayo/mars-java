@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,13 +28,14 @@ public class CredentialMapperImpl implements CredentialMapper {
                 .name(o.getName())
                 .nik(o.getNik())
                 .phone(o.getPhone())
+                .witel(o.getWitel())
+                .sto(o.getSto())
+                .tg(toDTO(o.getTg()))
                 .active(o.isActive())
-                .telegramId(o.getTelegramId())
                 .group(toPartialDTO(o.getGroup()))
                 .roles(o.getRoles().stream()
                         .map(Role::getName)
                         .collect(Collectors.toList()))
-                .credential(toDTO(o.getCredential()))
                 .setting(toDTO(o.getSetting()))
                 .createdAt(o.getCreatedAt())
                 .updatedAt(o.getUpdatedAt())
@@ -43,11 +43,11 @@ public class CredentialMapperImpl implements CredentialMapper {
     }
 
     @Override
-    public UserDTO.UserCredentialDTO toDTO(UserCredential o) {
+    public UserDTO.UserTgDTO toDTO(UserTg o) {
         if (o == null) return null;
-        return UserDTO.UserCredentialDTO.builder()
+        return UserDTO.UserTgDTO.builder()
+                .id(o.getId())
                 .username(o.getUsername())
-                .email(o.getEmail())
                 .build();
     }
 
@@ -80,11 +80,11 @@ public class CredentialMapperImpl implements CredentialMapper {
                 .id(user.getId())
                 .name(user.getName())
                 .nik(user.getNik())
-                .telegramId(user.getTelegramId())
-                .email(user.getCredential().getEmail())
-                .username(user.getCredential().getUsername())
+                .email(user.getEmail())
                 .witel(user.getWitel())
                 .sto(user.getSto())
+                .telegramId(user.getTg().getId())
+                .username(user.getTg().getUsername())
                 .roles(appRole);
 
         Group group = user.getGroup();

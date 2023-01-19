@@ -2,24 +2,19 @@ package dev.scaraz.mars.core.service.impl;
 
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
-import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.domain.response.JwtToken;
 import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
-import dev.scaraz.mars.common.exception.web.AccessDeniedException;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
-import dev.scaraz.mars.common.tools.Translator;
-import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.config.security.JwtUtil;
-import dev.scaraz.mars.core.domain.credential.*;
+import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
-import dev.scaraz.mars.core.repository.credential.*;
-import dev.scaraz.mars.core.service.credential.GroupService;
+import dev.scaraz.mars.core.repository.credential.UserRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.AuthSource;
@@ -32,12 +27,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Auth.*;
@@ -51,12 +42,8 @@ public class AuthServiceImpl implements AuthService {
     private final MarsProperties marsProperties;
 
     private final AuditProvider auditProvider;
-    private final GroupRepo groupRepo;
 
-    private final RoleRepo roleRepo;
-    private final RolesRepo rolesRepo;
     private final UserRepo userRepo;
-    private final UserCredentialRepo userCredentialRepo;
     private final UserService userService;
     private final UserQueryService userQueryService;
 
@@ -72,7 +59,7 @@ public class AuthServiceImpl implements AuthService {
         if (user.isEmpty()) {
             try {
                 long telegramId = Long.parseLong(username);
-                user = userRepo.findByTelegramId(telegramId);
+                user = userRepo.findByTgId(telegramId);
             }
             catch (NumberFormatException ex) {
             }
@@ -80,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
 
         // Cari dengan username atau email
         if (user.isEmpty()) {
-            user = userRepo.findByCredentialUsernameOrCredentialEmail(username, username);
+            user = userRepo.findByEmailOrTgUsername(username, username);
         }
 
         // Jika masih ga ada
@@ -104,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
 //            }
 //        }
 
-        boolean hasPassword = user.getCredential().getPassword() != null;
+        boolean hasPassword = user.getPassword() != null;
         if (!hasPassword) {
             if (!authReq.isConfirmed()) {
                 return AuthResDTO.builder()
@@ -113,15 +100,12 @@ public class AuthServiceImpl implements AuthService {
             }
             else {
                 auditProvider.setName(user.getName());
-                UserCredential credential = user.getCredential();
-                credential.setEmail(authReq.getEmail());
-                credential.setUsername(authReq.getUsername());
-                credential.setPassword(passwordEncoder.encode(authReq.getPassword()));
-                user.setCredential(userCredentialRepo.save(user.getCredential()));
+                user.setPassword(passwordEncoder.encode(authReq.getPassword()));
+                userService.save(user);
             }
         }
         else {
-            boolean passwordMatch = passwordEncoder.matches(authReq.getPassword(), user.getCredential().getPassword());
+            boolean passwordMatch = passwordEncoder.matches(authReq.getPassword(), user.getPassword());
             if (!passwordMatch) {
                 throw new UnauthorizedException("auth.user.invalid.password");
             }
@@ -203,50 +187,4 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
-    @Override
-    @Transactional
-    public SendMessage.SendMessageBuilder registerFromBot(
-            MessageEntity entity,
-            Message message) {
-
-        // nama / nik / groupName / no. hp
-        String text = message.getText()
-                .substring(entity.getLength())
-                .trim();
-
-        org.telegram.telegrambots.meta.api.objects.User userTg = message.getFrom();
-
-        String[] content = text.split("/");
-        if (content.length != 4)
-            throw new RuntimeException("Invalid content format");
-
-        String name = content[0],
-                nik = content[1],
-                groupName = content[2],
-                phone = content[3];
-
-        Group group = groupRepo.findByNameIgnoreCase(groupName)
-                .orElseThrow(() -> NotFoundException.entity(Group.class, "name", groupName));
-        Role appRole = roleRepo.findByName("user")
-                .orElseThrow(() -> NotFoundException.entity(Role.class, "name", "user"));
-
-        User user = userService.createFromBot(group, TelegramCreateUserDTO.builder()
-                .name(name)
-                .nik(nik)
-                .phone(phone)
-                .telegramId(userTg.getId())
-                .build());
-
-        rolesRepo.saveAll(List.of(
-                Roles.builder()
-                        .user(user)
-                        .role(appRole)
-                        .build()
-        ));
-
-        return SendMessage.builder()
-                .chatId(message.getChatId())
-                .text("registration success")
-                .allowSendingWithoutReply(true);
-    }
 }

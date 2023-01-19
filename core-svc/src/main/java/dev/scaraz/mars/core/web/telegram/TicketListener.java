@@ -37,13 +37,8 @@ import java.util.stream.Stream;
 @TelegramBot
 public class TicketListener {
 
-    private final TicketService service;
-    private final TicketQueryService queryService;
-    private final TicketAgentQueryService agentQueryService;
     private final TicketBotService botService;
     private final StatusConfirmRepo confirmRepo;
-
-    private final NotifierService notifierService;
 
     @TelegramCommand(commands = {"/report", "/lapor"}, description = "Register new ticker/order")
     public SendMessage registerReport(
@@ -60,7 +55,7 @@ public class TicketListener {
             Ticket ticket = botService.registerForm(
                     form.toBuilder()
                             .source(TcSource.fromType(message.getChat().getType()))
-                            .senderId(user.getTelegramId())
+                            .senderId(user.getTg().getId())
                             .senderName(user.getName())
                             .build(),
                     message.getPhoto()
@@ -88,11 +83,11 @@ public class TicketListener {
     @TelegramCommand(commands = {"/take", "/sayaambil"}, description = "take ticket by order no")
     public SendMessage takeTicket(@TgAuth User user, @Text String text) {
         try {
-            log.info("TAKE ACTION BY {}", user.getTelegramId());
+            log.info("TAKE ACTION BY {}", user.getTg().getId());
             Ticket ticket = botService.take(text);
 
             return SendMessage.builder()
-                    .chatId(user.getTelegramId())
+                    .chatId(user.getTg().getId())
                     .text(TelegramUtil.esc(Translator.tr("tg.ticket.wip.agent", ticket.getNo())))
                     .parseMode(ParseMode.MARKDOWNV2)
                     .build();
@@ -101,7 +96,7 @@ public class TicketListener {
             ex.printStackTrace();
             log.error(ex.getMessage());
             return SendMessage.builder()
-                    .chatId(user.getTelegramId())
+                    .chatId(user.getTg().getId())
                     .text(TelegramUtil.exception(ex))
                     .parseMode(ParseMode.MARKDOWNV2)
                     .build();

@@ -6,10 +6,14 @@ import dev.scaraz.mars.core.util.DelegateUser;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.util.Optional;
+
 public interface UserQueryService extends UserDetailsService, BaseQueryService<User, UserCriteria> {
 
     @Override
     DelegateUser loadUserByUsername(String username) throws UsernameNotFoundException;
+
+    Optional<User> findOne(UserCriteria criteria);
 
     User findById(String id);
 

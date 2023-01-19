@@ -18,5 +18,4 @@ public interface AuthService extends UserDetailsService {
 
     boolean isUserRegistered(long telegramId);
 
-    SendMessage.SendMessageBuilder registerFromBot(MessageEntity entity, Message message);
 }

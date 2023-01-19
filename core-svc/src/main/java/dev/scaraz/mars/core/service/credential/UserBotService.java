@@ -5,7 +5,14 @@ import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 public interface UserBotService {
-    SendMessage start(long telegramId);
+
+    SendMessage pairAccount(long telegramId, String username);
+
+    SendMessage pairAccountAnsNik(BotRegistration registration, String ansNik);
+
+    SendMessage pairAccountAnsWitel(BotRegistration registration, Witel ansWitel);
+
+    SendMessage start(long telegramId, String username);
 
     SendMessage answerNameThenAskNik(BotRegistration registration, String ansName);
 

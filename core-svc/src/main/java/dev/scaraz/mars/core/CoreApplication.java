@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
 import javax.annotation.PostConstruct;
 
@@ -20,8 +22,8 @@ public class CoreApplication implements CommandLineRunner {
         SpringApplication.run(CoreApplication.class, args);
     }
 
-    @PostConstruct
-    public void init() {
+    @EventListener(ApplicationReadyEvent.class)
+    public void onReady() {
         initializer.checkWitel();
     }
 
@@ -30,5 +32,6 @@ public class CoreApplication implements CommandLineRunner {
         initializer.preInitRolesAndCreateAdmin();
 //        initializer.preInitGroups();
         initializer.preInitIssue();
+        initializer.preInitAppConfigs();
     }
 }

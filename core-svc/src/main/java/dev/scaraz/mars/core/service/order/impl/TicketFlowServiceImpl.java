@@ -7,7 +7,6 @@ import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.StatusConfirm;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.LogTicket;
@@ -70,11 +69,8 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         if (summaryQueryService.isWorkInProgressByTicketId(ticket.getId())) {
             throw BadRequestException.args("error.ticket.taken");
         }
-        else if (ticket.getStatus() == TcStatus.CLOSED) {
-            throw BadRequestException.args("No tiket telah ditutup");
-        }
-        else if (ticket.getStatus() == TcStatus.PENDING) {
-            throw BadRequestException.args("No tiket dalam keadaan pending");
+        else if (!List.of(TcStatus.OPEN, TcStatus.DISPATCH).contains(ticket.getStatus())) {
+            throw BadRequestException.args("Invalid status pengambilan tiket");
         }
 
         User user = SecurityUtil.getCurrentUser();
@@ -125,7 +121,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 TcStatus.CLOSED,
                 form.getNote());
 
-        int minute = appConfigService.getCloseConfirm()
+        int minute = appConfigService.getCloseConfirm_int()
                 .getAsNumber()
                 .intValue();
 
@@ -199,8 +195,6 @@ public class TicketFlowServiceImpl implements TicketFlowService {
 
         if (!summary.isWip())
             throw BadRequestException.args("error.ticket.update.stat");
-        else if (!summary.getWipBy().getId().equals(SecurityUtil.getCurrentUser().getId()))
-            throw BadRequestException.args("error.ticket.update.stat.agent");
 
         return service.save(ticket);
     }
@@ -243,7 +237,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                     .build());
 
             notifierService.safeSend(
-                    prevAgent.getUser().getTelegramId(),
+                    prevAgent.getUser().getTg().getId(),
                     "tg.ticket.confirm.reopen.agent",
                     ticket.getNo(),
                     reopenDesc);
@@ -263,12 +257,12 @@ public class TicketFlowServiceImpl implements TicketFlowService {
 
                 notifierService.send(ticket.getSenderId(), message);
 
-                log.info("NOTIFY AGENT -- ID {}", prevAgent.getUser().getTelegramId());
-                notifierService.safeSend(prevAgent.getUser().getTelegramId(),
+                log.info("NOTIFY AGENT -- ID {}", prevAgent.getUser().getTg().getId());
+                notifierService.safeSend(prevAgent.getUser().getTg().getId(),
                         "tg.ticket.confirm.closed.agent",
                         ticket.getNo(),
                         Translator.tr("app.done.watermark",
-                                notifierService.useLocale(prevAgent.getUser().getTelegramId())));
+                                notifierService.useLocale(prevAgent.getUser().getTg().getId())));
             }
             else {
                 logMessage = LOG_AUTO_CLOSE;

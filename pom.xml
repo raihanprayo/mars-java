@@ -4,6 +4,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <groupId>org.springframework.boot</groupId>
+        <version>2.7.6</version>
+    </parent>
+
     <groupId>dev.scaraz.mars</groupId>
     <artifactId>mars-java</artifactId>
     <packaging>pom</packaging>
@@ -14,12 +20,6 @@
         <module>core-svc</module>
     </modules>
 
-    <parent>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <groupId>org.springframework.boot</groupId>
-        <version>2.7.6</version>
-    </parent>
-
     <properties>
         <java.version>11</java.version>
         <maven.compiler.source>11</maven.compiler.source>
@@ -28,6 +28,9 @@
         <zalando.version>0.27.0</zalando.version>
         <io.jsonwebtoken.version>0.11.5</io.jsonwebtoken.version>
         <org.telegram.version>6.1.0</org.telegram.version>
+
+        <mars.app.core.version>1.0</mars.app.core.version>
+        <mars.lib.version>1.0</mars.lib.version>
     </properties>
 
     <dependencyManagement>
