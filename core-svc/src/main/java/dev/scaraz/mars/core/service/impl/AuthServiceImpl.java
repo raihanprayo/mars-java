@@ -101,6 +101,9 @@ public class AuthServiceImpl implements AuthService {
             else {
                 auditProvider.setName(user.getName());
                 user.setPassword(passwordEncoder.encode(authReq.getPassword()));
+                if (authReq.getEmail() != null)
+                    user.setEmail(authReq.getEmail());
+
                 userService.save(user);
             }
         }

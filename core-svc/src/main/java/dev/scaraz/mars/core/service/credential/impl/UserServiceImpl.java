@@ -92,10 +92,13 @@ public class UserServiceImpl implements UserService {
                 .name(req.getName())
                 .nik(req.getNik())
                 .phone(req.getPhone())
-                .active(Optional.ofNullable(req.getActive()).orElse(true))
+                .active(Optional.ofNullable(req.getActive()).orElse(false))
                 .witel(req.getWitel())
                 .sto(req.getSto())
                 .email(req.getEmail())
+                .tg(UserTg.builder()
+                        .username(req.getUsername())
+                        .build())
 //                .credential(UserCredential.builder()
 //                        .email(req.getEmail())
 //                        .username(req.getUsername())
@@ -118,7 +121,9 @@ public class UserServiceImpl implements UserService {
             nuser.setGroup(group);
         }
 
-        return save(nuser);
+        nuser = save(nuser);
+        log.info("SUCCESS CREATE USER -- ID {}", nuser.getId());
+        return nuser;
     }
 
     @Transactional
@@ -185,8 +190,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void pairing(User user, BotRegistration registration) {
-        user.getTg().setId(registration.getId());
-        user.getTg().setUsername(registration.getUsername());
+        user.setTg(UserTg.builder()
+                .id(registration.getId())
+                .username(registration.getUsername())
+                .build());
+
+        if (!user.isActive())
+            user.setActive(true);
 
         save(user);
     }
@@ -260,6 +270,9 @@ public class UserServiceImpl implements UserService {
         if (dto.getNik() != null) user.setNik(dto.getNik());
         if (dto.getPhone() != null) user.setPhone(dto.getPhone());
         if (dto.getActive() != null) user.setActive(dto.getActive());
+        if (dto.getWitel() != null) user.setWitel(dto.getWitel());
+        if (dto.getSto() != null) user.setSto(dto.getSto());
+
 
         if (dto.getRoles() != null) {
             List<String> removedIds = dto.getRoles().getRemoved();

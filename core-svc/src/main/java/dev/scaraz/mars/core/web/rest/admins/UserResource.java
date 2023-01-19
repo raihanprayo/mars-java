@@ -53,6 +53,7 @@ public class UserResource {
             @RequestParam boolean approved,
             @RequestBody Collection<String> approvalIds
     ) {
+        log.info("ACCEPTING APPROVALS -- APPROVED={} DATA={}", approved, approvalIds);
         approvalIds.forEach(id -> userService.approval(id, approved));
         return ResponseEntity.ok().build();
     }
@@ -60,6 +61,7 @@ public class UserResource {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid CreateUserDTO req) {
+        log.info("NEW USER DASHBOARD REGISTRATION -- {}", req);
         User user = userService.create(req);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(credentialMapper.toDTO(user));

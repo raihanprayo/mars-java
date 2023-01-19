@@ -123,6 +123,9 @@ public class AppListener {
         return null;
     }
 
+    @TelegramCommand(commands = "/start")
+    public void start(User user) {
+    }
 
     @TelegramCommand(commands = "/help", isHelp = true)
     public SendMessage help(@UserId long telegramId, @Text String arg) {
