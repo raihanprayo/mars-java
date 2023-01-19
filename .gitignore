@@ -40,3 +40,6 @@ build/
 /data
 /telegram-bot
 /logs
+
+docker-compose.mars.yaml
+.env.docker
