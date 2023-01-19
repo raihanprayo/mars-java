@@ -1,0 +1,19 @@
+
+FROM maven:3.8.6-jdk-11-slim
+COPY . /app/mars-core
+WORKDIR /app/mars-core
+
+RUN mvn clean install -DskipTests=true
+WORKDIR /app/mars-core/commons
+RUN mvn clean install
+WORKDIR /app/mars-core/telegram
+RUN mvn clean install
+
+ENV LOGBACK_DIRECTORY=/logs/mars-core/core.log
+ENV MARS_SHARED_DIRECTORY=/shared
+
+VOLUME /logs/mars-core
+VOLUME /shared
+
+WORKDIR /app/mars-core/core-svc
+CMD ["mvn", "spring-boot:run"]

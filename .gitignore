@@ -43,3 +43,4 @@ build/
 
 docker-compose.mars.yaml
 .env.docker
+/docker-run.sh
