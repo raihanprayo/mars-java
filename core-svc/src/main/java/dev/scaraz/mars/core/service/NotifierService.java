@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -96,6 +97,7 @@ public class NotifierService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Locale useLocale(long telegramId) {
         User currentUser = SecurityUtil.getCurrentUser();
         if (currentUser != null && currentUser.getTelegramId() == telegramId) {
@@ -105,7 +107,7 @@ public class NotifierService {
         log.debug("GET LOCALE FROM USER SETTING");
         return userSettingRepo.findByUserTelegramId(telegramId)
                 .map(UserSetting::getLang)
-                .orElse(LocaleContextHolder.getLocale());
+                .orElse(Translator.LANG_ID);
     }
 
     private static List<InlineKeyboardButton> CONFIRMATION_QUERY_BTN() {

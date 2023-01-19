@@ -32,7 +32,6 @@ import java.util.Map;
 public class InitializerService {
 
     private final MarsProperties marsProperties;
-    private final AppConfigRepo appConfigRepo;
 
     private final UserService userService;
     private final UserQueryService userQueryService;
@@ -119,28 +118,6 @@ public class InitializerService {
             if (issueRepo.existsByNameAndProduct(name, names.get(name))) continue;
             issueService.create(name, names.get(name), null);
         }
-    }
-
-    @Async
-    public void preInitAppConfig() {
-        appConfigRepo.findById(AppConstants.Config.CLOSE_CONFIRM_ID_INT)
-                .orElseGet(() -> appConfigRepo.save(AppConfig.builder()
-                        .id(AppConstants.Config.CLOSE_CONFIRM_ID_INT)
-                        .name("close-confirm-duration")
-                        .type(AppConfig.Type.NUMBER)
-                        .classType(Integer.class.getCanonicalName())
-                        .value(String.valueOf(30))
-                        .description("Lama waktu yang diperlukan untuk menunggu requestor menjawab konfirmasi sebelum tiket close")
-                        .build()));
-
-        appConfigRepo.findById(AppConstants.Config.ALLOW_OTHER_WITEL_ID_BOOL)
-                .orElseGet(() -> appConfigRepo.save(AppConfig.builder()
-                        .name("allow-different-witel-login")
-                        .type(AppConfig.Type.BOOLEAN)
-                        .classType(Boolean.class.getCanonicalName())
-                        .value(String.valueOf(false))
-                        .description("Memperbolehkan user dengan Witel lain untuk login ke dashboard")
-                        .build()));
     }
 
 }

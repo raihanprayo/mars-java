@@ -31,7 +31,7 @@ public class IssueServiceImpl implements IssueService {
         if (repo.existsByNameAndProduct(name, product))
             throw BadRequestException.duplicateEntity(Issue.class, "name", name);
 
-        log.info("CREATE NEW ISSUER WITH NAME {} AND PRODUCT {}", name, product);
+        log.info("CREATE NEW ISSUE WITH NAME {} AND PRODUCT {}", name, product);
         return save(Issue.builder()
                 .name(name.toLowerCase())
                 .product(product)

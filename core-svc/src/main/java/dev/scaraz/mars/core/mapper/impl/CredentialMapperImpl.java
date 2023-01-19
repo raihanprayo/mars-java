@@ -83,6 +83,8 @@ public class CredentialMapperImpl implements CredentialMapper {
                 .telegramId(user.getTelegramId())
                 .email(user.getCredential().getEmail())
                 .username(user.getCredential().getUsername())
+                .witel(user.getWitel())
+                .sto(user.getSto())
                 .roles(appRole);
 
         Group group = user.getGroup();

@@ -164,8 +164,9 @@ public class UserBotRegistrationServiceImpl implements UserBotService {
 
     @Override
     public SendMessage answerWitelThenAskSubregion(BotRegistration registration, Witel ansWitel) {
+        registration.setWitel(ansWitel);
+
         if (ansWitel != Witel.ROC) {
-            registration.setWitel(ansWitel);
             registration.setState(RegisterState.REGION);
             registrationRepo.save(registration);
             return SendMessage.builder()

@@ -262,6 +262,8 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 );
 
                 notifierService.send(ticket.getSenderId(), message);
+
+                log.info("NOTIFY AGENT -- ID {}", prevAgent.getUser().getTelegramId());
                 notifierService.safeSend(prevAgent.getUser().getTelegramId(),
                         "tg.ticket.confirm.closed.agent",
                         ticket.getNo(),

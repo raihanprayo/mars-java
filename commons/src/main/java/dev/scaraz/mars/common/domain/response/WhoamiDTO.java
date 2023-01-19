@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.domain.response;
 
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,9 @@ public class WhoamiDTO {
     private String id;
     private String nik;
     private String name;
-    private long telegramId;
+    private Long telegramId;
+    private Witel witel;
+    private String sto;
 
     private String email;
     private String username;

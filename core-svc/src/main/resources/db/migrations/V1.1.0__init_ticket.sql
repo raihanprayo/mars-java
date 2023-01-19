@@ -30,7 +30,7 @@ create table t_ticket
 
     note         text,
 
-    ref_issue_id varchar(37)         not null,
+    ref_issue_id bigint              not null,
 
     created_at   timestamp(0)        not null default CURRENT_TIMESTAMP,
     created_by   varchar(255)        not null,

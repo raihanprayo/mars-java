@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.springframework.util.ClassUtils;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -101,7 +102,7 @@ public class AppConfig extends AuditableEntity {
     public Number getAsNumber() {
         try {
             Class<?> aClass = getClass().getClassLoader().loadClass(classType);
-            if (aClass != null && aClass.isAssignableFrom(Number.class)) {
+            if (aClass != null && ClassUtils.isAssignable(Number.class, aClass)) {
                 if (aClass == Integer.class) return Integer.parseInt(value);
                 if (aClass == Double.class) return Double.parseDouble(value);
                 if (aClass == Float.class) return Float.parseFloat(value);

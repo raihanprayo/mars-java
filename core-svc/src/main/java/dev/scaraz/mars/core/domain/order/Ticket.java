@@ -75,8 +75,8 @@ public class Ticket extends AuditableEntity {
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "ticket")
     private TicketAsset assets;
 
-    @OneToOne(mappedBy = "ticket")
-    private TicketImport imports;
+//    @OneToOne(mappedBy = "ticket")
+//    private TicketImport imports;
 
     @JsonIgnore
     @Builder.Default
@@ -90,7 +90,8 @@ public class Ticket extends AuditableEntity {
     @PrePersist
     @PreUpdate
     protected void onPersist() {
-        this.sto = sto.toUpperCase();
+        if (sto != null)
+            this.sto = sto.toUpperCase();
     }
 
 

@@ -1,6 +1,6 @@
 create table t_app_config
 (
-    id          serial primary key,
+    id          int4 primary key,
     name        varchar(100) unique not null,
     type        varchar(255),
     class_type  varchar(255),
