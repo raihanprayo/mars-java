@@ -20,6 +20,7 @@ public class RegistrationApproval {
     @Id
     private String id;
 
+    @Builder.Default
     @TimeToLive(unit = TimeUnit.HOURS)
     private long ttl = 24;
 }
