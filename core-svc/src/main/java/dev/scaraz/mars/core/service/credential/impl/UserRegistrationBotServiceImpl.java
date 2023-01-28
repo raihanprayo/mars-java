@@ -13,7 +13,8 @@ import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
-import dev.scaraz.mars.core.service.credential.UserBotService;
+import dev.scaraz.mars.core.service.AppConfigService;
+import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
@@ -35,8 +36,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 
 @Service
-public class UserBotRegistrationServiceImpl implements UserBotService {
+public class UserRegistrationBotServiceImpl implements UserRegistrationBotService {
 
+    private final AppConfigService appConfigService;
     private final MarsProperties marsProperties;
 
     private final UserService userService;
@@ -277,7 +279,13 @@ public class UserBotRegistrationServiceImpl implements UserBotService {
     @Override
     @Transactional
     public SendMessage answerSubregionThenEnd(BotRegistration registration, @Nullable String ansSubRegion) {
-        userService.createFromBot(null, TelegramCreateUserDTO.builder()
+
+        registrationRepo.deleteById(registration.getId());
+
+        boolean needApproval = appConfigService.getRegistrationRequireApproval_bool()
+                .getAsBoolean();
+
+        userService.createFromBot(null, needApproval, TelegramCreateUserDTO.builder()
                 .tgId(registration.getId())
                 .tgUsername(registration.getUsername())
                 .phone(registration.getPhone())
@@ -289,12 +297,15 @@ public class UserBotRegistrationServiceImpl implements UserBotService {
                         ansSubRegion.toUpperCase())
                 .build());
 
-        registrationRepo.delete(registration);
-        return SendMessage.builder()
-                .chatId(registration.getId())
-                .parseMode(ParseMode.MARKDOWNV2)
-                .text(TelegramUtil.WELCOME_MESSAGE())
-                .build();
+        if (!needApproval) {
+            return SendMessage.builder()
+                    .chatId(registration.getId())
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.WELCOME_MESSAGE())
+                    .build();
+        }
+
+        return null;
     }
 
 }

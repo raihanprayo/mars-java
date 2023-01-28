@@ -7,12 +7,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Pattern;
+import java.io.Serializable;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TelegramCreateUserDTO {
+public class TelegramCreateUserDTO implements Serializable {
 
     private String name;
 

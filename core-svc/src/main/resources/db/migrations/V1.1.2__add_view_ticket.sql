@@ -1,19 +1,3 @@
-create table t_log_ticket
-(
-    id            serial primary key,
-    ref_ticket_no varchar(37)  not null,
-
-    message       varchar(100),
-
-    prev_status   varchar(15),
-    curr_status   varchar(15),
-
-    ref_agent_id  varchar(37),
-
-    created_at    timestamp(0) not null default CURRENT_TIMESTAMP,
-    created_by    varchar(100) not null
-);
-
 create or replace view v_ticket_summary as
 select tc.id                               as id,
        tc.no                               as no,

@@ -79,4 +79,30 @@ public class AppConfigServiceImpl implements AppConfigService {
                         .build()));
     }
 
+    @Override
+    public AppConfig getPostPending_int() {
+        return repo.findById(AppConstants.Config.POST_PENDING_CONFIRM_ID_INT)
+                .orElseGet(() -> save(AppConfig.builder()
+                        .id(AppConstants.Config.POST_PENDING_CONFIRM_ID_INT)
+                        .name("post-pending-confirm-duration")
+                        .type(AppConfig.Type.NUMBER)
+                        .classType(Integer.class.getCanonicalName())
+                        .value(String.valueOf(60))
+                        .description("Lama waktu yang diperlukan untuk menunggu tiket dengan status pending")
+                        .build()));
+    }
+
+    @Override
+    public AppConfig getApprovalDurationHour_int() {
+        return repo.findById(AppConstants.Config.USER_REG_APPROVAL_DURATION_ID_INT)
+                .orElseGet(() -> save(AppConfig.builder()
+                        .id(AppConstants.Config.USER_REG_APPROVAL_DURATION_ID_INT)
+                        .name("reg-approval-duration")
+                        .type(AppConfig.Type.NUMBER)
+                        .classType(Integer.class.getCanonicalName())
+                        .value(String.valueOf(24))
+                        .description("Lama waktu yang diperlukan untuk menunggu approval registrasi")
+                        .build()));
+    }
+
 }

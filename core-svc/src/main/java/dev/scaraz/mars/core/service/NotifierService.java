@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.UserApproval;
 import dev.scaraz.mars.core.domain.credential.UserSetting;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.repository.credential.UserSettingRepo;
@@ -21,6 +22,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,10 +48,10 @@ public class NotifierService {
                 user.getName());
     }
 
-    public int sendConfirmation(Ticket ticket, int minute) {
+    public int sendCloseConfirmation(Ticket ticket, int minute) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
-                    .keyboardRow(CONFIRMATION_QUERY_BTN())
+                    .keyboardRow(CONFIRMATION_CLOSE_QUERY_BTN)
                     .build();
 
             Locale lang = useLocale(ticket.getSenderId());
@@ -71,6 +74,67 @@ public class NotifierService {
         }
     }
 
+    public int sendPendingConfirmation(Ticket ticket, int minute, String worklog) {
+        try {
+            InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
+                    .keyboardRow(CONFIRMATION_PENDING)
+                    .build();
+
+            Locale lang = useLocale(ticket.getSenderId());
+
+            String replyDuration = minute + " " + Translator.tr("date.minute", lang);
+            String pendingDuration = "60 " + Translator.tr("date.minute", lang);
+
+            SendMessage send = SendMessage.builder()
+                    .chatId(ticket.getSenderId())
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .replyMarkup(markup)
+                    .text(TelegramUtil.esc(Translator.tr(
+                            "tg.ticket.pending.confirm",
+                            ticket.getNo(),
+                            pendingDuration,
+                            replyDuration,
+                            worklog
+                    )))
+                    .build();
+
+            Message msg = botService.getClient().execute(send);
+            return msg.getMessageId();
+        }
+        catch (TelegramApiException ex) {
+            throw InternalServerException.args(ex, "error.unable.to.notify.user");
+        }
+    }
+
+    public int sendPostPendingConfirmation(Ticket ticket, int minute) {
+        try {
+            InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
+                    .keyboardRow(CONFIRMATION_POST_PENDING)
+                    .build();
+
+            Locale lang = useLocale(ticket.getSenderId());
+
+            String replyDuration = minute + " " + Translator.tr("date.minute", lang);
+
+            SendMessage send = SendMessage.builder()
+                    .chatId(ticket.getSenderId())
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .replyMarkup(markup)
+                    .text(TelegramUtil.esc(Translator.tr(
+                            "tg.ticket.post.pending.confirm",
+                            ticket.getNo(),
+                            replyDuration
+                    )))
+                    .build();
+
+            Message msg = botService.getClient().execute(send);
+            return msg.getMessageId();
+        }
+        catch (TelegramApiException ex) {
+            throw InternalServerException.args(ex, "error.unable.to.notify.user");
+        }
+    }
+
     public int send(long telegramId, String codeOrMessage, Object... args) {
         try {
             log.info("SENDING MESSAGE TO TELEGRAM USER {}", telegramId);
@@ -79,6 +143,21 @@ public class NotifierService {
             return botService.getClient().execute(SendMessage.builder()
                             .chatId(telegramId)
                             .text(TelegramUtil.esc(message))
+                            .parseMode(ParseMode.MARKDOWNV2)
+                            .build())
+                    .getMessageId();
+        }
+        catch (TelegramApiException ex) {
+            throw InternalServerException.args(ex, "error.unable.to.notify.user");
+        }
+    }
+
+    public int sendRaw(long telegramId, String... messages) {
+        try {
+            log.info("SENDING MESSAGE TO TELEGRAM USER {}", telegramId);
+            return botService.getClient().execute(SendMessage.builder()
+                            .chatId(telegramId)
+                            .text(TelegramUtil.esc(messages))
                             .parseMode(ParseMode.MARKDOWNV2)
                             .build())
                     .getMessageId();
@@ -109,18 +188,67 @@ public class NotifierService {
                 .orElse(Translator.LANG_ID);
     }
 
-    private static List<InlineKeyboardButton> CONFIRMATION_QUERY_BTN() {
-        return List.of(
-                // Tidak
-                InlineKeyboardButton.builder()
-                        .text(Translator.tr("text.disagree"))
-                        .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
-                        .build(),
-                // Ya
-                InlineKeyboardButton.builder()
-                        .text(Translator.tr("text.agree"))
-                        .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
-                        .build()
-        );
+    private static List<InlineKeyboardButton> CONFIRMATION_CLOSE_QUERY_BTN = List.of(
+            // Ya
+            InlineKeyboardButton.builder()
+                    .text(Translator.tr("Ya"))
+                    .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
+                    .build(),
+            // Tidak
+            InlineKeyboardButton.builder()
+                    .text(Translator.tr("Tidak"))
+                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
+                    .build()
+    );
+
+    public static List<InlineKeyboardButton> CONFIRMATION_PENDING = List.of(
+            // Tidak
+            InlineKeyboardButton.builder()
+                    .text(Translator.tr("Pending"))
+                    .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
+                    .build(),
+            // Ya
+            InlineKeyboardButton.builder()
+                    .text(Translator.tr("Close"))
+                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
+                    .build()
+    );
+
+    public static List<InlineKeyboardButton> CONFIRMATION_POST_PENDING = List.of(
+            InlineKeyboardButton.builder()
+                    .text(Translator.tr("Sudah"))
+                    .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
+                    .build(),
+            InlineKeyboardButton.builder()
+                    .text(Translator.tr("Belum"))
+                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
+                    .build()
+    );
+
+    public static List<InlineKeyboardButton> UNREGISTERED_USER = List.of(
+            InlineKeyboardButton.builder()
+                    .callbackData(AppConstants.Telegram.REG_PAIR)
+                    .text("Account Pairing")
+                    .build(),
+            InlineKeyboardButton.builder()
+                    .callbackData(AppConstants.Telegram.REG_NEW)
+                    .text("Registration")
+                    .build()
+    );
+
+    public static SendMessage WAITING_APPROVAL(long telegramId, UserApproval approval) {
+        return SendMessage.builder()
+                .chatId(telegramId)
+                .parseMode(ParseMode.MARKDOWNV2)
+                .text(TelegramUtil.esc(
+                        "Mohon menunggu registrasi disetujui",
+                        "",
+                        "NO: " + approval.getNo(),
+                        "Tgl Dibuat: " + approval.getCreatedAt()
+                                .atZone(ZoneId.of("Asia/Jakarta"))
+                                .toLocalDateTime()
+                                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
+                ))
+                .build();
     }
 }

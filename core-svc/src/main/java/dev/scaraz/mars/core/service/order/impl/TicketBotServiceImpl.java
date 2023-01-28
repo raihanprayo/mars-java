@@ -6,8 +6,9 @@ import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.core.domain.cache.StatusConfirm;
+import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.LogTicket;
@@ -15,21 +16,24 @@ import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
-import dev.scaraz.mars.core.repository.cache.StatusConfirmRepo;
 import dev.scaraz.mars.core.service.StorageService;
-import dev.scaraz.mars.core.service.order.LogTicketService;
-import dev.scaraz.mars.core.service.order.TicketBotService;
-import dev.scaraz.mars.core.service.order.TicketFlowService;
-import dev.scaraz.mars.core.service.order.TicketService;
+import dev.scaraz.mars.core.service.order.*;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.core.util.Util;
+import dev.scaraz.mars.telegram.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -38,13 +42,15 @@ import java.util.*;
 @Service
 public class TicketBotServiceImpl implements TicketBotService {
 
+    private final TelegramBotService botService;
+
     private final TicketService service;
     private final TicketFlowService flowService;
     private final TicketQueryService queryService;
     private final IssueQueryService issueQueryService;
 
     private final StorageService storageService;
-    private final StatusConfirmRepo statusConfirmRepo;
+    private final TicketConfirmService ticketConfirmService;
     private final LogTicketService logTicketService;
 
     @Override
@@ -100,14 +106,33 @@ public class TicketBotServiceImpl implements TicketBotService {
             long messageId,
             boolean closeTicket,
             @Nullable String note) {
-        StatusConfirm confirmData = statusConfirmRepo.findById(messageId)
-                .orElseThrow();
+        TicketConfirm confirmData = ticketConfirmService.findById(messageId);
 
         flowService.confirmClose(confirmData.getNo(), !closeTicket, TicketStatusFormDTO.builder()
                 .note(note)
                 .build());
 
-        statusConfirmRepo.deleteById(messageId);
+        ticketConfirmService.deleteById(messageId);
+    }
+
+    @Override
+    public void confirmedPending(long messageId, boolean pendingTicket) {
+        TicketConfirm confirmData = ticketConfirmService.findById(messageId);
+        flowService.confirmPending(confirmData.getNo(), pendingTicket, new TicketStatusFormDTO());
+        ticketConfirmService.deleteById(messageId);
+    }
+
+    @Override
+    public void confirmedPostPending(long messageId, @Nullable String text, @Nullable Collection<PhotoSize> photos) {
+        TicketConfirm confirmData = ticketConfirmService.findById(messageId);
+        TicketStatusFormDTO form = TicketStatusFormDTO.builder()
+                .status(text == null ? TcStatus.CLOSED : TcStatus.REOPEN)
+                .note(text)
+                .build();
+
+        if (photos != null && !photos.isEmpty()) form.setPhotos(new ArrayList<>(photos));
+        flowService.confirmPostPending(confirmData.getNo(), form);
+        ticketConfirmService.deleteById(messageId);
     }
 
     @Override

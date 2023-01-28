@@ -57,7 +57,9 @@ public class StorageService {
         }
 
         String outputTicketNo = TICKET_STORAGE_PATH + "/" + no;
-        TicketAsset asset = new TicketAsset();
+        TicketAsset asset = ticket.getAssets() != null ?
+                ticket.getAssets() :
+                TicketAsset.builder().ticket(ticket).build();
 
         PhotoSize photo = List.copyOf(photos).get(photos.size() - 1);
         try {
@@ -67,7 +69,6 @@ public class StorageService {
                     .build();
 
             Path outputPath = storage.resolve(filename);
-            asset.setTicket(ticket);
             asset.addPath(outputTicketNo + "/" + filename);
 
             botService.getClient().downloadFile(
@@ -100,13 +101,14 @@ public class StorageService {
         }
 
         String outputTicketNo = TICKET_STORAGE_PATH + "/" + no;
-        TicketAsset asset = new TicketAsset();
-        asset.setTicket(ticket);
+        TicketAsset asset = ticket.getAssets() != null ?
+                ticket.getAssets() :
+                TicketAsset.builder().ticket(ticket).build();
 
         for (MultipartFile photo : photos) {
             if (photo.isEmpty()) continue;
 
-            String filename = photo.getOriginalFilename();
+            String filename = photo.getName();
             Path outputPath = storage.resolve(filename);
 
             try {

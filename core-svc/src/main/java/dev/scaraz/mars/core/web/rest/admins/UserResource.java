@@ -1,8 +1,10 @@
 package dev.scaraz.mars.core.web.rest.admins;
 
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
+import dev.scaraz.mars.common.domain.request.UserPasswordUpdateDTO;
 import dev.scaraz.mars.common.domain.request.UserUpdateDashboardDTO;
 import dev.scaraz.mars.common.domain.response.UserDTO;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.UserApproval;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -29,6 +32,7 @@ import java.util.Collection;
 @RequestMapping("/user")
 public class UserResource {
 
+    private final PasswordEncoder passwordEncoder;
     private final CredentialMapper credentialMapper;
 
     private final UserService userService;
@@ -74,6 +78,24 @@ public class UserResource {
     ) {
         User user = userService.updatePartial(userId, req);
         return ResponseEntity.ok(credentialMapper.toDTO(user));
+    }
+
+    @PutMapping("/password/{userId}")
+    public ResponseEntity<?> updateUserPassword(
+            @PathVariable String userId,
+            @RequestBody UserPasswordUpdateDTO updatePassDTO
+    ) {
+        User user = userQueryService.findById(userId);
+        boolean matches = passwordEncoder.matches(updatePassDTO.getOldPass(), user.getPassword());
+        if (!matches)
+            throw new BadRequestException("Password lama tidak sama!");
+
+        boolean newPassEqOld = passwordEncoder.matches(updatePassDTO.getNewPass(), user.getPassword());
+        if (newPassEqOld)
+            throw new BadRequestException("Password baru tidak boleh sama dengan password lama");
+
+        userService.updatePassword(user, updatePassDTO.getNewPass());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

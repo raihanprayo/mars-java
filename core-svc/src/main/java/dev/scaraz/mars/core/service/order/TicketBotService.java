@@ -23,6 +23,10 @@ public interface TicketBotService {
             boolean closeTicket,
             @Nullable String note);
 
+    void confirmedPending(long messageId, boolean pendingTicket);
+
+    void confirmedPostPending(long messageId, String text, @Nullable Collection<PhotoSize> photos);
+
     void validateForm(TicketBotForm form) throws TgInvalidFormError;
 
 }

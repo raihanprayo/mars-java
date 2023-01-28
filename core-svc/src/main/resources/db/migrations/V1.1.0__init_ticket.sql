@@ -14,28 +14,30 @@ create table t_issue
 
 create table t_ticket
 (
-    id           varchar(37) primary key,
-    no           varchar(100) unique not null,
-    witel        varchar(20)         not null,
-    sto          varchar(20),
-    status       varchar(20)         not null,
-    source       varchar(20)         not null,
-    gaul         int4                not null default 0::int4,
+    id                     varchar(37) primary key,
+    no                     varchar(50) unique not null,
+    witel                  varchar(15)        not null,
+    sto                    varchar(5),
+    status                 varchar(15)        not null,
+    source                 varchar(15)        not null,
+    gaul                   int4               not null default 0::int4,
 
-    incident_no  varchar(100)        not null,
-    service_no   varchar(100)        not null,
+    incident_no            varchar(100)       not null,
+    service_no             varchar(100)       not null,
 
-    sender_name  varchar(255)        not null,
-    sender_id    bigint              not null,
+    sender_name            varchar(255)       not null,
+    sender_id              bigint             not null,
 
-    note         text,
+    note                   text,
 
-    ref_issue_id bigint              not null,
+    con_message_id         bigint,
+    con_pending_message_id bigint,
+    ref_issue_id           bigint             not null,
 
-    created_at   timestamp(0)        not null default CURRENT_TIMESTAMP,
-    created_by   varchar(255)        not null,
-    updated_at   timestamp(0)                 default CURRENT_TIMESTAMP,
-    updated_by   varchar(255),
+    created_at             timestamp(0)       not null default CURRENT_TIMESTAMP,
+    created_by             varchar(255)       not null,
+    updated_at             timestamp(0)                default CURRENT_TIMESTAMP,
+    updated_by             varchar(255),
 
     constraint fk_ref_issue_id foreign key (ref_issue_id) references t_issue (id)
 );
@@ -60,3 +62,30 @@ create table t_ticket_agent
     constraint fk_ref_ticket_id foreign key (ref_ticket_id) references t_ticket (id),
     constraint fk_ref_user_id foreign key (ref_user_id) references t_user (id)
 );
+
+create table t_log_ticket
+(
+    id            serial primary key,
+    ref_ticket_no varchar(37)  not null,
+
+    message       varchar(100),
+
+    prev_status   varchar(15),
+    curr_status   varchar(15),
+
+    ref_agent_id  varchar(37),
+
+    created_at    timestamp(0) not null default CURRENT_TIMESTAMP,
+    created_by    varchar(100) not null
+);
+
+create table t_ticket_confirm
+(
+    id         bigint primary key,
+    no         varchar(50)  not null,
+    status     varchar(15)  not null,
+    ttl        int4                  default 30,
+
+    created_at timestamp(0) not null default CURRENT_TIMESTAMP,
+    created_by varchar(100) not null
+)

@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.Gson;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
@@ -97,10 +98,12 @@ public class AppConfig extends AuditableEntity {
         return value;
     }
 
+    @JsonIgnore
     public Boolean getAsBoolean() {
         return Boolean.parseBoolean(value);
     }
 
+    @JsonIgnore
     public Number getAsNumber() {
         try {
             Class<?> aClass = getClass().getClassLoader().loadClass(classType);
@@ -121,6 +124,7 @@ public class AppConfig extends AuditableEntity {
         }
     }
 
+    @JsonIgnore
     public Object getAsJson() {
         try {
             Class<?> aClass = getClass().getClassLoader().loadClass(classType);
@@ -131,33 +135,40 @@ public class AppConfig extends AuditableEntity {
         }
     }
 
+    @JsonIgnore
     public LocalDate getAsDate() {
         if (type != Type.DATE) throw new IllegalStateException("Unable to convert value to Date");
         return LocalDate.parse(value);
     }
 
+    @JsonIgnore
     public LocalDateTime getAsDateTime() {
         if (type != Type.DATE) throw new IllegalStateException("Unable to convert value to Date Time");
         return LocalDateTime.parse(value);
     }
 
 
+    @JsonIgnore
     public boolean isNull() {
         return value == null;
     }
 
+    @JsonIgnore
     public boolean isString() {
         return type == Type.STRING;
     }
 
+    @JsonIgnore
     public boolean isBoolean() {
         return type == Type.BOOLEAN;
     }
 
+    @JsonIgnore
     public boolean isNumber() {
         return type == Type.NUMBER;
     }
 
+    @JsonIgnore
     public boolean isJson() {
         return type == Type.JSON;
     }

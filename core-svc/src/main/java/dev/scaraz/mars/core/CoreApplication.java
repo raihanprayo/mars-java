@@ -8,12 +8,14 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 
 @Slf4j
 @RequiredArgsConstructor
 
+@EnableScheduling
 @SpringBootApplication
 public class CoreApplication implements CommandLineRunner {
     private final InitializerService initializer;

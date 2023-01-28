@@ -16,6 +16,7 @@ import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.credential.UserRepo;
 import dev.scaraz.mars.core.service.AuthService;
+import dev.scaraz.mars.core.service.credential.UserApprovalService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.AuthSource;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -46,6 +47,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepo userRepo;
     private final UserService userService;
     private final UserQueryService userQueryService;
+    private final UserApprovalService userApprovalService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -113,7 +115,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new UnauthorizedException("auth.user.invalid.password");
             }
             else if (!user.isActive())
-                throw new UnauthorizedException("Please contact your administrator to activate your account");
+                throw new UnauthorizedException("Silahkan menghubungi tim admin untuk mengaktifkan akunmu");
         }
 
         Instant issuedAt = Instant.now();
@@ -188,6 +190,11 @@ public class AuthServiceImpl implements AuthService {
         catch (Exception ex) {
             return false;
         }
+    }
+
+    @Override
+    public boolean isUserInApproval(long telegramId) {
+        return userApprovalService.existsByTelegramId(telegramId);
     }
 
 }

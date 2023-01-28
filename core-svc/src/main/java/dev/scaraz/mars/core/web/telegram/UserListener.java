@@ -1,10 +1,11 @@
 package dev.scaraz.mars.core.web.telegram;
 
 import dev.scaraz.mars.common.tools.Translator;
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.core.domain.credential.UserApproval;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
-import dev.scaraz.mars.core.service.credential.UserBotService;
+import dev.scaraz.mars.core.service.credential.UserApprovalService;
+import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
@@ -19,12 +20,15 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.List;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import static dev.scaraz.mars.common.tools.Translator.LANG_EN;
 import static dev.scaraz.mars.common.tools.Translator.LANG_ID;
+import static dev.scaraz.mars.core.service.NotifierService.UNREGISTERED_USER;
+import static dev.scaraz.mars.core.service.NotifierService.WAITING_APPROVAL;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -35,13 +39,19 @@ public class UserListener {
     private final AuthService authService;
 
     private final UserService userService;
+    private final UserApprovalService userApprovalService;
 
-    private final UserBotService userBotService;
+    private final UserRegistrationBotService userRegistrationBotService;
     private final BotRegistrationRepo registrationRepo;
 
     @TelegramCommand(commands = {"/register", "/reg"})
     public SendMessage register(@UserId long telegramId, Message message) {
         if (!authService.isUserRegistered(telegramId)) {
+            if (userApprovalService.existsByTelegramId(telegramId)) {
+                UserApproval approval = userApprovalService.findByTelegramId(telegramId);
+                return WAITING_APPROVAL(telegramId, approval);
+            }
+
             return SendMessage.builder()
                     .chatId(telegramId)
                     .parseMode(ParseMode.MARKDOWNV2)
@@ -50,16 +60,7 @@ public class UserListener {
                             "atau integrasi akun yang ada dengan akun telegram anda"
                     ))
                     .replyMarkup(InlineKeyboardMarkup.builder()
-                            .keyboardRow(List.of(
-                                    InlineKeyboardButton.builder()
-                                            .callbackData(AppConstants.Telegram.REG_PAIR)
-                                            .text("Account Pairing")
-                                            .build(),
-                                    InlineKeyboardButton.builder()
-                                            .callbackData(AppConstants.Telegram.REG_NEW)
-                                            .text("Registration")
-                                            .build()
-                            ))
+                            .keyboardRow(UNREGISTERED_USER)
                             .build())
                     .build();
         }
@@ -107,7 +108,7 @@ public class UserListener {
     @TelegramCommand(commands = "/reg_reset")
     public SendMessage registrationReset(User user) {
         if (registrationRepo.existsById(user.getId()))
-            return userBotService.start(user.getId(), user.getUserName());
+            return userRegistrationBotService.start(user.getId(), user.getUserName());
 
         return null;
     }

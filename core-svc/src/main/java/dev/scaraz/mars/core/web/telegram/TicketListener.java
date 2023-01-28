@@ -9,12 +9,8 @@ import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.query.TicketAgentQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.repository.cache.StatusConfirmRepo;
-import dev.scaraz.mars.core.service.NotifierService;
+import dev.scaraz.mars.core.repository.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.TicketBotService;
-import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.Util;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
@@ -38,7 +34,7 @@ import java.util.stream.Stream;
 public class TicketListener {
 
     private final TicketBotService botService;
-    private final StatusConfirmRepo confirmRepo;
+    private final TicketConfirmRepo confirmRepo;
 
     @TelegramCommand(commands = {"/report", "/lapor"}, description = "Register new ticker/order")
     public SendMessage registerReport(

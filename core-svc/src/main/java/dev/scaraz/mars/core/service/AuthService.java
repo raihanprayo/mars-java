@@ -18,4 +18,5 @@ public interface AuthService extends UserDetailsService {
 
     boolean isUserRegistered(long telegramId);
 
+    boolean isUserInApproval(long telegramId);
 }

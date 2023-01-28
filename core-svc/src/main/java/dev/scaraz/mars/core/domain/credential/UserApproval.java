@@ -45,7 +45,7 @@ public class UserApproval extends TimestampEntity {
     @Enumerated(EnumType.STRING)
     private Witel witel;
 
-    @Column(name = "sub_region")
+    @Column
     private String sto;
 
     @Embedded

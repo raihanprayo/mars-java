@@ -14,4 +14,8 @@ public interface AppConfigService {
     AppConfig getRegistrationRequireApproval_bool();
 
     AppConfig getSendRegistrationApproval_bool();
+
+    AppConfig getPostPending_int();
+
+    AppConfig getApprovalDurationHour_int();
 }

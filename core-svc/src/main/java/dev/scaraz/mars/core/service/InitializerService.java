@@ -126,6 +126,8 @@ public class InitializerService {
         appConfigService.getAllowLogin_bool();
         appConfigService.getRegistrationRequireApproval_bool();
         appConfigService.getSendRegistrationApproval_bool();
+        appConfigService.getPostPending_int();
+        appConfigService.getApprovalDurationHour_int();
     }
 
 }

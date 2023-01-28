@@ -45,7 +45,7 @@ create table t_user
     nik          varchar(50) unique not null,
     phone        varchar(50),
     witel        varchar(15),
-    sto   varchar(50),
+    sto          varchar(50),
     email        varchar(100) unique,
     password     text,
 
@@ -108,6 +108,7 @@ create table t_user_approval
 (
     id          varchar(37) primary key,
     no          varchar(100) unique not null,
+    status      varchar(30),
     name        varchar(100)        not null,
     nik         varchar(100)        not null,
     phone       varchar(30)         not null,

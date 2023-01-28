@@ -68,6 +68,9 @@ public class Ticket extends AuditableEntity {
     @Column(name = "con_message_id")
     private Long confirmMessageId;
 
+    @Column(name = "con_pending_message_id")
+    private Long confirmPendingMessageId;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ref_issue_id", updatable = false)
     private Issue issue;

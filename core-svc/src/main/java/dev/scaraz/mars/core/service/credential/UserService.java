@@ -10,6 +10,8 @@ import dev.scaraz.mars.core.domain.credential.UserSetting;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
+
 public interface UserService extends UserDetailsPasswordService {
 
     User save(User user);
@@ -23,7 +25,7 @@ public interface UserService extends UserDetailsPasswordService {
     void pairing(User user, BotRegistration registration);
 
     @Transactional
-    void createFromBot(Group group, TelegramCreateUserDTO req);
+    void createFromBot(@Nullable Group group, boolean needApproval, TelegramCreateUserDTO req);
 
     User updatePartial(String userId, UserUpdateDashboardDTO dto);
 }

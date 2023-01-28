@@ -16,12 +16,15 @@ import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
 import dev.scaraz.mars.core.repository.credential.*;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.credential.RoleService;
+import dev.scaraz.mars.core.service.credential.UserApprovalService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.DelegateUser;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,7 +51,7 @@ public class UserServiceImpl implements UserService {
 
 
     private final UserRepo userRepo;
-    private final UserApprovalRepo userApprovalRepo;
+    private final UserApprovalService userApprovalService;
     private final RegistrationApprovalRepo registrationApprovalRepo;
 
     private final UserQueryService userQueryService;
@@ -128,8 +131,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void approval(String approvalId, boolean approved) {
-        UserApproval approval = userApprovalRepo.findById(approvalId)
-                .orElseThrow();
+        UserApproval approval = userApprovalService.findByIdOrNo(approvalId);
 
         if (approved) {
             User nuser = save(User.builder()
@@ -160,7 +162,7 @@ public class UserServiceImpl implements UserService {
             catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
-            userApprovalRepo.deleteById(approvalId);
+            userApprovalService.delete(approvalId);
             save(nuser);
         }
         else {
@@ -183,9 +185,9 @@ public class UserServiceImpl implements UserService {
             catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
-            userApprovalRepo.save(approval);
+            userApprovalService.save(approval);
         }
-        registrationApprovalRepo.deleteById(approvalId);
+        userApprovalService.deleteCache(approvalId);
     }
 
     @Override
@@ -203,14 +205,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void createFromBot(@Nullable Group group, TelegramCreateUserDTO req) {
+    public void createFromBot(@Nullable Group group, boolean needApproval, TelegramCreateUserDTO req) {
+        log.info("CREATE NEW USER FROM BOT -- REQUIRE APPROVAL={} DATA={}", needApproval, req);
         try {
-            boolean needApproval = appConfigService.getRegistrationRequireApproval_bool()
-                    .getAsBoolean();
 
             if (needApproval) {
                 String regNo = "REG0" + req.getTgId();
-                UserApproval approval = userApprovalRepo.save(UserApproval.builder()
+                UserApproval approval = userApprovalService.save(UserApproval.builder()
                         .no(regNo)
                         .status(UserApproval.WAIT_APPROVAL)
                         .name(req.getName())
@@ -228,6 +229,7 @@ public class UserServiceImpl implements UserService {
 
                 botService.getClient().execute(SendMessage.builder()
                         .chatId(req.getTgId())
+                        .parseMode(ParseMode.MARKDOWNV2)
                         .text(TelegramUtil.esc(
                                 "Registrasi *" + regNo + "*",
                                 "Terima kasih, permintaan anda kami terima. Menunggu approval dari admin MARS-ROC2",
