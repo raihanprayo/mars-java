@@ -90,13 +90,13 @@ public class TicketResource {
         }
     }
 
-    @GetMapping("/{ticketIdOrNo}")
+    @GetMapping("/detail/{ticketIdOrNo}")
     public ResponseEntity<?> findById(@PathVariable String ticketIdOrNo) {
         TicketSummary ticket = summaryQueryService.findByIdOrNo(ticketIdOrNo);
         return new ResponseEntity<>(ticket, HttpStatus.OK);
     }
 
-    @GetMapping("/{ticketIdOrNo}/relation")
+    @GetMapping("/detail/{ticketIdOrNo}/relation")
     public ResponseEntity<?> getRelations(@PathVariable String ticketIdOrNo) {
         List<TicketSummary> summaries = summaryQueryService.getGaulRelatedByIdOrNo(ticketIdOrNo);
         return ResponseEntity.ok(summaries);
