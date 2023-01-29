@@ -1,23 +1,19 @@
 package dev.scaraz.mars.core.domain.order;
 
-import dev.scaraz.mars.common.tools.TimestampCriteria;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.SuperBuilder;
+import dev.scaraz.mars.common.domain.TimestampEntity;
+import lombok.*;
 
 import javax.persistence.*;
 
 @Getter
 @Setter
-@SuperBuilder(toBuilder = true)
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 
 @Entity
 @Table(name = "t_solution")
-public class Solution extends TimestampCriteria {
+public class Solution extends TimestampEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

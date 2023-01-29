@@ -10,7 +10,8 @@ import java.util.List;
 public interface RoleService {
     Role create(String name);
 
-    Role create(String name, long order);
+    @Transactional
+    Role create(String name, int order);
 
     @Transactional
     List<Roles> addUserRoles(User user, Role... roles);

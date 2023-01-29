@@ -27,7 +27,7 @@ public class BadRequestException extends MarsException {
     }
 
     public static BadRequestException duplicateEntity(Class<?> entity, String field, Object value) {
-        return new BadRequestException("entity.duplicate.exist.detail", new Object[]{entity.getName(), field, value});
+        return new BadRequestException("entity.duplicate.exist.detail", new Object[]{entity.getSimpleName(), field, value});
     }
 
 }

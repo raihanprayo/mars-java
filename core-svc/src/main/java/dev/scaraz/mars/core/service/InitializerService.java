@@ -67,7 +67,7 @@ public class InitializerService {
             roleService.create(AppConstants.Authority.USER_ROLE, 1);
 
         if (!roleRepo.existsByName(USER_DASHBOARD_ROLE))
-            roleService.create(USER_DASHBOARD_ROLE);
+            roleService.create(USER_DASHBOARD_ROLE, 2);
 
         if (!userQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
             log.debug("CREATE DEFAULT ADMIN USER");

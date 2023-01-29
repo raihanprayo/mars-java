@@ -1,5 +1,7 @@
 package dev.scaraz.mars.core.web.rest;
 
+import dev.scaraz.mars.common.domain.request.CreateSolutionDTO;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.repository.order.SolutionRepo;
@@ -10,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -27,9 +31,21 @@ public class SolutionResource {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Solution solution) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(repo.save(solution));
+    public ResponseEntity<?> create(@RequestBody @Valid CreateSolutionDTO solution) {
+        try {
+            Solution ns = Solution.builder()
+                    .name(solution.getName())
+                    .description(solution.getDescription())
+                    .build();
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(repo.save(ns));
+        }
+        catch (Exception ex) {
+            if (ex.getMessage().contains("t_solution_name_key"))
+                throw BadRequestException.duplicateEntity(Solution.class, "name", solution.getName());
+
+            throw ex;
+        }
     }
 
 }

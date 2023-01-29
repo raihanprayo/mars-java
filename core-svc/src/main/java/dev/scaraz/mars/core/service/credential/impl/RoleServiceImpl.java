@@ -37,14 +37,14 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     @Transactional
-    public Role create(String name, long order) {
+    public Role create(String name, int order) {
         if (repo.existsByName(name))
             throw BadRequestException.duplicateEntity(Role.class, "name", name);
 
         log.info("CREATE NEW ROLE {}", name);
         return save(Role.builder()
                 .name(name.toLowerCase())
-                .order(0)
+                .order(order)
                 .build());
     }
 

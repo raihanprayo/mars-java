@@ -74,7 +74,7 @@ public class NotifierService {
                     .parseMode(ParseMode.MARKDOWNV2)
                     .replyMarkup(markup)
                     .text(TelegramUtil.esc(
-                            "Tiket *{0}*:",
+                            String.format("Tiket *%s*:", ticket.getNo()),
                             "Telah selesai dikerjakan.",
                             "Harap konfirmasi bahwa masalah telah terselesaikan.",
                             "",
