@@ -86,13 +86,18 @@ public class TelegramArgumentMapper implements BeanPostProcessor {
                         .findFirst();
 
                 if (resolverOptional.isPresent()) {
+                    log.debug(" - using matched resolver {}", resolverOptional.get().getClass().getCanonicalName());
                     Object value = resolverOptional.get().resolve(mp, context, update, messageCommand);
-                    if (ClassUtils.isAssignable(value.getClass(), parameterType)) return value;
 
-                    throw new IllegalArgumentException(String.format("Invalid parameter type (%s), resolver return type (%s) are different from declared type.",
-                            parameterType,
-                            value.getClass()
-                    ));
+                    if (value != null) {
+                        if (ClassUtils.isAssignable(value.getClass(), parameterType)) return value;
+                        throw new IllegalArgumentException(String.format("Invalid parameter type (%s), resolver return type (%s) are different from declared type.",
+                                parameterType,
+                                value.getClass()
+                        ));
+                    }
+
+                    return null;
                 }
             }
             else {

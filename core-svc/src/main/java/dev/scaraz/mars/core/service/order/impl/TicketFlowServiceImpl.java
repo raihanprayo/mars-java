@@ -169,12 +169,13 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 TcStatus.PENDING,
                 form.getNote());
 
+        if (form.getNote() == null || StringUtils.isBlank(form.getNote().trim()))
+            throw BadRequestException.args("Pending worklog cannot be empty");
+
+
         int minute = appConfigService.getCloseConfirm_int()
                 .getAsNumber()
                 .intValue();
-
-        if (form.getNote() == null || StringUtils.isBlank(form.getNote().trim()))
-            throw BadRequestException.args("Pending worklog cannot be empty");
 
         int messageId = notifierService.sendPendingConfirmation(ticket, minute, form.getNote());
         ticket.setStatus(TcStatus.CONFIRMATION);

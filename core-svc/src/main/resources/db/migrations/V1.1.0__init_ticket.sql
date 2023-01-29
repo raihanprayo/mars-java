@@ -83,7 +83,7 @@ create table t_ticket_confirm
 (
     id         bigint primary key,
     no         varchar(50)  not null,
-    status     varchar(15)  not null,
+    status     varchar(30)  not null,
     ttl        int4                  default 30,
 
     created_at timestamp(0) not null default CURRENT_TIMESTAMP,

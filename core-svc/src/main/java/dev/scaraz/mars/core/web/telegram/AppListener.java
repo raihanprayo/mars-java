@@ -13,6 +13,7 @@ import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketConfirmService;
+import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.*;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
@@ -91,6 +92,8 @@ public class AppListener {
             }
         }
         else if (message.getReplyToMessage() != null) {
+            log.info("REPLY TO MESSAGE STATE -- MESSAGE ID {}", message.getReplyToMessage().getMessageId());
+
             Message reply = message.getReplyToMessage();
             if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.POST_PENDING_CONFIRMATION)) {
                 ticketBotService.confirmedPostPending(reply.getMessageId(), text, message.getPhoto());
@@ -101,7 +104,11 @@ public class AppListener {
     }
 
     @TelegramCallbackQuery
-    public SendMessage onCallbackQuery(CallbackQuery cq, User user) {
+    public SendMessage onCallbackQuery(
+            CallbackQuery cq,
+            User user,
+            @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
+    ) {
         log.info("{}", gson.toJson(cq));
 
         Message message = cq.getMessage();

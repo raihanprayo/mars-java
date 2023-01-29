@@ -13,6 +13,7 @@ import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -35,6 +36,9 @@ public class NotifierService {
 
     private final TelegramBotService botService;
     private final UserSettingRepo userSettingRepo;
+
+    @Lazy
+    private final AppConfigService appConfigService;
 
     public void sendTaken(Ticket ticket, User user) {
         send(ticket.getSenderId(), "tg.ticket.wip",
@@ -83,7 +87,14 @@ public class NotifierService {
             Locale lang = useLocale(ticket.getSenderId());
 
             String replyDuration = minute + " " + Translator.tr("date.minute", lang);
-            String pendingDuration = "60 " + Translator.tr("date.minute", lang);
+
+            int pendingMinute = appConfigService.getPostPending_int()
+                    .getAsNumber()
+                    .intValue();
+            String pendingDuration = String.format("%s %s",
+                    pendingMinute,
+                    Translator.tr("date.minute", lang)
+            );
 
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
@@ -217,10 +228,6 @@ public class NotifierService {
             InlineKeyboardButton.builder()
                     .text(Translator.tr("Sudah"))
                     .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
-                    .build(),
-            InlineKeyboardButton.builder()
-                    .text(Translator.tr("Belum"))
-                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
                     .build()
     );
 

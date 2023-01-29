@@ -1,19 +1,15 @@
 package dev.scaraz.mars.telegram.config.processor;
 
-import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
 import dev.scaraz.mars.telegram.model.TelegramHandlers;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
-import dev.scaraz.mars.telegram.util.TelegramUtil;
 import dev.scaraz.mars.telegram.util.Util;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Map;
@@ -85,16 +81,4 @@ public class MessageProcessor extends TelegramProcessor {
         return Optional.empty();
     }
 
-    @Override
-    public Optional<BotApiMethod<?>> handleExceptions(TelegramBotService bot, Update update, Exception ex) {
-        super.handleExceptions(bot, update, ex);
-        long chatId = update.getMessage().getChatId();
-
-        String message = TelegramUtil.exception(ex);
-        return Optional.of(SendMessage.builder()
-                .chatId(chatId)
-                .text(message == null ? "<unknown>" : message)
-                .parseMode(ParseMode.MARKDOWNV2)
-                .build());
-    }
 }

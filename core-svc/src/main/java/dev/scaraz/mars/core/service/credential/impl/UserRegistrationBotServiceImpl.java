@@ -102,29 +102,18 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
                 .build());
 
         if (optUser.isPresent()) {
-            try {
-                botService.getClient().execute(SendMessage.builder()
-                        .chatId(registration.getId())
-                        .parseMode(ParseMode.MARKDOWNV2)
-                        .text(TelegramUtil.esc("User ditemukan, melakukan penyesuaian"))
-                        .build());
-
-                registration.setWitel(ansWitel);
-                userService.pairing(optUser.get(), registration);
-                registrationRepo.deleteById(registration.getId());
-                return SendMessage.builder()
-                        .chatId(registration.getId())
-                        .parseMode(ParseMode.MARKDOWNV2)
-                        .text(TelegramUtil.esc(
-                                "Berhasil melakukan penyesuaian",
-                                "",
-                                "_Selamat Datang di *MARS-ROC2*_"
-                        ))
-                        .build();
-            }
-            catch (TelegramApiException e) {
-                throw new TgError(e);
-            }
+            registration.setWitel(ansWitel);
+            userService.pairing(optUser.get(), registration);
+            registrationRepo.deleteById(registration.getId());
+            return SendMessage.builder()
+                    .chatId(registration.getId())
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.esc(
+                            "Berhasil melakukan penyesuaian",
+                            "",
+                            "_Selamat Datang di *MARS-ROC2*_"
+                    ))
+                    .build();
         }
 
         registrationRepo.deleteById(registration.getId());

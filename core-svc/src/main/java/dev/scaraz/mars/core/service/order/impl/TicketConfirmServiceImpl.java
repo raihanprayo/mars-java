@@ -77,12 +77,14 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
 
     @Override
     public void deleteById(long id) {
+        log.debug("DELETE CONFIRM -- ID {}", id);
         repo.deleteById(id);
         deleteCache(id);
     }
 
     @Override
     public void deleteCache(long id) {
+        log.debug("DELETE CONFIRM CACHE -- ID {}", id);
         String messageId = id + "";
         stringRedisTemplate.boundSetOps(TC_CONFIRM_NS)
                 .remove(messageId);
