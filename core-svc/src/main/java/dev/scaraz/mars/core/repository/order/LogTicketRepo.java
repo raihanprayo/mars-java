@@ -11,6 +11,12 @@ import java.util.List;
 @Repository
 public interface LogTicketRepo extends JpaRepository<LogTicket, Long> {
 
+    List<LogTicket> findAllByTicketIdIn(List<String> ticketIds);
+    List<LogTicket> findAllByTicketIdInOrderByCreatedAtAsc(List<String> ticketIds);
+    LogTicket findByTicketId(String ticketId);
+
+    LogTicket findByTicketIdAndPrevAndCurr(String ticketId, TcStatus prev, TcStatus curr);
+
     List<LogTicket> findAllByCreatedAtGreaterThanEqualAndCreatedAtLessThanEqualOrderByCreatedAtAsc(
             Instant from,
             Instant to

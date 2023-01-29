@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -29,47 +30,13 @@ public class ChartServiceImpl implements ChartService {
     private final LogTicketRepo logTicketRepo;
     private final TicketSummaryQueryService ticketSummaryQueryService;
 
-
     @Override
     @Transactional(readOnly = true)
-    public List<PieChartDTO<String>> pieTicketByActionAge(LocalDate from, LocalDate to) {
-        Instant[] instants = rangeConvert(from, to);
-        Instant start = instants[0];
-        Instant end = instants[1];
-
-        Map<String, LogTicket> temp = new HashMap<>();
-        List<LogTicket> logs = logTicketRepo.findAllByCreatedAtGreaterThanEqualAndCreatedAtLessThanEqualOrderByCreatedAtAsc(start, end);
-
-        for (LogTicket log : logs) temp.putIfAbsent(log.getTicket().getId(), log);
-
+    public List<PieChartDTO<String>> pieTicketByAge(List<TicketSummary> summaries) {
         Map<String, PieChartDTO<String>> category = createCategoryMap();
         Instant now = Instant.now();
 
-        for (LogTicket log : temp.values())
-            groupAndPush(now, log.getCreatedAt(), category);
-
-        return new ArrayList<>(category.values());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<PieChartDTO<String>> pieTicketByAge(LocalDate from, LocalDate to) {
-        Instant[] instants = rangeConvert(from, to);
-        Instant start = instants[0];
-        Instant end = instants[1];
-
-        List<TicketSummary> all = ticketSummaryQueryService.findAll(
-                TicketSummaryCriteria.builder()
-                        .createdAt(new InstantFilter()
-                                .setGte(start)
-                                .setLte(end))
-                        .build()
-        );
-
-        Map<String, PieChartDTO<String>> category = createCategoryMap();
-        Instant now = Instant.now();
-
-        for (TicketSummary summary : all)
+        for (TicketSummary summary : summaries)
             groupAndPush(now, summary.getCreatedAt(), category);
 
         return new ArrayList<>(category.values());
@@ -77,20 +44,24 @@ public class ChartServiceImpl implements ChartService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PieChartDTO<String>> pieTicketByResponseAge(LocalDate from, LocalDate to) {
-        Instant[] instants = rangeConvert(from, to);
-        Instant start = instants[0];
-        Instant end = instants[1];
-
-        List<LogTicket> logs = logTicketRepo.findAllByPrevAndCurrAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(
-                TcStatus.OPEN, TcStatus.PROGRESS,
-                start, end);
-
+    public List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries) {
         Map<String, PieChartDTO<String>> category = createCategoryMap();
         Instant now = Instant.now();
 
-        for (LogTicket log : logs)
-            groupAndPush(now, log.getCreatedAt(), category);
+        for (TicketSummary summary : summaries) {
+            groupAndPush(now, summary.getAge().getAction(), category);
+        }
+
+        return new ArrayList<>(category.values());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries) {
+        Map<String, PieChartDTO<String>> category = createCategoryMap();
+        for (TicketSummary summary : summaries) {
+            groupAndPush(summary.getCreatedAt(), summary.getAge().getResponse(), category);
+        }
 
         return new ArrayList<>(category.values());
     }
@@ -133,8 +104,11 @@ public class ChartServiceImpl implements ChartService {
         return category;
     }
 
-    private void groupAndPush(Instant now, Instant dataCreatedAt, Map<String, PieChartDTO<String>> category) {
-        long durationMili = now.toEpochMilli() - dataCreatedAt.toEpochMilli();
+    private void groupAndPush(Instant now, @Nullable Instant dataCreatedAt, Map<String, PieChartDTO<String>> category) {
+        long durationMili = now.toEpochMilli() - Optional.ofNullable(dataCreatedAt)
+                .orElse(now)
+                .toEpochMilli();
+
         if (durationMili <= MILI_15_MINUTES.toMillis()) {
             category.computeIfPresent(CATEGORY_15_MINUTES, (k, v) -> {
                 v.setValue(v.getValue() + 1);

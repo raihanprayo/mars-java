@@ -80,7 +80,7 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
     }
 
     @Override
-    public List<String> getAllByIds(Instant from, Instant to) {
+    public List<String> getAllIds(Instant from, Instant to) {
         return repo.getAllIds(from, to);
     }
 

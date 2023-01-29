@@ -39,12 +39,16 @@ public class TicketAgent extends AuditableEntity {
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ref_ticket_id")
+    @ToString.Exclude
     private Ticket ticket;
 
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "ref_user_id")
     private User user;
+
+    @Column
+    private Long solution;
 
     @Column
     private String description;

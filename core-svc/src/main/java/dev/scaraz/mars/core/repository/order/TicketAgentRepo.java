@@ -31,11 +31,13 @@ public interface TicketAgentRepo extends JpaRepository<TicketAgent, String>, Jpa
     default TicketAgent updateStatusAndCloseStatusAndCloseDesc(String id,
                                                                AgStatus agStatus,
                                                                TcStatus tcStatus,
+                                                               @Nullable Long solution,
                                                                @Nullable String desc) {
         return findById(id).map(ag -> {
                     ag.setStatus(agStatus);
                     ag.setCloseStatus(tcStatus);
                     ag.setDescription(desc);
+                    ag.setSolution(solution);
                     return save(ag);
                 })
                 .orElseThrow(() -> NotFoundException.entity(TicketAgent.class, "id", id));

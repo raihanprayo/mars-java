@@ -18,6 +18,8 @@ public class TicketStatusFormDTO {
 
     private String note;
 
+    private Long solution;
+
     private MultipartFile[] files;
 
     private List<PhotoSize> photos;

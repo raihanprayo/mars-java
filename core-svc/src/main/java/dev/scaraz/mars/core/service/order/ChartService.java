@@ -1,6 +1,8 @@
 package dev.scaraz.mars.core.service.order;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
+import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -17,11 +19,11 @@ public interface ChartService {
             CATEGORY_60_MINUTES = "30-60 menit",
             CATEGORY_MORE_THAN_60_MINUTES = "60+ menit";
 
-    List<PieChartDTO<String>> pieTicketByActionAge(LocalDate from, LocalDate to);
+    List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries);
 
-    List<PieChartDTO<String>> pieTicketByAge(LocalDate from, LocalDate to);
+    List<PieChartDTO<String>> pieTicketByAge(List<TicketSummary> summaries);
 
-    List<PieChartDTO<String>> pieTicketByResponseAge(LocalDate from, LocalDate to);
+    List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries);
 
     Instant[] rangeConvert(LocalDate from, LocalDate to);
 }

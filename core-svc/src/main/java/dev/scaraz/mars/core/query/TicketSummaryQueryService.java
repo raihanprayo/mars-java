@@ -11,7 +11,7 @@ public interface TicketSummaryQueryService extends BaseQueryService<TicketSummar
 
     List<TicketSummary> getGaulRelatedByIdOrNo(String tcIdOrNo);
 
-    List<String> getAllByIds(Instant from, Instant to);
+    List<String> getAllIds(Instant from, Instant to);
 
     TicketSummary findByIdOrNo(String id);
 

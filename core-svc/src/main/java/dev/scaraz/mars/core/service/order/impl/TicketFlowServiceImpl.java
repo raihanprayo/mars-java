@@ -118,13 +118,14 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 summary.getWipId(),
                 AgStatus.CLOSED,
                 TcStatus.CLOSED,
+                form.getSolution(),
                 form.getNote());
 
         int minute = appConfigService.getCloseConfirm_int()
                 .getAsNumber()
                 .intValue();
 
-        int messageId = notifierService.sendCloseConfirmation(ticket, minute);
+        int messageId = notifierService.sendCloseConfirmation(ticket, minute, form);
         ticket.setStatus(TcStatus.CONFIRMATION);
         ticket.setConfirmMessageId((long) messageId);
 
@@ -167,6 +168,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 summary.getWipId(),
                 AgStatus.CLOSED,
                 TcStatus.PENDING,
+                form.getSolution(),
                 form.getNote());
 
         if (form.getNote() == null || StringUtils.isBlank(form.getNote().trim()))
@@ -177,7 +179,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 .getAsNumber()
                 .intValue();
 
-        int messageId = notifierService.sendPendingConfirmation(ticket, minute, form.getNote());
+        int messageId = notifierService.sendPendingConfirmation(ticket, minute, form);
         ticket.setStatus(TcStatus.CONFIRMATION);
         ticket.setConfirmMessageId((long) messageId);
 
@@ -215,6 +217,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                 summary.getWipId(),
                 AgStatus.CLOSED,
                 TcStatus.DISPATCH,
+                null,
                 form.getNote());
 
         if (form.getFiles() != null)

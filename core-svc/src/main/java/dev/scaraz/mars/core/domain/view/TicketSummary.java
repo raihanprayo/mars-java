@@ -94,6 +94,9 @@ public class TicketSummary extends AuditableEntity {
     @Type(type = "string-array")
     private String[] assets;
 
+    @Embedded
+    private TicketAge age;
+
     @Transient
     private Set<LogTicket> logs = new HashSet<>();
 

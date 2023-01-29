@@ -1,14 +1,14 @@
 Dashboard:
-- Submit tiket harus ada deskripsi
+- Submit tiket harus ada deskripsi                  o
 - status CLOSE, konfirmasi hapus button TIDAK       o
 - filter label "No Tiket" ganti "Order No"          o
 - filter Witel pilihan bisa multiple                o
 - tiket Source/Sumber dimasukin ke view             o
 
 Tambahan:
-- Actual Solution
-- Page Reports donlot file
-- Page Reports filter criteria samain dengan biasanya table
+- Actual Solution                                               o
+- Page Reports donlot file                                      x
+- Page Reports filter criteria samain dengan biasanya table     x
 
 - Leaderboards Assurance Guarantee/Productivity skip
 

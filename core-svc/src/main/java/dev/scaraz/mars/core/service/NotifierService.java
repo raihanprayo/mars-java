@@ -1,13 +1,16 @@
 package dev.scaraz.mars.core.service;
 
+import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.UserApproval;
 import dev.scaraz.mars.core.domain.credential.UserSetting;
+import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.repository.credential.UserSettingRepo;
+import dev.scaraz.mars.core.repository.order.SolutionRepo;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
@@ -27,6 +30,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,6 +44,9 @@ public class NotifierService {
     @Lazy
     private final AppConfigService appConfigService;
 
+    @Lazy
+    private final SolutionRepo solutionRepo;
+
     public void sendTaken(Ticket ticket, User user) {
         send(ticket.getSenderId(), "tg.ticket.wip",
                 ticket.getNo(),
@@ -52,7 +59,7 @@ public class NotifierService {
                 user.getName());
     }
 
-    public int sendCloseConfirmation(Ticket ticket, int minute) {
+    public int sendCloseConfirmation(Ticket ticket, int minute, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(CONFIRMATION_CLOSE_QUERY_BTN)
@@ -60,14 +67,30 @@ public class NotifierService {
 
             Locale lang = useLocale(ticket.getSenderId());
 
+            String expireMinute = minute + " " + Translator.tr("date.minute", lang);
+            Optional<TicketStatusFormDTO> optForm = Optional.ofNullable(form);
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
                     .parseMode(ParseMode.MARKDOWNV2)
                     .replyMarkup(markup)
-                    .text(TelegramUtil.esc(Translator.tr("tg.ticket.confirm", lang,
-                            ticket.getNo(),
-                            minute + " " + Translator.tr("date.minute", lang)
-                    )))
+                    .text(TelegramUtil.esc(
+                            "Tiket *{0}*:",
+                            "Telah selesai dikerjakan.",
+                            "Harap konfirmasi bahwa masalah telah terselesaikan.",
+                            "",
+                            "Actual Solution: " + optForm
+                                    .map(TicketStatusFormDTO::getSolution)
+                                    .flatMap(solutionRepo::findById)
+                                    .map(Solution::getName)
+                                    .orElse("-")
+                            ,
+                            "Worklog: " + optForm
+                                    .map(TicketStatusFormDTO::getNote)
+                                    .orElse("-"),
+                            "",
+                            "_Balas pesan ini dengan mengreply command /reopen dan tambahkan deskripsi jika diperlukan, atau menekan tombol yang disediakan.\n",
+                            "Jika dalam " + expireMinute + " tidak ada respon, tiket akan close secara otomatis_"
+                    ))
                     .build();
 
             Message msg = botService.getClient().execute(send);
@@ -78,7 +101,7 @@ public class NotifierService {
         }
     }
 
-    public int sendPendingConfirmation(Ticket ticket, int minute, String worklog) {
+    public int sendPendingConfirmation(Ticket ticket, int minute, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(CONFIRMATION_PENDING)
@@ -96,6 +119,7 @@ public class NotifierService {
                     Translator.tr("date.minute", lang)
             );
 
+            Optional<TicketStatusFormDTO> optForm = Optional.ofNullable(form);
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
                     .parseMode(ParseMode.MARKDOWNV2)
@@ -105,7 +129,12 @@ public class NotifierService {
                             ticket.getNo(),
                             pendingDuration,
                             replyDuration,
-                            worklog
+                            optForm.map(TicketStatusFormDTO::getSolution)
+                                    .flatMap(solutionRepo::findById)
+                                    .map(Solution::getName)
+                                    .orElse("-"),
+                            optForm.map(TicketStatusFormDTO::getNote)
+                                    .orElse("-")
                     )))
                     .build();
 
