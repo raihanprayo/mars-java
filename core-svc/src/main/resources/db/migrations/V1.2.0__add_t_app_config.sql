@@ -2,6 +2,7 @@ create table t_app_config
 (
     id          int4 primary key,
     name        varchar(100) unique not null,
+    title       varchar(100)        not null,
     type        varchar(255),
     class_type  varchar(255),
     value       text,

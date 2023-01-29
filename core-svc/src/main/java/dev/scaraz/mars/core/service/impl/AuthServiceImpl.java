@@ -6,9 +6,11 @@ import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.domain.response.JwtToken;
 import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
+import dev.scaraz.mars.common.exception.web.AccessDeniedException;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.config.security.JwtUtil;
@@ -83,9 +85,16 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
         User user = loadUserByUsername(authReq.getNik());
-        if (marsProperties.getWitel() != user.getWitel()) {
 
-        }
+        boolean allowedLogin = user.hasAnyRole(
+                AppConstants.Authority.ADMIN_ROLE,
+                AppConstants.Authority.USER_DASHBOARD_ROLE
+        );
+
+        if (!allowedLogin)
+            throw AccessDeniedException.args("Kamu tidak punya akses login ke dashboard");
+//        if (marsProperties.getWitel() != user.getWitel()) {
+//        }
 //        if (!rolesRepo.existsByUserIdAndRoleName(user.getId(), AppConstants.Authority.ADMIN_ROLE)) {
 //            if (!user.canLogin()) {
 //                String translate = Translator.tr("auth.group.disable.login", user.getGroup().getName());

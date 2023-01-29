@@ -100,24 +100,24 @@ public class TicketListener {
     }
 
 
-    @TelegramCommand(commands = "/close", description = "close ticket")
-    public void closeTicket(@TgAuth User user, @Text String text, Message message) {
-        // NOTE:
-        // Parsing format: /close <ticket-no> [description]
-        // required no tiket
-        // optional description
-
-        if (message.getReplyToMessage() != null) {
-            long messageId = message
-                    .getReplyToMessage()
-                    .getMessageId();
-
-            confirmRepo.findById(messageId).ifPresent(confirm -> {
-                log.info("TICKET CLOSE CONFIRMATION -- MESSAGE ID={}", messageId);
-                botService.confirmedClose(messageId, true, text);
-            });
-        }
-    }
+//    @TelegramCommand(commands = "/close", description = "close ticket")
+//    public void closeTicket(@TgAuth User user, @Text String text, Message message) {
+//        // NOTE:
+//        // Parsing format: /close <ticket-no> [description]
+//        // required no tiket
+//        // optional description
+//
+//        if (message.getReplyToMessage() != null) {
+//            long messageId = message
+//                    .getReplyToMessage()
+//                    .getMessageId();
+//
+//            confirmRepo.findById(messageId).ifPresent(confirm -> {
+//                log.info("TICKET CLOSE CONFIRMATION -- MESSAGE ID={}", messageId);
+//                botService.confirmedClose(messageId, true, text);
+//            });
+//        }
+//    }
 
 
     @TelegramCommand(commands = "/reopen", description = "close ticket")

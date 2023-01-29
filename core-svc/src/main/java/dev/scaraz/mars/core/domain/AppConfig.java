@@ -5,15 +5,21 @@ import com.google.gson.Gson;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.ClassUtils;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -32,8 +38,9 @@ public class AppConfig extends AuditableEntity {
         STRING,
         NUMBER,
         BOOLEAN,
-        DATE,
-        JSON
+        JSON,
+        DURATION,
+        ARRAY
     }
 
     @Id
@@ -43,13 +50,15 @@ public class AppConfig extends AuditableEntity {
     private String name;
 
     @Column
+    private String title;
+
+    @Column(updatable = false)
     @Enumerated(EnumType.STRING)
     private Type type;
 
-    @Column(name = "class_type")
+    @Column(name = "class_type", updatable = false)
     private String classType;
 
-    @Column
     @Setter(AccessLevel.NONE)
     @Getter(AccessLevel.NONE)
     private String value;
@@ -58,6 +67,10 @@ public class AppConfig extends AuditableEntity {
     private String description;
 
     public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setAsString(String value) {
         type = Type.STRING;
         classType = String.class.getCanonicalName();
         this.value = value;
@@ -81,18 +94,17 @@ public class AppConfig extends AuditableEntity {
         this.value = gson.toJson(value);
     }
 
-    public void setAsDate(LocalDate localDate) {
-        type = Type.DATE;
-        classType = LocalDate.class.getCanonicalName();
-        this.value = localDate.format(DateTimeFormatter.ISO_DATE);
+    public void setAsDuration(Duration duration) {
+        type = Type.DURATION;
+        classType = Duration.class.getCanonicalName();
+        this.value = duration.toString();
     }
 
-    public void setAsDateTime(LocalDateTime localDateTime) {
-        type = Type.DATE;
-        classType = LocalDateTime.class.getCanonicalName();
-        this.value = localDateTime.format(DateTimeFormatter.ISO_DATE_TIME);
+    public void setAsArray(Iterable<String> values) {
+        type = Type.ARRAY;
+        classType = List.class.getCanonicalName();
+        this.value = String.join("|", values);
     }
-
 
     public String getValue() {
         return value;
@@ -136,17 +148,20 @@ public class AppConfig extends AuditableEntity {
     }
 
     @JsonIgnore
-    public LocalDate getAsDate() {
-        if (type != Type.DATE) throw new IllegalStateException("Unable to convert value to Date");
-        return LocalDate.parse(value);
+    public Duration getAsDuration() {
+        if (!isDuration()) throw new IllegalStateException("Unable to convert value as Duration type");
+        return Duration.parse(this.value);
     }
 
     @JsonIgnore
-    public LocalDateTime getAsDateTime() {
-        if (type != Type.DATE) throw new IllegalStateException("Unable to convert value to Date Time");
-        return LocalDateTime.parse(value);
-    }
+    public List<String> getAsArray() {
+        if (!isArray()) throw new IllegalStateException("Unable to convert value as Array type");
 
+        if (isNull()) return new ArrayList<>();
+        return Stream.of(value.split("\\|"))
+                .filter(StringUtils::isNoneBlank)
+                .collect(Collectors.toList());
+    }
 
     @JsonIgnore
     public boolean isNull() {
@@ -172,4 +187,13 @@ public class AppConfig extends AuditableEntity {
     public boolean isJson() {
         return type == Type.JSON;
     }
+
+    public boolean isDuration() {
+        return type == Type.DURATION;
+    }
+
+    public boolean isArray() {
+        return type == Type.ARRAY;
+    }
+
 }

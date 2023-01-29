@@ -24,6 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 
+import static dev.scaraz.mars.common.utils.AppConstants.Authority.*;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -55,14 +57,17 @@ public class InitializerService {
     @Transactional
     public void preInitRolesAndCreateAdmin() {
         Role adminRole;
-        if (roleRepo.existsByName(AppConstants.Authority.ADMIN_ROLE)) {
-            adminRole = roleRepo.findByName(AppConstants.Authority.ADMIN_ROLE)
+        if (roleRepo.existsByName(ADMIN_ROLE)) {
+            adminRole = roleRepo.findByName(ADMIN_ROLE)
                     .orElseThrow();
         }
-        else adminRole = roleService.create(AppConstants.Authority.ADMIN_ROLE, 100);
+        else adminRole = roleService.create(ADMIN_ROLE, 100);
 
-        if (!roleRepo.existsByName(AppConstants.Authority.USER_ROLE))
+        if (!roleRepo.existsByName(USER_ROLE))
             roleService.create(AppConstants.Authority.USER_ROLE, 1);
+
+        if (!roleRepo.existsByName(USER_DASHBOARD_ROLE))
+            roleService.create(USER_DASHBOARD_ROLE);
 
         if (!userQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
             log.debug("CREATE DEFAULT ADMIN USER");
@@ -128,6 +133,7 @@ public class InitializerService {
         appConfigService.getSendRegistrationApproval_bool();
         appConfigService.getPostPending_int();
         appConfigService.getApprovalDurationHour_int();
+        appConfigService.getApprovalAdminEmails_arr();
     }
 
 }

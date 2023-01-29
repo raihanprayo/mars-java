@@ -151,7 +151,7 @@ public class QueryFieldUtil {
             spec = Specification.where(null);
 
             if (filter.getGt() != null) spec = spec.and(GreaterThan.spec(filter.getGt(), false, attribute));
-            else if (filter.getGte() != null) spec = spec.and(GreaterThan.spec(filter.getGt(), true, attribute));
+            else if (filter.getGte() != null) spec = spec.and(GreaterThan.spec(filter.getGte(), true, attribute));
 
             if (filter.getLt() != null) spec = spec.and(LessThan.spec(filter.getLt(), false, attribute));
             else if (filter.getLte() != null) spec = spec.and(LessThan.spec(filter.getLte(), true, attribute));
@@ -486,8 +486,8 @@ public class QueryFieldUtil {
 
         private static <T extends Comparable<? super T>> Predicate greaterThan(CriteriaBuilder b, Path<T> path, boolean equality, T value) {
             return equality ?
-                    b.lessThanOrEqualTo(path, value) :
-                    b.lessThan(path, value);
+                    b.greaterThanOrEqualTo(path, value) :
+                    b.greaterThan(path, value);
         }
 
         public static <T extends Comparable<? super T>, E, A1, A2, A3, A4> Specification<E> spec(

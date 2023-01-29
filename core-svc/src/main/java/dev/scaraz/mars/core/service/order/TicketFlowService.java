@@ -23,6 +23,9 @@ public interface TicketFlowService {
 
     Ticket close(String ticketIdOrNo, TicketStatusFormDTO form);
 
+    @Transactional
+    Ticket pending(String ticketIdOrNo, TicketStatusFormDTO form);
+
     Ticket dispatch(String ticketIdOrNo, TicketStatusFormDTO form);
 
     Ticket confirmClose(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form);

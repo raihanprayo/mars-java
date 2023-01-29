@@ -27,6 +27,7 @@ public interface AppConstants {
 
     interface Authority {
         String ADMIN_ROLE = "admin";
+        String USER_DASHBOARD_ROLE = "user_dashboard";
         String USER_ROLE = "user";
 
         String ADMIN_NIK = "000001413914";
@@ -50,6 +51,28 @@ public interface AppConstants {
         long SEND_REG_APPROVAL_TO_ADMINS_ID_BOOL = 4;
         long POST_PENDING_CONFIRM_ID_INT = 5;
         long USER_REG_APPROVAL_DURATION_ID_INT = 6;
+        long APPROVAL_ADMIN_EMAILS_ID_ARR = 7;
+
+        static String title(long id) {
+            switch ((int) id) {
+                case (int) CLOSE_CONFIRM_ID_INT:
+                    return "Lama Durasi Konfirmasi";
+                case (int) ALLOW_OTHER_WITEL_ID_BOOL:
+                    return "Witel lain diperbolehkan login";
+                case (int) USER_REG_APPROVAL_ID_BOOL:
+                    return "Registrasi Diperlukan Approval";
+                case (int) SEND_REG_APPROVAL_TO_ADMINS_ID_BOOL:
+                    return "null";
+                case (int) POST_PENDING_CONFIRM_ID_INT:
+                    return "Lama Waktu Status Pending";
+                case (int) USER_REG_APPROVAL_DURATION_ID_INT:
+                    return "Lama Waktu Approval";
+                case (int) APPROVAL_ADMIN_EMAILS_ID_ARR:
+                    return "Email admin untuk Approval";
+            }
+
+            return null;
+        }
     }
 
 }

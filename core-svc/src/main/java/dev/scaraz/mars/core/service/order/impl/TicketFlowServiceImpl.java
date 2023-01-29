@@ -150,6 +150,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         return service.save(ticket);
     }
 
+    @Override
     @Transactional
     public Ticket pending(String ticketIdOrNo, TicketStatusFormDTO form) {
         log.info("PENDING FORM {}", form);
@@ -244,6 +245,11 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         if (ticket.getStatus() != TcStatus.CONFIRMATION)
             throw BadRequestException.args("error.ticket.illegal.confirm.state");
 
+        boolean isRequestor = SecurityUtil.getCurrentUser()
+                .getTg().getId() == ticket.getSenderId();
+        if (!isRequestor)
+            throw BadRequestException.args("Invalid requestor owner");
+
         TicketAgent prevAgent = agentQueryService.findAll(
                 TicketAgentCriteria.builder()
                         .ticketId(new StringFilter().setEq(ticket.getId()))
@@ -332,8 +338,12 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         log.info("TICKET CLOSE CONFIRM REQUEST OF NO {} -- PENDING ? {}", ticketIdOrNo, doPending);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 
+        boolean isRequestor = SecurityUtil.getCurrentUser()
+                .getTg().getId() == ticket.getSenderId();
         if (ticket.getStatus() != TcStatus.CONFIRMATION)
             throw BadRequestException.args("error.ticket.illegal.confirm.state");
+        if (!isRequestor)
+            throw BadRequestException.args("Invalid requestor owner");
 
         if (doPending) {
             ticket.setStatus(TcStatus.PENDING);

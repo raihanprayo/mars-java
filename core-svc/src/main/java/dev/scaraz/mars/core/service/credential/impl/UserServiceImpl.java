@@ -145,7 +145,7 @@ public class UserServiceImpl implements UserService {
                     .build());
 
             Role roleUser = roleQueryService.findByIdOrName("user");
-            roleService.addUserRoles(nuser, roleUser);
+            nuser.setRoles(Set.of(roleUser));
 
             try {
                 botService.getClient().execute(SendMessage.builder()
@@ -168,14 +168,19 @@ public class UserServiceImpl implements UserService {
         else {
             approval.setStatus(UserApproval.REQUIRE_DOCUMENT);
             try {
+                List<String> emails = appConfigService.getApprovalAdminEmails_arr()
+                        .getAsArray();
+
+                String concatedEmails = emails.isEmpty() ? " - " : String.join("\n", emails);
+
                 botService.getClient().execute(SendMessage.builder()
                         .chatId(approval.getTg().getId())
                         .parseMode(ParseMode.MARKDOWNV2)
                         .text(TelegramUtil.esc(
                                 "Request registrasi *" + approval.getNo() + "*, telah ditolak.",
+                                "",
                                 "Silahkan menghubungi admin *MARS-ROC2* via email ke:",
-                                " - ",
-                                " - ",
+                                concatedEmails,
                                 "dengan melampirkan KTP dan NDA (Pakta Integritas) terbaru.",
                                 "",
                                 "Terima Kasih"
@@ -208,7 +213,6 @@ public class UserServiceImpl implements UserService {
     public void createFromBot(@Nullable Group group, boolean needApproval, TelegramCreateUserDTO req) {
         log.info("CREATE NEW USER FROM BOT -- REQUIRE APPROVAL={} DATA={}", needApproval, req);
         try {
-
             if (needApproval) {
                 String regNo = "REG0" + req.getTgId();
                 UserApproval approval = userApprovalService.save(UserApproval.builder()
@@ -241,7 +245,7 @@ public class UserServiceImpl implements UserService {
             }
             else {
                 auditProvider.setName(req.getName());
-                userRepo.saveAndFlush(User.builder()
+                User user = userRepo.saveAndFlush(User.builder()
                         .nik(req.getNik())
                         .name(req.getName())
                         .phone(req.getPhone())
@@ -253,6 +257,11 @@ public class UserServiceImpl implements UserService {
                                 .username(req.getTgUsername())
                                 .build())
                         .build());
+
+                Role roleUser = roleQueryService.findByIdOrName("user");
+                user.addRoles(roleUser);
+
+                save(user);
             }
         }
         catch (TelegramApiException e) {

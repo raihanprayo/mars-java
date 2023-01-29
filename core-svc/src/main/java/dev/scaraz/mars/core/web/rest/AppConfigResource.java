@@ -1,13 +1,14 @@
 package dev.scaraz.mars.core.web.rest;
 
+import dev.scaraz.mars.core.domain.AppConfig;
 import dev.scaraz.mars.core.repository.AppConfigRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,4 +26,10 @@ public class AppConfigResource {
         );
     }
 
+    @PutMapping
+    public ResponseEntity<?> update(@RequestBody List<AppConfig> configs) {
+        return ResponseEntity.ok(
+                configRepo.saveAll(configs)
+        );
+    }
 }

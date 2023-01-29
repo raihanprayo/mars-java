@@ -84,4 +84,18 @@ public class TicketWipResource {
                 HttpStatus.OK
         );
     }
+
+    @PostMapping(path = "/pending/{idOrNo}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> pendingTicket(
+            @PathVariable("idOrNo") String ticketIdOrNo,
+            @Valid @ModelAttribute TicketStatusFormDTO form
+    ) {
+        form.setStatus(TcStatus.PENDING);
+        flowService.pending(ticketIdOrNo, form);
+        return new ResponseEntity<>(
+                summaryQueryService.findByIdOrNo(ticketIdOrNo),
+                HttpStatus.OK
+        );
+    }
 }

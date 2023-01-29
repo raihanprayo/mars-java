@@ -180,4 +180,14 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     public boolean isEnabled() {
         return isActive();
     }
+
+    public void addRoles(Role... roles) {
+        this.roles.addAll(List.of(roles));
+    }
+
+    public boolean hasAnyRole(String... predicate) {
+        List<String> roleList = List.of(predicate);
+        return roles.stream().anyMatch(r -> roleList.contains(r.getName()));
+    }
+
 }

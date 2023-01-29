@@ -57,6 +57,8 @@ public class RoleServiceImpl implements RoleService {
                         .role(role)
                         .build())
                 .collect(Collectors.toList());
+
+        log.info("ADD ROLE FOR USER {} -- {}", user.getId(), roles);
         return rolesRepo.saveAll(mappedRole);
     }
 

@@ -188,20 +188,19 @@ public class NotifierService {
                 .orElse(Translator.LANG_ID);
     }
 
-    private static List<InlineKeyboardButton> CONFIRMATION_CLOSE_QUERY_BTN = List.of(
+    private static final List<InlineKeyboardButton> CONFIRMATION_CLOSE_QUERY_BTN = List.of(
             // Ya
             InlineKeyboardButton.builder()
                     .text(Translator.tr("Ya"))
                     .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
-                    .build(),
-            // Tidak
-            InlineKeyboardButton.builder()
-                    .text(Translator.tr("Tidak"))
-                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
                     .build()
+//            InlineKeyboardButton.builder()
+//                    .text(Translator.tr("Tidak"))
+//                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
+//                    .build()
     );
 
-    public static List<InlineKeyboardButton> CONFIRMATION_PENDING = List.of(
+    public static final List<InlineKeyboardButton> CONFIRMATION_PENDING = List.of(
             // Tidak
             InlineKeyboardButton.builder()
                     .text(Translator.tr("Pending"))
@@ -214,7 +213,7 @@ public class NotifierService {
                     .build()
     );
 
-    public static List<InlineKeyboardButton> CONFIRMATION_POST_PENDING = List.of(
+    public static final List<InlineKeyboardButton> CONFIRMATION_POST_PENDING = List.of(
             InlineKeyboardButton.builder()
                     .text(Translator.tr("Sudah"))
                     .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
@@ -225,7 +224,7 @@ public class NotifierService {
                     .build()
     );
 
-    public static List<InlineKeyboardButton> UNREGISTERED_USER = List.of(
+    public static final List<InlineKeyboardButton> UNREGISTERED_USER = List.of(
             InlineKeyboardButton.builder()
                     .callbackData(AppConstants.Telegram.REG_PAIR)
                     .text("Account Pairing")
