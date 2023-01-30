@@ -7,6 +7,7 @@ import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.domain.credential.User;
@@ -233,9 +234,12 @@ public class TicketBotServiceImpl implements TicketBotService {
         FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
 
         String problem = form.getIssue();
-        Optional<Issue> issueOpt = issueQueryService.findOne(IssueCriteria.builder()
+        IssueCriteria criteria = IssueCriteria.builder()
                 .name(new StringFilter().setLike(problem))
-                .build());
+                .product(new ProductFilter().setEq(form.getProduct()))
+                .build();
+
+        Optional<Issue> issueOpt = issueQueryService.findOne(criteria);
 
         if (issueOpt.isPresent()) {
             form.setIssueId(issueOpt.get().getId());
