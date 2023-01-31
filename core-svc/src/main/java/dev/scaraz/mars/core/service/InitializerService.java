@@ -168,7 +168,7 @@ public class InitializerService {
             ISSUES_BUTTON_LIST.put(product, buttons);
         }
 
-        log.info("ISSUE BUTTONS CACHE {}", ISSUES_BUTTON_LIST);
+        log.debug("ISSUE BUTTONS CACHE {}", ISSUES_BUTTON_LIST);
     }
 
     @Async

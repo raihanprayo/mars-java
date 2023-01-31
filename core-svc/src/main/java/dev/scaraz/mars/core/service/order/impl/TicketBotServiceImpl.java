@@ -7,6 +7,7 @@ import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
 import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
+import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.order.*;
@@ -25,17 +26,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -176,10 +181,54 @@ public class TicketBotServiceImpl implements TicketBotService {
 
     // Instant Form
     @Override
-    public void instantForm_start(long userId, long issueId) throws TelegramApiException {
+    public SendMessage instantForm_start(Long chatId) throws TelegramApiException {
+        if (TelegramContextHolder.getChatSource() != ChatSource.PRIVATE) {
+            return SendMessage.builder()
+                    .chatId(chatId)
+                    .text("Maaf, menu ini hanya bisa ditampilkan melalui private chat")
+                    .build();
+        }
+
+        String name = SecurityUtil.getCurrentUser().getName();
+
+        InlineKeyboardMarkup markUp = new InlineKeyboardMarkup();
+        SendMessage toSend = SendMessage.builder()
+                .parseMode(ParseMode.MARKDOWNV2)
+                .chatId(chatId)
+                .text(TelegramUtil.esc(
+                        String.format("Halo *%s*", name),
+                        "Silahkan pilih menu sesuai kendala:"
+                ))
+                .replyMarkup(markUp)
+                .build();
+
+//            Function<Product, String> textTitle = (p) -> String.format("Jenis *%s*", p);
+
+        LinkedMultiValueMap<Product, InlineKeyboardButton> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        for (Product product : all.keySet()) {
+            buttons.add(List.of(InlineKeyboardButton.builder()
+                    .text(product.name())
+                    .callbackData("DUMMY")
+                    .build()));
+            buttons.add(all.get(product));
+        }
+
+        markUp.setKeyboard(buttons);
+        int messageId = botService.getClient().execute(toSend).getMessageId();
+        ticketConfirmService.save(TicketConfirm.builder()
+                .id(messageId)
+                .status(TicketConfirm.INSTANT_START)
+                .build());
+        return null;
+    }
+
+    @Override
+    public void instantForm_answerIssue(long messageId, long issueId) throws TelegramApiException {
         issueQueryService.findById(issueId)
                 .orElseThrow(() -> NotFoundException.entity(Issue.class, "id", issueId));
 
+        long userId = Objects.requireNonNull(SecurityUtil.getCurrentUser()).getTg().getId();
         Message message = botService.getClient().execute(SendMessage.builder()
                 .chatId(userId)
                 .text("Mohon pastikan apakah jaringan terindikasi LOS dan/atau Unspec ?")
@@ -194,115 +243,109 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .status(TicketConfirm.INSTANT_NETWORK)
                 .ttl(30)
                 .build());
+
+        ticketConfirmService.deleteById(messageId);
     }
 
     @Override
     public SendMessage instantForm_answerNetwork(long messageId, boolean agree) throws TelegramApiException {
-        try {
-            Long userId = SecurityUtil.getCurrentUser().getTg().getId();
-            if (agree) {
-                return SendMessage.builder()
+        Long userId = SecurityUtil.getCurrentUser().getTg().getId();
+        if (agree) {
+            return SendMessage.builder()
+                    .chatId(userId)
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.esc(
+                            "Maaf, *Mars* hanya bisa memproses tiket dengan jaringan yang tidak *LOS* dan/atau *Unspec*.",
+                            "Silahkan melakukan pengecekan dan perbaikan fisik."
+                    ))
+                    .build();
+        }
+
+        TicketConfirm confirm = ticketConfirmService.findById(messageId);
+        Issue issue = issueQueryService.findById(confirm.getIssueId())
+                .orElseThrow();
+
+        String desc = issue.getDescription() == null ? "-" : issue.getDescription();
+        Integer paramMessageId = botService.getClient().execute(SendMessage.builder()
                         .chatId(userId)
                         .parseMode(ParseMode.MARKDOWNV2)
                         .text(TelegramUtil.esc(
-                                "Maaf, *Mars* hanya bisa memproses tiket dengan jaringan yang tidak *LOS* dan/atau *Unspec*.",
-                                "Silahkan melakukan pengecekan dan perbaikan fisik."
+                                "Pastikan parameter berikut sudah sesuai:",
+                                "",
+                                desc,
+                                "",
+                                "Apakah kendala sudah teratasi ?"
                         ))
-                        .build();
-            }
+                        .replyMarkup(InlineKeyboardMarkup.builder()
+                                .keyboardRow(List.of(
+                                        NotifierService.BTN_AGREE_CUSTOM("Sudah"),
+                                        NotifierService.BTN_DIAGREE_CUSTOM("Belum")
+                                ))
+                                .build())
+                        .build())
+                .getMessageId();
 
-            TicketConfirm confirm = ticketConfirmService.findById(messageId);
-            Issue issue = issueQueryService.findById(confirm.getIssueId())
-                    .orElseThrow();
-
-            String desc = issue.getDescription() == null ? "-" : issue.getDescription();
-            Integer paramMessageId = botService.getClient().execute(SendMessage.builder()
-                            .chatId(userId)
-                            .parseMode(ParseMode.MARKDOWNV2)
-                            .text(TelegramUtil.esc(
-                                    "Pastikan parameter berikut sudah sesuai:",
-                                    "",
-                                    desc,
-                                    "",
-                                    "Apakah kendala sudah teratasi ?"
-                            ))
-                            .replyMarkup(InlineKeyboardMarkup.builder()
-                                    .keyboardRow(List.of(
-                                            NotifierService.BTN_AGREE_CUSTOM("Sudah"),
-                                            NotifierService.BTN_DIAGREE_CUSTOM("Belum")
-                                    ))
-                                    .build())
-                            .build())
-                    .getMessageId();
-
-            ticketConfirmService.save(TicketConfirm.builder()
-                    .id(paramMessageId)
-                    .issueId(issue.getId())
-                    .status(TicketConfirm.INSTANT_PARAM)
-                    .ttl(30)
-                    .build());
-            return null;
-        }
-        finally {
-            ticketConfirmService.deleteById(messageId);
-        }
+        ticketConfirmService.save(TicketConfirm.builder()
+                .id(paramMessageId)
+                .issueId(issue.getId())
+                .status(TicketConfirm.INSTANT_PARAM)
+                .ttl(30)
+                .build());
+        ticketConfirmService.deleteById(messageId);
+        return null;
     }
 
     @Override
     @Transactional
     public SendMessage instantForm_answerParamRequirement(long messageId, boolean agree) throws TelegramApiException {
-        try {
-            if (agree) {
-                return SendMessage.builder()
+        if (agree) {
+            return SendMessage.builder()
+                    .chatId(TelegramContextHolder.getChatId())
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.esc(
+                            "Nice!, Mohon selalu pastikan parameter tersebut kedepannya ya!",
+                            "Terima kasih telah menggunakan *MARS*"
+                    ))
+                    .build();
+        }
+
+        TicketConfirm confirm = ticketConfirmService.findById(messageId);
+        Issue issue = issueQueryService.findById(confirm.getIssueId())
+                .orElseThrow();
+
+        String name = Objects.requireNonNullElse(issue.getAlias(), issue.getName());
+        String additionalField = issue.getParams().isEmpty() ? null :
+                issue.getParams().stream()
+                        .sorted(Comparator.comparing(IssueParam::getType))
+                        .map(this::generateIssueParam)
+                        .collect(Collectors.joining("\n")) + "\n";
+
+        // TODO: tambah custom parameter per-issue
+        Integer paramMessageId = botService.getClient().execute(SendMessage.builder()
                         .chatId(TelegramContextHolder.getChatId())
                         .parseMode(ParseMode.MARKDOWNV2)
                         .text(TelegramUtil.esc(
-                                "Nice!, Mohon selalu pastikan parameter tersebut kedepannya ya!",
-                                "Terima kasih telah menggunakan *MARS*"
+                                String.format("*[%s]* Mohon input request order sesuai format:", name),
+                                "",
+                                "Tiket NOSSA: _(opt)_",
+                                "No Service: _(required)_",
+                                additionalField,
+                                "",
+                                "_Balas pesan, dengan mengreply balon chat ini_"
                         ))
-                        .build();
-            }
+                        .build())
+                .getMessageId();
 
-            TicketConfirm confirm = ticketConfirmService.findById(messageId);
-            Issue issue = issueQueryService.findById(confirm.getIssueId())
-                    .orElseThrow();
+        confirm.setId(paramMessageId);
 
-            String name = Objects.requireNonNullElse(issue.getAlias(), issue.getName());
-            String additionalField = issue.getParams().isEmpty() ? null :
-                    issue.getParams().stream()
-                            .sorted(Comparator.comparing(IssueParam::getType))
-                            .map(this::generateIssueParam)
-                            .collect(Collectors.joining("\n")) + "\n";
-
-            // TODO: tambah custom parameter per-issue
-            Integer paramMessageId = botService.getClient().execute(SendMessage.builder()
-                            .chatId(TelegramContextHolder.getChatId())
-                            .parseMode(ParseMode.MARKDOWNV2)
-                            .text(TelegramUtil.esc(
-                                    String.format("*[%s]* Mohon input request order sesuai format:", name),
-                                    "",
-                                    "Tiket NOSSA: _(opt)_",
-                                    "No Service: _(required)_",
-                                    additionalField,
-                                    "",
-                                    "_Balas pesan, dengan mengreply balon chat ini_"
-                            ))
-                            .build())
-                    .getMessageId();
-
-            confirm.setId(paramMessageId);
-
-            ticketConfirmService.save(TicketConfirm.builder()
-                    .id(paramMessageId)
-                    .issueId(issue.getId())
-                    .status(TicketConfirm.INSTANT_FORM)
-                    .ttl(30)
-                    .build());
-            return null;
-        }
-        finally {
-            ticketConfirmService.deleteById(messageId);
-        }
+        ticketConfirmService.save(TicketConfirm.builder()
+                .id(paramMessageId)
+                .issueId(issue.getId())
+                .status(TicketConfirm.INSTANT_FORM)
+                .ttl(30)
+                .build());
+        ticketConfirmService.deleteById(messageId);
+        return null;
     }
 
     @Override

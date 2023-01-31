@@ -2,16 +2,12 @@ package dev.scaraz.mars.core.web.telegram;
 
 import com.google.gson.Gson;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
-import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
-import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
-import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
-import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
@@ -28,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -36,16 +31,11 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
@@ -202,9 +192,9 @@ public class AppListener {
             }
 
             default: {
-                if (queryData.startsWith(REPORT_ISSUE)) {
+                if (queryData.startsWith(REPORT_ISSUE) && ticketConfirmService.existsById(messageId)) {
                     long issueId = Long.parseLong(queryData.substring(queryData.lastIndexOf(":") + 1));
-                    ticketBotService.instantForm_start(user.getId(), issueId);
+                    ticketBotService.instantForm_answerIssue(messageId, issueId);
                 }
             }
         }
@@ -221,40 +211,8 @@ public class AppListener {
             return userListener.register(tgUserId, message);
         }
         else {
-            if (TelegramContextHolder.getChatSource() != ChatSource.PRIVATE)
-                return SendMessage.builder()
-                        .chatId(chatId)
-                        .text("Maaf, menu ini hanya bisa ditampilkan melalui private chat")
-                        .build();
-
-            String name = marsUser.getName();
-
-            botService.getClient().execute(SendMessage.builder()
-                    .parseMode(ParseMode.MARKDOWNV2)
-                    .chatId(chatId)
-                    .text(TelegramUtil.esc(
-                            String.format("Halo *%s*", name),
-                            "Silahkan pilih menu sesuai kendala:"
-                    ))
-                    .build());
-
-            Function<Product, String> textTitle = (p) -> String.format("Jenis *%s*", p);
-
-            LinkedMultiValueMap<Product, InlineKeyboardButton> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
-            for (Product product : all.keySet()) {
-                String text = textTitle.apply(product);
-                botService.getClient().execute(SendMessage.builder()
-                        .parseMode(ParseMode.MARKDOWNV2)
-                        .chatId(chatId)
-                        .text(text)
-                        .replyMarkup(InlineKeyboardMarkup.builder()
-                                .keyboardRow(ISSUES_BUTTON_LIST.get(product))
-                                .build())
-                        .build());
-            }
+            return ticketBotService.instantForm_start(chatId);
         }
-
-        return null;
     }
 
     @TelegramCommand(commands = "/help", isHelp = true)

@@ -53,6 +53,7 @@ public class TicketConfirm {
             POST_PENDING_CONFIRMATION = "POST_PENDING_CONFIRM";
 
     public static final String
+            INSTANT_START="INSTANT_START",
             INSTANT_NETWORK = "INSTANT_NETWORK",
             INSTANT_PARAM = "INSTANT_PARAM",
             INSTANT_FORM = "INSTANT_FORM";

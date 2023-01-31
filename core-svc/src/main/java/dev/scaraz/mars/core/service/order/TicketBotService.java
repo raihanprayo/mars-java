@@ -32,7 +32,10 @@ public interface TicketBotService {
     void validateForm(TicketBotForm form) throws TgInvalidFormError;
 
     // Instant Form
-    void instantForm_start(long userId, long issueId) throws TelegramApiException;
+    SendMessage instantForm_start(Long chatId) throws TelegramApiException;
+
+    // Instant Form
+    void instantForm_answerIssue(long userId, long issueId) throws TelegramApiException;
 
     SendMessage instantForm_answerNetwork(long messageId, boolean agree) throws TelegramApiException;
 
