@@ -23,7 +23,7 @@ import java.util.concurrent.*;
  */
 @Slf4j
 public class LongPollingTelegramBotService extends TelegramBotService implements AutoCloseable {
-    private final ExecutorService botExecutor;
+//    private final ExecutorService botExecutor;
 
     private final TelegramLongPollingBot client;
 
@@ -33,17 +33,19 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
     private final TaskExecutor executor;
 
     public LongPollingTelegramBotService(TelegramBotProperties botProperties,
-                                         TelegramBotsApi api, TaskExecutor executor) {
+                                         TelegramBotsApi api,
+                                         TaskExecutor executor
+    ) {
         log.info("Registering Long Polling with {}", botProperties);
 
         this.client = createBot(botProperties);
         this.executor = executor;
         try {
             this.session = api.registerBot(client);
-            this.botExecutor = new ThreadPoolExecutor(1, botProperties.getMaxThreads(),
-                    1L, TimeUnit.HOURS,
-                    new SynchronousQueue<>()
-            );
+//            this.botExecutor = new ThreadPoolExecutor(1, botProperties.getMaxThreads(),
+//                    1L, TimeUnit.HOURS,
+//                    new SynchronousQueue<>()
+//            );
         }
         catch (TelegramApiException e) {
             log.error("Cannot register Long Polling with {}", botProperties, e);
@@ -58,22 +60,22 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
 
     @Override
     public void close() {
-        botExecutor.shutdown();
-        boolean terminated = false;
-        try {
-            terminated = botExecutor.awaitTermination(5, TimeUnit.SECONDS);
-            if (!terminated) {
-                log.error("Bot executor did not terminated in 5 seconds");
-            }
-        }
-        catch (InterruptedException e) {
-            log.error("Bot executor service termination awaiting failed", e);
-        }
-
-        if (!terminated) {
-            int droppedTasks = botExecutor.shutdownNow().size();
-            log.error("Executor was abruptly shut down. {} tasks will not be executed", droppedTasks);
-        }
+//        botExecutor.shutdown();
+//        boolean terminated = false;
+//        try {
+//            terminated = botExecutor.awaitTermination(5, TimeUnit.SECONDS);
+//            if (!terminated) {
+//                log.error("Bot executor did not terminated in 5 seconds");
+//            }
+//        }
+//        catch (InterruptedException e) {
+//            log.error("Bot executor service termination awaiting failed", e);
+//        }
+//
+//        if (!terminated) {
+//            int droppedTasks = botExecutor.shutdownNow().size();
+//            log.error("Executor was abruptly shut down. {} tasks will not be executed", droppedTasks);
+//        }
     }
 
     private TelegramLongPollingBot createBot(TelegramBotProperties botProperties) {

@@ -7,10 +7,13 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 
@@ -29,7 +32,18 @@ public class Issue extends AuditableEntity {
     @Column
     private String name;
 
+    @Column(name = "display_name")
+    private String alias;
+
+    /**
+     * Instruksi
+     */
     @Column
     private String description;
+
+    @Builder.Default
+    @ToString.Exclude
+    @OneToMany(mappedBy = "issue", fetch = FetchType.EAGER)
+    private List<IssueParam> params = new ArrayList<>();
 
 }

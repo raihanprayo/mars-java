@@ -1,42 +1,41 @@
 package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
+import dev.scaraz.mars.common.exception.web.InternalServerException;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
 import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
-import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
-import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.core.domain.order.TicketConfirm;
+import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.order.Issue;
-import dev.scaraz.mars.core.domain.order.LogTicket;
-import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.criteria.IssueCriteria;
+import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.*;
 import dev.scaraz.mars.core.util.SecurityUtil;
-import dev.scaraz.mars.core.util.Util;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
+import dev.scaraz.mars.telegram.util.TelegramUtil;
+import dev.scaraz.mars.telegram.util.enums.ChatSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -50,13 +49,16 @@ public class TicketBotServiceImpl implements TicketBotService {
     private final TicketQueryService queryService;
     private final IssueQueryService issueQueryService;
 
-    private final StorageService storageService;
+
+    private final TicketFormService ticketFormService;
     private final TicketConfirmService ticketConfirmService;
+
+    private final StorageService storageService;
     private final LogTicketService logTicketService;
 
     @Override
     @Transactional
-    public Ticket registerForm(TicketBotForm form, Collection<PhotoSize> photos) {
+    public Ticket registerForm(TicketBotForm form, @Nullable Collection<PhotoSize> photos) {
         Issue issue = issueQueryService.findById(form.getIssueId())
                 .orElseThrow();
 
@@ -143,7 +145,7 @@ public class TicketBotServiceImpl implements TicketBotService {
 
         log.info("Descriptor Keys {}", descriptors.keySet());
         for (String fieldName : descriptors.keySet()) {
-            if (fieldName.equals("description")) continue;
+            if (fieldName.equals("note")) continue;
             try {
                 Field field = form.getClass().getDeclaredField(fieldName);
                 field.setAccessible(true);
@@ -165,92 +167,221 @@ public class TicketBotServiceImpl implements TicketBotService {
             }
         }
 
-
         // value validations
-        checkFieldIncidentNo(form);
-        checkFieldServiceNo(form);
-        checkFieldIssue(form);
+        ticketFormService.checkFieldIncidentNo(form);
+        ticketFormService.checkFieldServiceNo(form);
+        ticketFormService.checkFieldIssue(form);
     }
 
-    private void checkFieldIncidentNo(TicketBotForm form) {
-        final String FIELD_NAME = "incident";
-        FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
-        String incident = form.getIncident();
-        if (!incident.toUpperCase().startsWith("IN")) {
-            throw new TgInvalidFormError(
-                    FIELD_NAME,
-                    "error.ticket.form.incident",
-                    List.of(formDescriptor.alias())
-            );
-        }
 
-        String substring = incident.substring(2);
-        if (!Util.isStringNumber(substring)) {
-            throw new TgInvalidFormError(
-                    FIELD_NAME,
-                    "error.ticket.form.incident",
-                    List.of(formDescriptor.alias())
-            );
-        }
+    // Instant Form
+    @Override
+    public void instantForm_start(long userId, long issueId) throws TelegramApiException {
+        issueQueryService.findById(issueId)
+                .orElseThrow(() -> NotFoundException.entity(Issue.class, "id", issueId));
+
+        Message message = botService.getClient().execute(SendMessage.builder()
+                .chatId(userId)
+                .text("Mohon pastikan apakah jaringan terindikasi LOS dan/atau Unspec ?")
+                .replyMarkup(InlineKeyboardMarkup.builder()
+                        .keyboardRow(List.of(NotifierService.BTN_AGREE, NotifierService.BTN_DISAGREE))
+                        .build())
+                .build());
+
+        ticketConfirmService.save(TicketConfirm.builder()
+                .id(message.getMessageId())
+                .issueId(issueId)
+                .status(TicketConfirm.INSTANT_NETWORK)
+                .ttl(30)
+                .build());
     }
 
-    private void checkFieldServiceNo(TicketBotForm form) {
-        final String FIELD_NAME = "service";
-        FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
-        String serviceNo = form.getService();
-
-        boolean isIptvInternet = List.of(Product.IPTV, Product.INTERNET).contains(form.getProduct());
-        if (isIptvInternet) {
-            boolean strNumbrAndPrefix1 = Util.isStringNumber(serviceNo) &&
-                    serviceNo.startsWith("1");
-
-            if (!strNumbrAndPrefix1) {
-                throw new TgInvalidFormError(
-                        FIELD_NAME,
-                        "error.ticket.form.service",
-                        List.of(formDescriptor.alias())
-                );
+    @Override
+    public SendMessage instantForm_answerNetwork(long messageId, boolean agree) throws TelegramApiException {
+        try {
+            Long userId = SecurityUtil.getCurrentUser().getTg().getId();
+            if (agree) {
+                return SendMessage.builder()
+                        .chatId(userId)
+                        .parseMode(ParseMode.MARKDOWNV2)
+                        .text(TelegramUtil.esc(
+                                "Maaf, *Mars* hanya bisa memproses tiket dengan jaringan yang tidak *LOS* dan/atau *Unspec*.",
+                                "Silahkan melakukan pengecekan dan perbaikan fisik."
+                        ))
+                        .build();
             }
-        }
-        else {
-            boolean prefixPlus = serviceNo.startsWith("+");
-            boolean strNumbr = Util.isStringNumber(prefixPlus ?
-                    serviceNo.substring(1) :
-                    serviceNo
-            );
 
-            if (!strNumbr) {
-                throw new TgInvalidFormError(
-                        FIELD_NAME,
-                        "error.ticket.form.service",
-                        List.of(formDescriptor.alias())
-                );
-            }
+            TicketConfirm confirm = ticketConfirmService.findById(messageId);
+            Issue issue = issueQueryService.findById(confirm.getIssueId())
+                    .orElseThrow();
+
+            String desc = issue.getDescription() == null ? "-" : issue.getDescription();
+            Integer paramMessageId = botService.getClient().execute(SendMessage.builder()
+                            .chatId(userId)
+                            .parseMode(ParseMode.MARKDOWNV2)
+                            .text(TelegramUtil.esc(
+                                    "Pastikan parameter berikut sudah sesuai:",
+                                    "",
+                                    desc,
+                                    "",
+                                    "Apakah kendala sudah teratasi ?"
+                            ))
+                            .replyMarkup(InlineKeyboardMarkup.builder()
+                                    .keyboardRow(List.of(
+                                            NotifierService.BTN_AGREE_CUSTOM("Sudah"),
+                                            NotifierService.BTN_DIAGREE_CUSTOM("Belum")
+                                    ))
+                                    .build())
+                            .build())
+                    .getMessageId();
+
+            ticketConfirmService.save(TicketConfirm.builder()
+                    .id(paramMessageId)
+                    .issueId(issue.getId())
+                    .status(TicketConfirm.INSTANT_PARAM)
+                    .ttl(30)
+                    .build());
+            return null;
+        }
+        finally {
+            ticketConfirmService.deleteById(messageId);
         }
     }
 
-    private void checkFieldIssue(TicketBotForm form) {
-        final String FIELD_NAME = "issue";
-        FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
+    @Override
+    @Transactional
+    public SendMessage instantForm_answerParamRequirement(long messageId, boolean agree) throws TelegramApiException {
+        try {
+            if (agree) {
+                return SendMessage.builder()
+                        .chatId(TelegramContextHolder.getChatId())
+                        .parseMode(ParseMode.MARKDOWNV2)
+                        .text(TelegramUtil.esc(
+                                "Nice!, Mohon selalu pastikan parameter tersebut kedepannya ya!",
+                                "Terima kasih telah menggunakan *MARS*"
+                        ))
+                        .build();
+            }
 
-        String problem = form.getIssue();
-        IssueCriteria criteria = IssueCriteria.builder()
-                .name(new StringFilter().setLike(problem))
-                .product(new ProductFilter().setEq(form.getProduct()))
+            TicketConfirm confirm = ticketConfirmService.findById(messageId);
+            Issue issue = issueQueryService.findById(confirm.getIssueId())
+                    .orElseThrow();
+
+            String name = Objects.requireNonNullElse(issue.getAlias(), issue.getName());
+            String additionalField = issue.getParams().isEmpty() ? null :
+                    issue.getParams().stream()
+                            .sorted(Comparator.comparing(IssueParam::getType))
+                            .map(this::generateIssueParam)
+                            .collect(Collectors.joining("\n")) + "\n";
+
+            // TODO: tambah custom parameter per-issue
+            Integer paramMessageId = botService.getClient().execute(SendMessage.builder()
+                            .chatId(TelegramContextHolder.getChatId())
+                            .parseMode(ParseMode.MARKDOWNV2)
+                            .text(TelegramUtil.esc(
+                                    String.format("*[%s]* Mohon input request order sesuai format:", name),
+                                    "",
+                                    "Tiket NOSSA: _(opt)_",
+                                    "No Service: _(required)_",
+                                    additionalField,
+                                    "",
+                                    "_Balas pesan, dengan mengreply balon chat ini_"
+                            ))
+                            .build())
+                    .getMessageId();
+
+            confirm.setId(paramMessageId);
+
+            ticketConfirmService.save(TicketConfirm.builder()
+                    .id(paramMessageId)
+                    .issueId(issue.getId())
+                    .status(TicketConfirm.INSTANT_FORM)
+                    .ttl(30)
+                    .build());
+            return null;
+        }
+        finally {
+            ticketConfirmService.deleteById(messageId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public SendMessage instantForm_end(long messageId, String text, @Nullable Collection<PhotoSize> captures) {
+        User user = Objects.requireNonNull(SecurityUtil.getCurrentUser());
+
+        TicketConfirm confirm = ticketConfirmService.findById(messageId);
+        Issue issue = issueQueryService.findById(confirm.getIssueId())
+                .orElseThrow();
+
+        TcSource source =
+                TelegramContextHolder.getChatSource() == ChatSource.PRIVATE ?
+                        TcSource.PRIVATE :
+                        TelegramContextHolder.getChatSource() == ChatSource.GROUP ?
+                                TcSource.GROUP : TcSource.OTHER;
+
+        TicketBotForm form = ticketFormService.parseTicketRegistration(text).toBuilder()
+                .product(issue.getProduct())
+                .issueId(issue.getId())
+                .source(source)
+                .senderId(user.getTg().getId())
+                .senderName(user.getName())
                 .build();
 
-        Optional<Issue> issueOpt = issueQueryService.findOne(criteria);
+        for (IssueParam param : issue.getParams()) {
+            switch (param.getType()) {
+                case CAPTURE:
+                    if (captures == null || captures.isEmpty()) {
+                        throw new TgInvalidFormError(
+                                Objects.requireNonNullElse(param.getDisplay(), "Capture/Attachment"),
+                                "Mohon upload capture yang diperlukan");
+                    }
+                    break;
+                case NOTE:
+                    ticketFormService.parseTicketNote(form, text, List.of(
+                            Objects.requireNonNullElse(param.getDisplay(), "Deskripsi")
+                    ));
+                    if (param.isRequired() && form.getNote() == null) {
+                        throw new TgInvalidFormError(
+                                Objects.requireNonNullElse(param.getDisplay(), "Worklog/Deskripsi"),
+                                "Mohon menyediakan deskripsi yang diperlukan");
+                    }
+            }
+        }
 
-        if (issueOpt.isPresent()) {
-            form.setIssueId(issueOpt.get().getId());
-        }
-        else {
-            throw new TgInvalidFormError(
-                    FIELD_NAME,
-                    "error.ticket.form.problem",
-                    List.of(formDescriptor.alias())
-            );
-        }
+        Ticket ticket = registerForm(ticketFormService.checkInstantForm(form), captures);
+        ticketConfirmService.deleteById(messageId);
+
+        return SendMessage.builder()
+                .chatId(user.getTg().getId())
+                .parseMode(ParseMode.MARKDOWNV2)
+                .text(TelegramUtil.esc(
+                        String.format(
+                                "Request telah tercatat dan diterima dengan no order *%s*", ticket.getNo()),
+                        "",
+                        "Menunggu request diproses."
+                ))
+                .build();
     }
 
+
+    private String generateIssueParam(IssueParam param) {
+        String name;
+        switch (param.getType()) {
+            case CAPTURE:
+                name = Objects.requireNonNullElse(param.getDisplay(), "Sertakan Capture");
+                break;
+            case NOTE:
+                name = Objects.requireNonNullElse(param.getDisplay(), "Deskripsi");
+                name += ":";
+                break;
+            default:
+                throw InternalServerException.args("Invalid Param Type");
+
+        }
+
+        if (param.isRequired()) name += " _(required)_";
+        else name += " _(opt)_";
+        return name;
+    }
 }

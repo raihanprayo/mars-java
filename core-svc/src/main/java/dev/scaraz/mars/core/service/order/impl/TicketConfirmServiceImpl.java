@@ -67,11 +67,32 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
 
     @Override
     public TicketConfirm save(TicketConfirm o) {
+
+
         String messageId = o.getId() + "";
         stringRedisTemplate.boundSetOps(TC_CONFIRM_NS)
                 .add(messageId);
-        stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
-                .set(o.getNo(), o.getTtl(), TimeUnit.MINUTES);
+
+        if (o.getTtl() > 0) {
+            if (o.getNo() != null) {
+                stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
+                        .set(o.getNo(), o.getTtl(), TimeUnit.MINUTES);
+            }
+            else if (o.getIssueId() != null) {
+                stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
+                        .set(o.getIssueId() + "", o.getTtl(), TimeUnit.MINUTES);
+            }
+        }
+        else {
+            if (o.getNo() != null) {
+                stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
+                        .set(o.getNo());
+            }
+            else if (o.getIssueId() != null) {
+                stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
+                        .set(o.getIssueId() + "");
+            }
+        }
         return repo.save(o);
     }
 

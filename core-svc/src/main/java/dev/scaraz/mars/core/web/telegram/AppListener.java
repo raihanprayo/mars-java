@@ -2,12 +2,16 @@ package dev.scaraz.mars.core.web.telegram;
 
 import com.google.gson.Gson;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
+import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
+import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
+import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
@@ -15,23 +19,44 @@ import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketConfirmService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.*;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
+import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
+import dev.scaraz.mars.telegram.util.enums.ChatSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
+
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 
 @Slf4j
 @RequiredArgsConstructor
 
 @TelegramBot
 public class AppListener {
+
+    private final TelegramBotService botService;
 
     private final MarsProperties marsProperties;
 
@@ -49,7 +74,12 @@ public class AppListener {
     private final Gson gson = new Gson();
 
     @TelegramMessage
-    public SendMessage generalMessage(User user, Update update, Message message, @Text String text) {
+    public SendMessage generalMessage(User user,
+                                      Update update,
+                                      Message message,
+                                      @Text String text,
+                                      @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
+    ) {
         log.info("{}", gson.toJson(update));
 
         if (registrationRepo.existsById(user.getId())) {
@@ -98,6 +128,9 @@ public class AppListener {
             if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.POST_PENDING_CONFIRMATION)) {
                 ticketBotService.confirmedPostPending(reply.getMessageId(), text, message.getPhoto());
             }
+            else if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.INSTANT_FORM)) {
+                return ticketBotService.instantForm_end(reply.getMessageId(), text, message.getPhoto());
+            }
         }
 
         return null;
@@ -108,7 +141,7 @@ public class AppListener {
             CallbackQuery cq,
             User user,
             @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
-    ) {
+    ) throws TelegramApiException {
         log.info("{}", gson.toJson(cq));
 
         Message message = cq.getMessage();
@@ -121,16 +154,25 @@ public class AppListener {
             case AppConstants.Telegram.CONFIRM_DISAGREE: {
                 boolean agree = AppConstants.Telegram.CONFIRM_AGREE.equals(cq.getData());
 
-                if (ticketConfirmService.existsByIdAndStatus(messageId, TcStatus.CLOSED.name())) {
-                    log.info("TICKET CLOSE CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", message.getMessageId(), agree);
+                if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.CLOSED)) {
+                    log.info("TICKET CLOSE CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", messageId, agree);
                     ticketBotService.confirmedClose(message.getMessageId(), agree, "");
                 }
-                else if (ticketConfirmService.existsByIdAndStatus(messageId, TcStatus.PENDING.name())) {
-                    log.info("TICKET PENDING CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", message.getMessageId(), agree);
+                else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.PENDING)) {
+                    log.info("TICKET PENDING CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", messageId, agree);
                     ticketBotService.confirmedPending(message.getMessageId(), agree);
                 }
-                else if (ticketConfirmService.existsByIdAndStatus(messageId, "POST_PENDING")) {
-                    log.info("TICKET POST_PENDING CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", message.getMessageId(), agree);
+                else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING)) {
+                    log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", TicketConfirm.POST_PENDING, messageId, agree);
+                    ticketBotService.confirmedPostPending(messageId, null, null);
+                }
+                else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_NETWORK)) {
+                    log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
+                    return ticketBotService.instantForm_answerNetwork(messageId, agree);
+                }
+                else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_PARAM)) {
+                    log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
+                    return ticketBotService.instantForm_answerParamRequirement(messageId, agree);
                 }
                 break;
             }
@@ -158,14 +200,58 @@ public class AppListener {
 
                 throw new IllegalStateException("Invalid registration state");
             }
+
+            default: {
+                if (queryData.startsWith(REPORT_ISSUE)) {
+                    long issueId = Long.parseLong(queryData.substring(queryData.lastIndexOf(":") + 1));
+                    ticketBotService.instantForm_start(user.getId(), issueId);
+                }
+            }
         }
         return null;
     }
 
     @TelegramCommand(commands = "/start")
-    public SendMessage start(User user, Message message) {
-        if (!authService.isUserRegistered(user.getId())) {
-            return userListener.register(user.getId(), message);
+    public SendMessage start(@ChatId Long chatId,
+                             @UserId Long tgUserId,
+                             @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser,
+                             Message message
+    ) throws TelegramApiException {
+        if (!authService.isUserRegistered(tgUserId)) {
+            return userListener.register(tgUserId, message);
+        }
+        else {
+            if (TelegramContextHolder.getChatSource() != ChatSource.PRIVATE)
+                return SendMessage.builder()
+                        .chatId(chatId)
+                        .text("Maaf, menu ini hanya bisa ditampilkan melalui private chat")
+                        .build();
+
+            String name = marsUser.getName();
+
+            botService.getClient().execute(SendMessage.builder()
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .chatId(chatId)
+                    .text(TelegramUtil.esc(
+                            String.format("Halo *%s*", name),
+                            "Silahkan pilih menu sesuai kendala:"
+                    ))
+                    .build());
+
+            Function<Product, String> textTitle = (p) -> String.format("Jenis *%s*", p);
+
+            LinkedMultiValueMap<Product, InlineKeyboardButton> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
+            for (Product product : all.keySet()) {
+                String text = textTitle.apply(product);
+                botService.getClient().execute(SendMessage.builder()
+                        .parseMode(ParseMode.MARKDOWNV2)
+                        .chatId(chatId)
+                        .text(text)
+                        .replyMarkup(InlineKeyboardMarkup.builder()
+                                .keyboardRow(ISSUES_BUTTON_LIST.get(product))
+                                .build())
+                        .build());
+            }
         }
 
         return null;

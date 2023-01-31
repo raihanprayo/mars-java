@@ -29,7 +29,11 @@ public class TicketConfirm {
     private String no;
 
     @NotNull
+    @Column
     private String status;
+
+    @Column(name = "issue_id")
+    private Long issueId;
 
     @Builder.Default
     private long ttl = -1;
@@ -47,4 +51,9 @@ public class TicketConfirm {
             PENDING = "PENDING",
             POST_PENDING = "POST_PENDING",
             POST_PENDING_CONFIRMATION = "POST_PENDING_CONFIRM";
+
+    public static final String
+            INSTANT_NETWORK = "INSTANT_NETWORK",
+            INSTANT_PARAM = "INSTANT_PARAM",
+            INSTANT_FORM = "INSTANT_FORM";
 }

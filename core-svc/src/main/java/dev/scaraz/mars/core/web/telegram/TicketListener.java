@@ -11,6 +11,7 @@ import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.repository.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.TicketBotService;
+import dev.scaraz.mars.core.service.order.TicketFormService;
 import dev.scaraz.mars.core.util.Util;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
@@ -35,6 +36,7 @@ public class TicketListener {
 
     private final TicketBotService botService;
     private final TicketConfirmRepo confirmRepo;
+    private final TicketFormService formService;
 
     @TelegramCommand(commands = {"/report", "/lapor"}, description = "Register new ticker/order")
     public SendMessage registerReport(
@@ -43,7 +45,8 @@ public class TicketListener {
             Message message
     ) {
         try {
-            TicketBotForm form = parseTicketRegistration(text);
+            TicketBotForm form = formService.parseTicketRegistration(text);
+            formService.parseTicketNote(form, text, null);
 
             log.info("Validation Ticket Form {}", form);
             botService.validateForm(form);
@@ -60,7 +63,13 @@ public class TicketListener {
             log.info("Reply with success message");
             return SendMessage.builder()
                     .chatId(message.getChatId())
-                    .text(Translator.tr("ticket.registration.success", ticket.getNo()))
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.esc(
+                            String.format(
+                                    "Request telah tercatat dan diterima dengan no order *%s*", ticket.getNo()),
+                            "",
+                            "Menunggu request diproses."
+                    ))
                     .build();
         }
         catch (Exception ex) {
@@ -137,115 +146,6 @@ public class TicketListener {
                 botService.confirmedClose(messageId, false, text);
             });
         }
-    }
-
-    private TicketBotForm parseTicketRegistration(String text) {
-        TicketBotForm form = new TicketBotForm();
-        String[] lines = text.split("\n");
-
-        // parsing required field
-        for (String line : lines) {
-            line = line.trim();
-            int colonIndex = line.indexOf(":");
-
-            if (colonIndex == -1) continue;
-            String fieldValue = line.substring(colonIndex + 1).trim();
-            String fieldName = fieldNameMatcher(line.substring(0, colonIndex));
-
-            if (fieldName == null || fieldName.equals("note")) continue;
-            applyForm(form, fieldValue, fieldName);
-        }
-
-        // parsing note/description field
-        int noteFieldIndex = noteLineMatcher(lines);
-        if (noteFieldIndex != -1) {
-            String noteStart = lines[noteFieldIndex];
-
-            List<String> noteValue = Stream.concat(
-                    Stream.of(noteStart.substring(noteStart.indexOf(":") + 1)),
-                    List.of(lines).subList(noteFieldIndex + 1, lines.length).stream()
-            ).collect(Collectors.toList());
-
-            form.setNote(String.join(" ", noteValue));
-        }
-
-        return form;
-    }
-
-    private void applyForm(TicketBotForm form, String fieldValue, String fieldName) {
-        try {
-            switch (fieldName) {
-                case "witel":
-                    form.setWitel(Witel.valueOf(fieldValue.toUpperCase()));
-                    break;
-                case "sto":
-                    form.setSto(fieldValue.toUpperCase());
-                    break;
-                case "incident":
-                    form.setIncident(fieldValue);
-                    break;
-                case "issue":
-                    form.setIssue(fieldValue);
-                    break;
-                case "service":
-                    form.setService(fieldValue);
-                    break;
-                case "product":
-                    form.setProduct(Product.valueOf(fieldValue.toUpperCase()));
-                    break;
-            }
-        }
-        catch (IllegalArgumentException ex) {
-            Class<? extends Enum<?>> enumType = fieldName.equals("witel") ?
-                    Witel.class : Product.class;
-
-            throw new TgInvalidFormError(
-                    fieldName,
-                    "error.ticket.form.enum",
-                    Util.enumToString("/", enumType)
-            );
-        }
-    }
-
-
-    private String fieldNameMatcher(String fieldName) {
-        Map<String, FormDescriptor> descriptors = TicketBotForm.getDescriptors();
-        Set<String> formKeys = descriptors.keySet();
-        for (String formKey : formKeys) {
-            FormDescriptor formDescriptor = descriptors.get(formKey);
-            if (formDescriptor.multiline()) continue;
-
-            Stream<String> aliases = Stream.of(formDescriptor.alias());
-            if (aliases.anyMatch(alias -> alias.equalsIgnoreCase(fieldName))) {
-                return formKey;
-            }
-
-            if (formKey.equalsIgnoreCase(fieldName))
-                return formKey;
-        }
-
-        return null;
-    }
-
-    private int noteLineMatcher(String[] lines) {
-        String FIELD_NAME = "note";
-        FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i].trim();
-            int colonIndex = line.indexOf(":");
-
-            if (colonIndex == -1) continue;
-            String fieldName = line.substring(0, colonIndex);
-
-            Stream<String> aliases = Stream.of(formDescriptor.alias());
-            if (aliases.anyMatch(alias -> alias.equalsIgnoreCase(fieldName))) {
-                return i;
-            }
-            else if (fieldName.equalsIgnoreCase(FIELD_NAME)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
 }

@@ -31,9 +31,10 @@ public class CoreApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        initializer.preInitIssue();
+
         initializer.preInitRolesAndCreateAdmin();
 //        initializer.preInitGroups();
-        initializer.preInitIssue();
         initializer.preInitAppConfigs();
     }
 }

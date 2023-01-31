@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,13 +34,13 @@ public abstract class TelegramUtil {
 
 
     public static String esc(String... texts) {
-        String joined = Arrays.stream(texts)
+        return Arrays.stream(texts)
+                .filter(Objects::nonNull)
                 .map(t -> Arrays.stream(t.split("\n"))
                         .map(s -> s.replaceAll(RESERVED_CHAR_REGX, "\\\\$1"))
                         .collect(Collectors.joining("\n"))
                 )
                 .collect(Collectors.joining("\n"));
-        return joined;
     }
 
     public static String exception(Exception ex) {

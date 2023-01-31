@@ -62,7 +62,7 @@ public class NotifierService {
     public int sendCloseConfirmation(Ticket ticket, int minute, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
-                    .keyboardRow(CONFIRMATION_CLOSE_QUERY_BTN)
+                    .keyboardRow(List.of(BTN_AGREE))
                     .build();
 
             Locale lang = useLocale(ticket.getSenderId());
@@ -104,7 +104,7 @@ public class NotifierService {
     public int sendPendingConfirmation(Ticket ticket, int minute, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
-                    .keyboardRow(CONFIRMATION_PENDING)
+                    .keyboardRow(List.of(BTN_PENDING, BTN_PENDING_CLOSE))
                     .build();
 
             Locale lang = useLocale(ticket.getSenderId());
@@ -228,30 +228,24 @@ public class NotifierService {
                 .orElse(Translator.LANG_ID);
     }
 
-    private static final List<InlineKeyboardButton> CONFIRMATION_CLOSE_QUERY_BTN = List.of(
-            // Ya
-            InlineKeyboardButton.builder()
-                    .text(Translator.tr("Ya"))
-                    .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
-                    .build()
-//            InlineKeyboardButton.builder()
-//                    .text(Translator.tr("Tidak"))
-//                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
-//                    .build()
-    );
 
-    public static final List<InlineKeyboardButton> CONFIRMATION_PENDING = List.of(
-            // Tidak
-            InlineKeyboardButton.builder()
+    public static final InlineKeyboardButton
+            BTN_AGREE = InlineKeyboardButton.builder()
+            .text(Translator.tr("Ya"))
+            .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
+            .build(),
+            BTN_DISAGREE = InlineKeyboardButton.builder()
+                    .text(Translator.tr("Tidak"))
+                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
+                    .build(),
+            BTN_PENDING = InlineKeyboardButton.builder()
                     .text(Translator.tr("Pending"))
                     .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
                     .build(),
-            // Ya
-            InlineKeyboardButton.builder()
+            BTN_PENDING_CLOSE = InlineKeyboardButton.builder()
                     .text(Translator.tr("Close"))
                     .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
-                    .build()
-    );
+                    .build();
 
     public static final List<InlineKeyboardButton> CONFIRMATION_POST_PENDING = List.of(
             InlineKeyboardButton.builder()
@@ -284,6 +278,20 @@ public class NotifierService {
                                 .toLocalDateTime()
                                 .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
                 ))
+                .build();
+    }
+
+    public static InlineKeyboardButton BTN_AGREE_CUSTOM(String text) {
+        return InlineKeyboardButton.builder()
+                .text(text)
+                .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
+                .build();
+    }
+
+    public static InlineKeyboardButton BTN_DIAGREE_CUSTOM(String text) {
+        return InlineKeyboardButton.builder()
+                .text(text)
+                .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
                 .build();
     }
 }

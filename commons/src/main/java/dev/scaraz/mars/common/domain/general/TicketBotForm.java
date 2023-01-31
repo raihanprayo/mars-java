@@ -26,8 +26,8 @@ public class TicketBotForm {
     private String sto;
 
     @FormDescriptor(
-            required = true,
-            alias = {"no incident", "incidentno"})
+            required = false,
+            alias = {"no incident", "incidentno", "Tiket NOSSA"})
     private String incident;
 
     @FormDescriptor(
@@ -48,7 +48,7 @@ public class TicketBotForm {
 
     @FormDescriptor(
             multiline = true,
-            alias = {"description"})
+            alias = {"description", "deskripsi"})
     private String note;
 
     private TcSource source;

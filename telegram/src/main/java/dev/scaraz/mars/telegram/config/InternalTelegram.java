@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 public interface InternalTelegram {
 
     ThreadLocal<TelegramProcessContext> CONTEXT_ATTRIBUTE = new InheritableThreadLocal<>();
-    public static void update(Consumer<TelegramProcessContext.TelegramProcessContextBuilder> consumer) {
+    static void update(Consumer<TelegramProcessContext.TelegramProcessContextBuilder> consumer) {
         TelegramProcessContext.TelegramProcessContextBuilder b = Optional.ofNullable(CONTEXT_ATTRIBUTE.get())
                 .map(TelegramProcessContext::toBuilder)
                 .orElseGet(TelegramProcessContext::builder);

@@ -7,6 +7,8 @@ import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
@@ -17,14 +19,23 @@ import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.service.order.IssueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Authority.*;
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 
 @Slf4j
 @Service
@@ -44,8 +55,10 @@ public class InitializerService {
 
     private final IssueRepo issueRepo;
     private final IssueService issueService;
+    private final IssueQueryService issueQueryService;
 
     private final AppConfigService appConfigService;
+
 
     public void checkWitel() {
         Witel witel = marsProperties.getWitel();
@@ -123,6 +136,39 @@ public class InitializerService {
             if (issueRepo.existsByNameAndProduct(name, names.get(name))) continue;
             issueService.create(name, names.get(name), null);
         }
+
+        createIssueInlineButton();
+    }
+
+    public void createIssueInlineButton() {
+        log.info("(RE)CREATE ISSUE INLINE BUTTONS");
+
+        MultiValueMap<Product, Issue> issues = new LinkedMultiValueMap<>();
+        for (Issue issue : issueQueryService.findAll()) {
+            issues.putIfAbsent(issue.getProduct(), new ArrayList<>());
+            issues.get(issue.getProduct()).add(issue);
+        }
+
+        log.info("Iterate Product");
+        for (Product product : issues.keySet()) {
+
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            for (Issue issue : Objects.requireNonNull(issues.get(product))) {
+
+                String name = Objects.requireNonNullElse(
+                        issue.getAlias(),
+                        issue.getName()
+                );
+                buttons.add(InlineKeyboardButton.builder()
+                        .text(name)
+                        .callbackData(REPORT_ISSUE + issue.getId())
+                        .build());
+            }
+
+            ISSUES_BUTTON_LIST.put(product, buttons);
+        }
+
+        log.info("ISSUE BUTTONS CACHE {}", ISSUES_BUTTON_LIST);
     }
 
     @Async
@@ -134,6 +180,12 @@ public class InitializerService {
         appConfigService.getPostPending_int();
         appConfigService.getApprovalDurationHour_int();
         appConfigService.getApprovalAdminEmails_arr();
+    }
+
+    @Async
+    @EventListener(value = String.class, condition = "event.equals('recreate-inline-btn')")
+    public void onResetInlineButton(String event) {
+        createIssueInlineButton();
     }
 
 }

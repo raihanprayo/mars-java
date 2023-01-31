@@ -8,6 +8,7 @@ import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.service.WebhookTelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -38,19 +39,18 @@ public class TelegramBotConfiguration {
     @ConditionalOnMissingBean(TelegramBotService.class)
     public TelegramBotService telegramBotService(
             @Autowired(required = false)
-            @Qualifier(TELEGRAM_EXECUTOR) TaskExecutor taskExecutor
+            @Qualifier(TELEGRAM_EXECUTOR) ObjectProvider<TaskExecutor> taskExecutor
     ) {
         TelegramBotProperties botProperties = TelegramBotProperties.builder()
                 .token(telegramProperties.getToken())
                 .username(telegramProperties.getName())
-                .maxThreads(telegramProperties.getMaxThreads())
                 .build();
 
         switch (telegramProperties.getType()) {
             case WEBHOOK:
                 return new WebhookTelegramBotService(botProperties, api);
             case LONG_POLLING:
-                return new LongPollingTelegramBotService(botProperties, api, taskExecutor);
+                return new LongPollingTelegramBotService(botProperties, api, taskExecutor.getIfAvailable());
         }
 
         throw new IllegalStateException(String.format("Unhandled bot type %s", telegramProperties.getType()));
@@ -60,8 +60,8 @@ public class TelegramBotConfiguration {
     @ConditionalOnProperty(prefix = "telegram", name = "type", havingValue = "long_polling")
     public TaskExecutor updateExecutor() {
         ThreadPoolTaskExecutor exc = new ThreadPoolTaskExecutor();
-        exc.setCorePoolSize(3);
-        exc.setMaxPoolSize(100);
+        exc.setCorePoolSize(2);
+        exc.setMaxPoolSize(telegramProperties.getMaxThreads());
         exc.setQueueCapacity(1000);
         exc.setThreadNamePrefix("TG-UPDATE-");
         return exc;
