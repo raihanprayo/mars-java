@@ -43,7 +43,7 @@ public class Issue extends AuditableEntity {
 
     @Builder.Default
     @ToString.Exclude
-    @OneToMany(mappedBy = "issue", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "issue", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<IssueParam> params = new ArrayList<>();
 
 }

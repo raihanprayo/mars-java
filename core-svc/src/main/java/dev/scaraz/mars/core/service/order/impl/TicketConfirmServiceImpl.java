@@ -45,16 +45,16 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
         try {
             switch (confirm.getStatus()) {
                 case TicketConfirm.CLOSED:
-                    flowService.confirmClose(confirm.getNo(), false, new TicketStatusFormDTO());
+                    flowService.confirmClose(confirm.getValue(), false, new TicketStatusFormDTO());
                     break;
                 case TicketConfirm.PENDING:
-                    flowService.confirmPending(confirm.getNo(), false, new TicketStatusFormDTO());
+                    flowService.confirmPending(confirm.getValue(), false, new TicketStatusFormDTO());
                     break;
                 case TicketConfirm.POST_PENDING:
-                    flowService.askPostPending(confirm.getNo());
+                    flowService.askPostPending(confirm.getValue());
                     break;
                 case TicketConfirm.POST_PENDING_CONFIRMATION:
-                    flowService.confirmPostPending(confirm.getNo(), new TicketStatusFormDTO());
+                    flowService.confirmPostPending(confirm.getValue(), new TicketStatusFormDTO());
                     break;
             }
         }
@@ -74,9 +74,9 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
                 .add(messageId);
 
         if (o.getTtl() > 0) {
-            if (o.getNo() != null) {
+            if (o.getValue() != null) {
                 stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
-                        .set(o.getNo(), o.getTtl(), TimeUnit.MINUTES);
+                        .set(o.getValue(), o.getTtl(), TimeUnit.MINUTES);
             }
             else if (o.getIssueId() != null) {
                 stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
@@ -84,9 +84,9 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
             }
         }
         else {
-            if (o.getNo() != null) {
+            if (o.getValue() != null) {
                 stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
-                        .set(o.getNo());
+                        .set(o.getValue());
             }
             else if (o.getIssueId() != null) {
                 stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))

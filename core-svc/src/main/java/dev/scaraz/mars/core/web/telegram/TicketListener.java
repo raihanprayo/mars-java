@@ -74,12 +74,13 @@ public class TicketListener {
         }
         catch (Exception ex) {
             ex.printStackTrace();
-            log.error(ex.getMessage());
+            log.error("Reply with fail message, cause:", ex);
 
-            log.warn("Reply with fail message");
+            String null_pointer = Optional.ofNullable(ex.getMessage())
+                    .orElse("Null Pointer");
             return SendMessage.builder()
                     .chatId(message.getChatId())
-                    .text(TelegramUtil.esc(ex.getMessage()))
+                    .text(TelegramUtil.esc(null_pointer))
                     .parseMode(ParseMode.MARKDOWNV2)
                     .build();
         }

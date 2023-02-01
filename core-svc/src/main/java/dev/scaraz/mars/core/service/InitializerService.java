@@ -7,6 +7,7 @@ import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
@@ -34,6 +35,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Authority.*;
+import static dev.scaraz.mars.common.utils.AppConstants.RESET_ISSUE_INLINE_BTN_EVENT;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 
@@ -143,32 +145,35 @@ public class InitializerService {
     public void createIssueInlineButton() {
         log.info("(RE)CREATE ISSUE INLINE BUTTONS");
 
-        MultiValueMap<Product, Issue> issues = new LinkedMultiValueMap<>();
-        for (Issue issue : issueQueryService.findAll()) {
-            issues.putIfAbsent(issue.getProduct(), new ArrayList<>());
-            issues.get(issue.getProduct()).add(issue);
-        }
-
-        log.info("Iterate Product");
-        for (Product product : issues.keySet()) {
-
-            List<InlineKeyboardButton> buttons = new ArrayList<>();
-            for (Issue issue : Objects.requireNonNull(issues.get(product))) {
-
-                String name = Objects.requireNonNullElse(
-                        issue.getAlias(),
-                        issue.getName()
-                );
-                buttons.add(InlineKeyboardButton.builder()
-                        .text(name)
-                        .callbackData(REPORT_ISSUE + issue.getId())
-                        .build());
+        synchronized (ISSUES_BUTTON_LIST) {
+            MultiValueMap<Product, Issue> issuesMap = new LinkedMultiValueMap<>();
+            for (Issue issue : issueQueryService.findAll()) {
+                issuesMap.putIfAbsent(issue.getProduct(), new ArrayList<>());
+                issuesMap.get(issue.getProduct()).add(issue);
             }
 
-            ISSUES_BUTTON_LIST.put(product, buttons);
-        }
+            log.info("Iterate Product");
+            for (Product product : issuesMap.keySet()) {
 
-        log.debug("ISSUE BUTTONS CACHE {}", ISSUES_BUTTON_LIST);
+                List<InlineKeyboardButton> buttons = new ArrayList<>();
+                List<Issue> issues = Objects.requireNonNull(issuesMap.get(product));
+                for (Issue issue : issues) {
+
+                    String name = Objects.requireNonNullElse(
+                            issue.getAlias(),
+                            issue.getName()
+                    );
+                    buttons.add(InlineKeyboardButton.builder()
+                            .text(name)
+                            .callbackData(REPORT_ISSUE + issue.getId())
+                            .build());
+                }
+
+                ISSUES_BUTTON_LIST.put(product, buttons);
+            }
+
+            log.debug("ISSUE BUTTONS CACHE {}", ISSUES_BUTTON_LIST);
+        }
     }
 
     @Async
@@ -183,8 +188,8 @@ public class InitializerService {
     }
 
     @Async
-    @EventListener(value = String.class, condition = "event.equals('recreate-inline-btn')")
-    public void onResetInlineButton(String event) {
+    @EventListener(classes = RefreshIssueInlineButtons.class)
+    public void onResetInlineButton() {
         createIssueInlineButton();
     }
 

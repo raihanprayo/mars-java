@@ -9,6 +9,7 @@ import java.util.ArrayList;
 
 public abstract class AppConstants {
 
+    public static final String RESET_ISSUE_INLINE_BTN_EVENT = "recreate-inline-btn";
 
     public interface Auth {
         String SUCCESS = "ok";

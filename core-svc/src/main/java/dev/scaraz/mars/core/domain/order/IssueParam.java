@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.domain.order;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.Product;
 import lombok.*;
@@ -10,6 +11,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 
@@ -36,6 +38,8 @@ public class IssueParam extends AuditableEntity {
     @Column(name = "display_name")
     private String display;
 
+    @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ref_issue_id")
     private Issue issue;

@@ -131,7 +131,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
 
         ticketConfirmService.save(TicketConfirm.builder()
                 .id(messageId)
-                .no(ticket.getNo())
+                .value(ticket.getNo())
                 .status(TicketConfirm.CLOSED)
                 .ttl(minute)
                 .build());
@@ -185,7 +185,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
 
         ticketConfirmService.save(TicketConfirm.builder()
                 .id(messageId)
-                .no(ticket.getNo())
+                .value(ticket.getNo())
                 .status(TicketConfirm.PENDING)
                 .ttl(minute)
                 .build());
@@ -365,7 +365,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
 
             ticketConfirmService.save(TicketConfirm.builder()
                     .id(messageId)
-                    .no(ticket.getNo())
+                    .value(ticket.getNo())
                     .status(TicketConfirm.POST_PENDING)
                     .ttl(minute)
                     .build());
@@ -423,7 +423,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         int messageId = notifierService.sendPostPendingConfirmation(ticket, minute);
         ticketConfirmService.save(TicketConfirm.builder()
                 .id(messageId)
-                .no(ticketNo)
+                .value(ticketNo)
                 .ttl(minute)
                 .status(TicketConfirm.POST_PENDING_CONFIRMATION)
                 .build());

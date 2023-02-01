@@ -227,7 +227,7 @@ public class TicketFormService {
             String fieldName = line.substring(0, colonIndex);
 
             List<String> aliases = new ArrayList<>(List.of(formDescriptor.alias()));
-            if (addtFieldAliases != null || !addtFieldAliases.isEmpty())
+            if (addtFieldAliases != null && !addtFieldAliases.isEmpty())
                 aliases.addAll(addtFieldAliases);
 
             Stream<String> aliasesStream = aliases.stream();

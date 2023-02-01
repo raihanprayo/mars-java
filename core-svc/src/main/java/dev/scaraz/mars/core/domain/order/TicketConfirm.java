@@ -25,8 +25,9 @@ public class TicketConfirm {
     private long id;
 
     @NotNull
-    @Column(unique = true)
-    private String no;
+    @Setter(AccessLevel.NONE)
+    @Column(name = "no", unique = true)
+    private String value;
 
     @NotNull
     @Column
@@ -46,6 +47,22 @@ public class TicketConfirm {
     @Setter(AccessLevel.NONE)
     private String createdBy;
 
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setValue(long value) {
+        this.value = String.valueOf(value);
+    }
+
+    public void setValue(int value) {
+        this.value = String.valueOf(value);
+    }
+
+    public void setValue(boolean value) {
+        this.value = String.valueOf(value);
+    }
+
     public static final String
             CLOSED = "CLOSED",
             PENDING = "PENDING",
@@ -53,7 +70,7 @@ public class TicketConfirm {
             POST_PENDING_CONFIRMATION = "POST_PENDING_CONFIRM";
 
     public static final String
-            INSTANT_START="INSTANT_START",
+            INSTANT_START = "INSTANT_START",
             INSTANT_NETWORK = "INSTANT_NETWORK",
             INSTANT_PARAM = "INSTANT_PARAM",
             INSTANT_FORM = "INSTANT_FORM";

@@ -116,7 +116,7 @@ public class TicketBotServiceImpl implements TicketBotService {
             @Nullable String note) {
         TicketConfirm confirmData = ticketConfirmService.findById(messageId);
 
-        flowService.confirmClose(confirmData.getNo(), !closeTicket, TicketStatusFormDTO.builder()
+        flowService.confirmClose(confirmData.getValue(), !closeTicket, TicketStatusFormDTO.builder()
                 .note(note)
                 .build());
 
@@ -126,7 +126,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     @Override
     public void confirmedPending(long messageId, boolean pendingTicket) {
         TicketConfirm confirmData = ticketConfirmService.findById(messageId);
-        flowService.confirmPending(confirmData.getNo(), pendingTicket, new TicketStatusFormDTO());
+        flowService.confirmPending(confirmData.getValue(), pendingTicket, new TicketStatusFormDTO());
         ticketConfirmService.deleteById(messageId);
     }
 
@@ -139,7 +139,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .build();
 
         if (photos != null && !photos.isEmpty()) form.setPhotos(new ArrayList<>(photos));
-        flowService.confirmPostPending(confirmData.getNo(), form);
+        flowService.confirmPostPending(confirmData.getValue(), form);
         ticketConfirmService.deleteById(messageId);
     }
 
@@ -202,24 +202,25 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .replyMarkup(markUp)
                 .build();
 
-//            Function<Product, String> textTitle = (p) -> String.format("Jenis *%s*", p);
+        synchronized (ISSUES_BUTTON_LIST) {
+            LinkedMultiValueMap<Product, InlineKeyboardButton> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
+            List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+            for (Product product : all.keySet()) {
+                buttons.add(List.of(InlineKeyboardButton.builder()
+                        .text(product.name())
+                        .callbackData("DUMMY")
+                        .build()));
+                buttons.add(all.get(product));
+            }
 
-        LinkedMultiValueMap<Product, InlineKeyboardButton> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
-        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-        for (Product product : all.keySet()) {
-            buttons.add(List.of(InlineKeyboardButton.builder()
-                    .text(product.name())
-                    .callbackData("DUMMY")
-                    .build()));
-            buttons.add(all.get(product));
+            markUp.setKeyboard(buttons);
+            int messageId = botService.getClient().execute(toSend).getMessageId();
+            ticketConfirmService.save(TicketConfirm.builder()
+                    .id(messageId)
+                    .status(TicketConfirm.INSTANT_START)
+                    .ttl(5)
+                    .build());
         }
-
-        markUp.setKeyboard(buttons);
-        int messageId = botService.getClient().execute(toSend).getMessageId();
-        ticketConfirmService.save(TicketConfirm.builder()
-                .id(messageId)
-                .status(TicketConfirm.INSTANT_START)
-                .build());
         return null;
     }
 
@@ -241,7 +242,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .id(message.getMessageId())
                 .issueId(issueId)
                 .status(TicketConfirm.INSTANT_NETWORK)
-                .ttl(30)
+                .ttl(10)
                 .build());
 
         ticketConfirmService.deleteById(messageId);
@@ -289,7 +290,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .id(paramMessageId)
                 .issueId(issue.getId())
                 .status(TicketConfirm.INSTANT_PARAM)
-                .ttl(30)
+                .ttl(10)
                 .build());
         ticketConfirmService.deleteById(messageId);
         return null;

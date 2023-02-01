@@ -68,10 +68,10 @@ public class SchedulerService {
 
             switch (confirm.getStatus()) {
                 case "CLOSED":
-                    ticketFlowService.confirmCloseAsync(confirm.getNo(), false, new TicketStatusFormDTO());
+                    ticketFlowService.confirmCloseAsync(confirm.getValue(), false, new TicketStatusFormDTO());
                     break;
                 case "PENDING":
-                    ticketFlowService.confirmPendingAsync(confirm.getNo(), false, new TicketStatusFormDTO());
+                    ticketFlowService.confirmPendingAsync(confirm.getValue(), false, new TicketStatusFormDTO());
                     break;
             }
 
