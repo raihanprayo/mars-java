@@ -18,6 +18,7 @@ spring:
     default-schema: ${DS_SCHEMA:mars}
     create-schemas: true
     locations: ${MIGRATION_DIR:classpath:db/migrations}
+    out-of-order: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:postgresql://${DS_HOST:127.0.0.1}:${DS_PORT:15433}/${DS_DATABASE:tr2db}

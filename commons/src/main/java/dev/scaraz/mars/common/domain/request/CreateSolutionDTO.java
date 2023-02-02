@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.domain.request;
 
+import dev.scaraz.mars.common.tools.enums.Product;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,7 @@ public class CreateSolutionDTO {
     private String name;
 
     private String description;
+
+    private Product product;
+
 }

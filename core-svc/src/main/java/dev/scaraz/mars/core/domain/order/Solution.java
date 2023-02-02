@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.domain.order;
 
 import dev.scaraz.mars.common.domain.TimestampEntity;
+import dev.scaraz.mars.common.tools.enums.Product;
 import lombok.*;
 
 import javax.persistence.*;
@@ -24,5 +25,9 @@ public class Solution extends TimestampEntity {
 
     @Column
     private String description;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Product product;
 
 }

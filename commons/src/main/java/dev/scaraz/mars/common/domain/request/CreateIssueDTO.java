@@ -28,6 +28,7 @@ public class CreateIssueDTO {
     @NotNull
     private String description;
 
+    @Builder.Default
     private List<IssueParamDTO> params = new ArrayList<>();
 
 }
