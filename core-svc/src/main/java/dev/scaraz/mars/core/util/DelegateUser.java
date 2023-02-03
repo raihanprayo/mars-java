@@ -13,6 +13,8 @@ public class DelegateUser implements UserDetails {
     @Getter
     private final String id;
 
+    private final String nik;
+
     private final String username;
     private final Collection<Role> authorities;
     private final boolean active;
@@ -20,11 +22,12 @@ public class DelegateUser implements UserDetails {
     private final String password;
 
     public DelegateUser(User user) {
+        this.id = user.getId();
+        this.nik = user.getNik();
         this.active = user.isActive();
         this.authorities = user.getRoles();
         this.password = user.getPassword();
         this.username = user.getName();
-        this.id = user.getId();
     }
 
     @Override
@@ -60,5 +63,9 @@ public class DelegateUser implements UserDetails {
     @Override
     public boolean isEnabled() {
         return active;
+    }
+
+    public String getNik() {
+        return nik;
     }
 }
