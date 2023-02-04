@@ -48,7 +48,7 @@ public class TicketWipResource {
     ) {
         User user = SecurityUtil.getCurrentUser();
         if (user.getTg().getId() == null)
-            throw BadRequestException.args("Akun anda belum terintgrasi dengan akun telegram");
+            throw BadRequestException.args("Akun anda belum terintegrasi dengan akun telegram, silahkan melakukan \"Account Pairing\"");
 
         flowService.take(ticketIdOrNo);
         return new ResponseEntity<>(

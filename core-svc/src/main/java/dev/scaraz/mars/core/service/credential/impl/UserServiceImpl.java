@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.request.UserUpdateDashboardDTO;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
@@ -115,7 +116,7 @@ public class UserServiceImpl implements UserService {
             roleService.addUserRoles(nuser, roles.toArray(new Role[0]));
         }
         else {
-            Role roleUser = roleQueryService.findByIdOrName("user");
+            Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
             roleService.addUserRoles(nuser, roleUser);
         }
 
@@ -144,7 +145,7 @@ public class UserServiceImpl implements UserService {
                     .active(true)
                     .build());
 
-            Role roleUser = roleQueryService.findByIdOrName("user");
+            Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
             nuser.setRoles(Set.of(roleUser));
 
             try {
@@ -236,15 +237,15 @@ public class UserServiceImpl implements UserService {
                         .parseMode(ParseMode.MARKDOWNV2)
                         .text(TelegramUtil.esc(
                                 "Registrasi *" + regNo + "*",
-                                "Terima kasih, permintaan anda kami terima. Menunggu approval dari admin MARS-ROC2",
+                                "Terima kasih, permintaan anda kami terima. Menunggu konfirmasi admin *MARS*",
                                 "",
-                                "_Menunggu konfirmasi admin *MARS*, jika dalam 1x24 jam tidak jawaban,",
+                                "_Jika dalam 1x24 jam tidak jawaban,",
                                 "silahkan mengirim kembali registrasimu_"
                         ))
                         .build());
             }
             else {
-                auditProvider.setName(req.getName());
+                auditProvider.setName(req.getNik());
                 User user = userRepo.saveAndFlush(User.builder()
                         .nik(req.getNik())
                         .name(req.getName())

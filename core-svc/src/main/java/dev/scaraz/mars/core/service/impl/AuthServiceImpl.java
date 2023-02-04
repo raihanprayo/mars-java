@@ -88,19 +88,11 @@ public class AuthServiceImpl implements AuthService {
 
         boolean allowedLogin = user.hasAnyRole(
                 AppConstants.Authority.ADMIN_ROLE,
-                AppConstants.Authority.USER_DASHBOARD_ROLE
+                AppConstants.Authority.AGENT_ROLE
         );
 
         if (!allowedLogin)
             throw AccessDeniedException.args("Kamu tidak punya akses login ke dashboard");
-//        if (marsProperties.getWitel() != user.getWitel()) {
-//        }
-//        if (!rolesRepo.existsByUserIdAndRoleName(user.getId(), AppConstants.Authority.ADMIN_ROLE)) {
-//            if (!user.canLogin()) {
-//                String translate = Translator.tr("auth.group.disable.login", user.getGroup().getName());
-//                throw AccessDeniedException.args(translate);
-//            }
-//        }
 
         boolean hasPassword = user.getPassword() != null;
         if (!hasPassword) {
@@ -110,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
                         .build();
             }
             else {
-                auditProvider.setName(user.getName());
+                auditProvider.setName(user.getNik());
                 user.setPassword(passwordEncoder.encode(authReq.getPassword()));
                 if (authReq.getEmail() != null)
                     user.setEmail(authReq.getEmail());
@@ -130,17 +122,21 @@ public class AuthServiceImpl implements AuthService {
         Instant issuedAt = Instant.now();
         JwtResult accessToken = JwtUtil.accessToken(user, application, issuedAt);
         JwtResult refreshToken = JwtUtil.refreshToken(user, application, issuedAt);
+        try {
+            return AuthResDTO.builder()
+                    .code(SUCCESS)
+                    .user(user)
+                    .issuedAt(issuedAt.getEpochSecond())
 
-        return AuthResDTO.builder()
-                .code(SUCCESS)
-                .user(user)
-                .issuedAt(issuedAt.getEpochSecond())
-
-                .accessToken(accessToken.getToken())
-                .expiredAt(accessToken.getExpiredAt().getEpochSecond())
-                .refreshToken(refreshToken.getToken())
-                .refreshExpiredAt(refreshToken.getExpiredAt().getEpochSecond())
-                .build();
+                    .accessToken(accessToken.getToken())
+                    .expiredAt(accessToken.getExpiredAt().getEpochSecond())
+                    .refreshToken(refreshToken.getToken())
+                    .refreshExpiredAt(refreshToken.getExpiredAt().getEpochSecond())
+                    .build();
+        }
+        finally {
+            auditProvider.clear();
+        }
     }
 
     @Override

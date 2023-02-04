@@ -47,13 +47,15 @@ public class UserListener {
     @TelegramCommand(commands = {"/register", "/reg"})
     public SendMessage register(@UserId long telegramId, Message message) {
         if (!authService.isUserRegistered(telegramId)) {
+            log.info("Register New User");
+
             if (userApprovalService.existsByTelegramId(telegramId)) {
                 UserApproval approval = userApprovalService.findByTelegramId(telegramId);
                 return WAITING_APPROVAL(telegramId, approval);
             }
 
             return SendMessage.builder()
-                    .chatId(telegramId)
+                    .chatId(message.getChatId())
                     .parseMode(ParseMode.MARKDOWNV2)
                     .text(TelegramUtil.esc(
                             "User tidak dikenali oleh *MARS*. Harap melakukan registrasi terlebih dahulu, ",

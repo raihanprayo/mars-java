@@ -78,8 +78,7 @@ public class StorageService {
             log.debug("DOWNLOADED PHOTO TO {}", outputPath);
         }
         catch (TelegramApiException e) {
-            e.printStackTrace();
-            log.error(e.getMessage());
+            log.error("Error at Add Photo", e);
         }
 
         if (asset.size() > 0) {

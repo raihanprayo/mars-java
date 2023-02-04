@@ -42,7 +42,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.isNoneBlank(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            log.debug("AUTH FROM BEARER");
             try {
                 String token = bearerToken.substring(BEARER_PREFIX.length());
                 JwtToken jwt = JwtUtil.decode(token);
@@ -58,8 +57,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                    MalformedJwtException |
                    UnsupportedJwtException |
                    IllegalArgumentException ex) {
-                ex.printStackTrace();
-                log.error(ex.getMessage());
+                log.error("Jwt Parse Error", ex);
             }
         }
         filterChain.doFilter(request, response);

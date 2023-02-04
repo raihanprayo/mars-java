@@ -1,9 +1,13 @@
 package dev.scaraz.mars.core.config.interceptor;
 
+import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -11,6 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 @Slf4j
 @RequiredArgsConstructor
 public class LogInterceptor implements HandlerInterceptor {
+
+    @Autowired
+    private ObjectProvider<AuditProvider> auditProvider;
 
     private static final String[] IP_HEADER_CANDIDATES = {
             "X-Forwarded-For",
@@ -47,6 +54,11 @@ public class LogInterceptor implements HandlerInterceptor {
             log.info("INCOMING REQUEST TO {}", request.getMethod());
         }
         return true;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        auditProvider.ifAvailable(AuditProvider::clear);
     }
 
     private String getClientIpAddress(HttpServletRequest request) {

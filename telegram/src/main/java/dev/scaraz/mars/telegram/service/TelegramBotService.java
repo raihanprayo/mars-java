@@ -95,8 +95,7 @@ public abstract class TelegramBotService implements AutoCloseable {
             }
         }
         catch (Exception ex) {
-            ex.printStackTrace();
-            log.error(ex.getMessage());
+            log.error("Error On Update Received", ex);
             TelegramContextHolder.clear();
         }
     }

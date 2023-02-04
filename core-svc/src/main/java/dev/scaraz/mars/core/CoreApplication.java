@@ -7,10 +7,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -20,8 +24,22 @@ import javax.annotation.PostConstruct;
 public class CoreApplication implements CommandLineRunner {
     private final InitializerService initializer;
 
-    public static void main(String[] args) {
-        SpringApplication.run(CoreApplication.class, args);
+    public static void main(String[] args) throws UnknownHostException {
+        ConfigurableApplicationContext context = SpringApplication.run(CoreApplication.class, args);
+        ConfigurableEnvironment environment = context.getEnvironment();
+        String port = environment.getProperty("server.port");
+        log.info("\n--------------------------------\n" +
+                        "   Application:    {}\n" +
+                        "   Active Profile:    {}\n" +
+                        "   Host Local:   http://localhost:{}\n" +
+                        "   Host External:   http://{}:{}\n" +
+                        "--------------------------------",
+                environment.getProperty("spring.application.name"),
+                environment.getActiveProfiles(),
+                port,
+                InetAddress.getLocalHost().getHostAddress(),
+                port
+        );
     }
 
     @EventListener(ApplicationReadyEvent.class)

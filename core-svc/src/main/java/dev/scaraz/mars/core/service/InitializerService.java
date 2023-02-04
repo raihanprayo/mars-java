@@ -32,10 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Authority.*;
-import static dev.scaraz.mars.common.utils.AppConstants.RESET_ISSUE_INLINE_BTN_EVENT;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 
@@ -81,8 +79,8 @@ public class InitializerService {
         if (!roleRepo.existsByName(USER_ROLE))
             roleService.create(AppConstants.Authority.USER_ROLE, 1);
 
-        if (!roleRepo.existsByName(USER_DASHBOARD_ROLE))
-            roleService.create(USER_DASHBOARD_ROLE, 2);
+        if (!roleRepo.existsByName(AGENT_ROLE))
+            roleService.create(AGENT_ROLE, 2);
 
         if (!userQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
             log.debug("CREATE DEFAULT ADMIN USER");

@@ -99,8 +99,7 @@ public class TicketListener {
                     .build();
         }
         catch (Exception ex) {
-            ex.printStackTrace();
-            log.error(ex.getMessage());
+            log.error("Error at command /take", ex);
             return SendMessage.builder()
                     .chatId(user.getTg().getId())
                     .text(TelegramUtil.exception(ex))

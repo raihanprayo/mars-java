@@ -5,8 +5,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.util.ArrayList;
-
 public abstract class AppConstants {
 
     public static final String RESET_ISSUE_INLINE_BTN_EVENT = "recreate-inline-btn";
@@ -37,7 +35,7 @@ public abstract class AppConstants {
 
     public interface Authority {
         String ADMIN_ROLE = "admin";
-        String USER_DASHBOARD_ROLE = "user_dashboard";
+        String AGENT_ROLE = "user_agent";
         String USER_ROLE = "user";
 
         String ADMIN_NIK = "000001413914";

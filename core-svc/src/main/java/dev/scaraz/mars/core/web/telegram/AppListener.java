@@ -14,8 +14,10 @@ import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketConfirmService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.*;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
+import dev.scaraz.mars.telegram.util.enums.ChatSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +64,7 @@ public class AppListener {
     ) {
         log.info("{}", gson.toJson(update));
 
-        if (registrationRepo.existsById(user.getId())) {
+        if (marsUser == null) {
             BotRegistration registration = registrationRepo.findById(user.getId())
                     .orElseThrow();
 
@@ -158,13 +160,13 @@ public class AppListener {
             }
 
             case AppConstants.Telegram.REG_PAIR: {
-                if (authService.isUserRegistered(user.getId())) return null;
+                if (marsUser != null) return null;
                 else if (authService.isUserInApproval(user.getId())) return null;
                 return userRegistrationBotService.pairAccount(user.getId(), user.getUserName());
             }
 
             case AppConstants.Telegram.REG_NEW: {
-                if (authService.isUserRegistered(user.getId())) return null;
+                if (marsUser != null) return null;
                 else if (authService.isUserInApproval(user.getId())) return null;
                 return userRegistrationBotService.start(user.getId(), user.getUserName());
             }
@@ -192,17 +194,21 @@ public class AppListener {
     }
 
     @TelegramCommand(commands = "/start")
-    public SendMessage start(@ChatId Long chatId,
-                             @UserId Long tgUserId,
-                             @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser,
-                             Message message
+    public SendMessage start(
+            @ChatId Long chatId,
+            @UserId Long tgUserId,
+            @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser,
+            Message message
     ) throws TelegramApiException {
-        if (!authService.isUserRegistered(tgUserId)) {
-            return userListener.register(tgUserId, message);
+        if (TelegramContextHolder.getChatSource() == ChatSource.PRIVATE) {
+            if (marsUser == null) return userListener.register(tgUserId, message);
+            else return ticketBotService.instantForm_start(tgUserId);
         }
-        else {
-            return ticketBotService.instantForm_start(chatId);
-        }
+
+        return SendMessage.builder()
+                .chatId(chatId)
+                .text("Maaf, menu ini hanya bisa ditampilkan melalui private chat")
+                .build();
     }
 
     @TelegramCommand(commands = "/help", isHelp = true)
