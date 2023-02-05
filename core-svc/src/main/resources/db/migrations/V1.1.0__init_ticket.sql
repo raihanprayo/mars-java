@@ -46,6 +46,8 @@ create table t_ticket_agent
 (
     id                 varchar(37) primary key,
     status             varchar(20)  not null,
+
+    tc_take_status     varchar(20),
     tc_close_status    varchar(20),
 
     ref_ticket_id      varchar(37)  not null,

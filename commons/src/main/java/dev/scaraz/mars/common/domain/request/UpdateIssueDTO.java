@@ -25,8 +25,10 @@ public class UpdateIssueDTO {
 
     private String description;
 
+    @Builder.Default
     private List<IssueParamDTO> params = new ArrayList<>();
 
+    @Builder.Default
     private List<Long> deletedParams = new ArrayList<>();
 
 }

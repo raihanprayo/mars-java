@@ -61,11 +61,6 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     @Embedded
     @Builder.Default
     private UserTg tg = new UserTg();
-//
-//    @ToString.Exclude
-//    @Builder.Default
-//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-//    private UserCredential credential = new UserCredential();
 
     @ToString.Exclude
     @Builder.Default

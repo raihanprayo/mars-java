@@ -1,16 +1,30 @@
 package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
+import dev.scaraz.mars.common.domain.response.UserLeaderboardDTO;
+import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
-import dev.scaraz.mars.core.domain.order.LogTicket;
+import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
+import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.Ticket;
+import dev.scaraz.mars.core.domain.order.TicketAgent;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.TicketAgentQueryService;
+import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
-import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
+import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.query.criteria.*;
 import dev.scaraz.mars.core.repository.order.LogTicketRepo;
 import dev.scaraz.mars.core.service.order.ChartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +33,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,7 +44,79 @@ public class ChartServiceImpl implements ChartService {
 
 
     private final LogTicketRepo logTicketRepo;
+
+    private final TicketQueryService ticketQueryService;
     private final TicketSummaryQueryService ticketSummaryQueryService;
+    private final TicketAgentQueryService ticketAgentQueryService;
+
+    private final UserQueryService userQueryService;
+
+    @Override
+    @Async
+    @Transactional(readOnly = true)
+    public CompletableFuture<Page<UserLeaderboardDTO>> getLeaderBoard(
+            LeaderboardCriteria criteria,
+            Pageable pageable
+    ) {
+
+        Page<User> users = userQueryService.findAll(UserCriteria.builder()
+                .roles(RoleCriteria.builder()
+                        .name(new StringFilter()
+                                .setEq(AppConstants.Authority.AGENT_ROLE))
+                        .build())
+                .build(), pageable);
+
+        Map<String, UserLeaderboardDTO> leaderboards = new HashMap<>();
+
+        TicketCriteria dispatchesTicketCriteria = TicketCriteria.builder()
+                .product(criteria.getProduct())
+                .build();
+        TicketAgentCriteria totalDispatchCriteria = TicketAgentCriteria.builder()
+                .closeStatus(new TcStatusFilter().setEq(TcStatus.DISPATCH))
+                .userId(new StringFilter())
+                .ticket(dispatchesTicketCriteria)
+                .createdAt(criteria.getRange())
+                .build();
+        TicketAgentCriteria totalHandleDispatchCriteria = TicketAgentCriteria.builder()
+                .takeStatus(new TcStatusFilter().setEq(TcStatus.DISPATCH))
+                .userId(new StringFilter())
+                .ticket(dispatchesTicketCriteria)
+                .createdAt(criteria.getRange())
+                .build();
+        TicketCriteria totalCriteria = TicketCriteria.builder()
+                .agents(TicketAgentCriteria.builder()
+                        .userId(new StringFilter())
+                        .build())
+                .product(criteria.getProduct())
+                .createdAt(criteria.getRange())
+                .build();
+
+        for (User user : users) {
+            UserLeaderboardDTO leaderboard = UserLeaderboardDTO.builder()
+                    .id(user.getId())
+                    .nik(user.getNik())
+                    .name(user.getName())
+                    .build();
+            leaderboards.put(user.getId(), leaderboard);
+
+            totalDispatchCriteria.getUserId().setEq(user.getId());
+            totalHandleDispatchCriteria.getUserId().setEq(user.getId());
+            totalCriteria.getAgents().getUserId().setEq(user.getId());
+
+            leaderboard.setTotalDispatch((int) ticketAgentQueryService.count(totalDispatchCriteria));
+            leaderboard.setTotalHandleDispatch((int) ticketAgentQueryService.count(totalHandleDispatchCriteria));
+
+            List<Ticket> tickets = ticketQueryService.findAll(totalCriteria);
+            leaderboard.setTotal(tickets.size());
+
+            leaderBoardResponseTime(user.getId(), leaderboard, criteria);
+        }
+
+        return CompletableFuture.completedFuture(users
+                .map(User::getId)
+                .map(leaderboards::get)
+        );
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -135,4 +223,39 @@ public class ChartServiceImpl implements ChartService {
         }
     }
 
+    private void leaderBoardResponseTime(String userId, UserLeaderboardDTO leaderboard, LeaderboardCriteria criteria) {
+        List<TicketAgent> agents = ticketAgentQueryService.findAll(TicketAgentCriteria.builder()
+                .userId(new StringFilter().setEq(userId))
+                .takeStatus(new TcStatusFilter().setIn(List.of(TcStatus.OPEN, TcStatus.REOPEN, TcStatus.DISPATCH)))
+                .ticket(TicketCriteria.builder()
+                        .product(criteria.getProduct())
+                        .build())
+                .createdAt(criteria.getRange())
+                .build());
+
+        List<Long> avgRespon = new ArrayList<>();
+        List<Long> avgAction = new ArrayList<>();
+
+        for (TicketAgent agent : agents) {
+            if (agent.getTakeStatus() == TcStatus.OPEN) {
+                long responMilis = agent.getCreatedAt().toEpochMilli() - agent.getTicket().getCreatedAt().toEpochMilli();
+                avgRespon.add(responMilis);
+            }
+
+            if (agent.getStatus() == AgStatus.CLOSED) {
+                long actionMilis = agent.getUpdatedAt().toEpochMilli() - agent.getCreatedAt().toEpochMilli();
+                avgAction.add(actionMilis);
+            }
+        }
+
+        if (!avgRespon.isEmpty())
+            leaderboard.setAvgResponTime(avgRespon.stream()
+                    .reduce(Long::sum)
+                    .orElse(0L) / avgRespon.size());
+
+        if (!avgAction.isEmpty())
+            leaderboard.setAvgActionTime(avgAction.stream()
+                    .reduce(Long::sum)
+                    .orElse(0L) / avgAction.size());
+    }
 }

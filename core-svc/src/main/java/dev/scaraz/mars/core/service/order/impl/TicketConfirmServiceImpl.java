@@ -67,8 +67,6 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
 
     @Override
     public TicketConfirm save(TicketConfirm o) {
-
-
         String messageId = o.getId() + "";
         stringRedisTemplate.boundSetOps(TC_CONFIRM_NS)
                 .add(messageId);

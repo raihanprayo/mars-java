@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.converter.EnumsConverter;
 import dev.scaraz.mars.common.tools.converter.StringToLocalDateConverter;
+import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.interceptor.LogInterceptor;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.util.SecurityUtil;
@@ -40,6 +41,8 @@ public class WebConfiguration implements WebMvcConfigurer, LocaleResolver {
 
     private final AcceptHeaderLocaleResolver headerLocaleResolver = new AcceptHeaderLocaleResolver();
 
+    private final AuditProvider auditProvider;
+
     @PostConstruct
     private void init() {
         headerLocaleResolver.setDefaultLocale(LANG_ID);
@@ -48,7 +51,7 @@ public class WebConfiguration implements WebMvcConfigurer, LocaleResolver {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LogInterceptor());
+        registry.addInterceptor(new LogInterceptor(auditProvider));
     }
 
     @Override

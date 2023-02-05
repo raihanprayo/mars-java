@@ -79,6 +79,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                     .ticket(ticket)
                     .user(user)
                     .status(AgStatus.PROGRESS)
+                    .takeStatus(prevStatus)
                     .build());
 
             ticket.setStatus(TcStatus.PROGRESS);
@@ -262,6 +263,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         ).stream().findFirst().orElseThrow();
 
         if (reopen) {
+            TcStatus prevStatus = ticket.getStatus();
             ticket.setStatus(TcStatus.REOPEN);
             ticket.setConfirmMessageId(null);
 
@@ -271,13 +273,14 @@ public class TicketFlowServiceImpl implements TicketFlowService {
             agentRepo.save(TicketAgent.builder()
                     .ticket(ticket)
                     .status(AgStatus.PROGRESS)
+                    .takeStatus(prevStatus)
                     .user(prevAgent.getUser())
                     .reopenDescription(reopenDesc)
                     .build());
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)
-                    .prev(TcStatus.CONFIRMATION)
+                    .prev(prevStatus)
                     .curr(ticket.getStatus())
                     .message(LOG_REOPEN)
                     .build());
@@ -324,7 +327,6 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                     .message(logMessage)
                     .build());
         }
-
 
         return service.save(ticket);
     }

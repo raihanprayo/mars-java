@@ -24,6 +24,9 @@ public class TicketAgentSpecBuilder extends AuditableSpec<TicketAgent, TicketAge
 
             spec = nonNull(spec, criteria.getTicketId(), TicketAgent_.ticket, Ticket_.id);
             spec = nonNull(spec, criteria.getTicketNo(), TicketAgent_.ticket, Ticket_.no);
+            spec = nonNull(spec, criteria.getTakeStatus(), TicketAgent_.takeStatus);
+            spec = nonNull(spec, criteria.getCloseStatus(), TicketAgent_.closeStatus);
+            spec = nonNull(spec, criteria.getTicketNo(), TicketAgent_.ticket, Ticket_.no);
             spec = nonNull(spec, criteria.getUserId(), TicketAgent_.user, User_.id);
 
             if (criteria.getUser() != null) {
@@ -48,6 +51,7 @@ public class TicketAgentSpecBuilder extends AuditableSpec<TicketAgent, TicketAge
                 spec = nonNull(spec, ticket.getIncidentNo(), TicketAgent_.ticket, Ticket_.incidentNo);
 
                 spec = nonNull(spec, ticket.getProduct(), TicketAgent_.ticket, Ticket_.issue, Issue_.product);
+                spec = auditSpec(spec, TicketAgent_.ticket, ticket);
             }
         }
         return auditSpec(spec, criteria);

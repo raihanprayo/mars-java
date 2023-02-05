@@ -225,8 +225,11 @@ public class AppListener {
                 .parseMode(ParseMode.MARKDOWNV2)
                 .text(TelegramUtil.esc(
                         "Command yang tersedia:",
+                        "*/start*",
+                        "Instan Form Lapor",
+                        "",
                         "*/report /lapor*",
-                        "Untuk menginput tiket/order",
+                        "Form lapor manual",
                         "",
                         "*/take /sayaambil* _<no-tiket>_",
                         "Untuk mengambil tiket, dimana argument <no-tiket> adalah no tiket yang tersedia",
@@ -236,8 +239,6 @@ public class AppListener {
                         "",
                         "*/help* _[cmd]_",
                         "List command yang tersedia, Dimana argument [cmd] nama command yang tersedia untuk detail penjelasan (tanpa slash)."
-//                        "/help",
-//                        "List command yang tersedia"
                 ))
                 .build();
     }

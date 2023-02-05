@@ -2,7 +2,7 @@ package dev.scaraz.mars.core.service.credential;
 
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
-import dev.scaraz.mars.common.domain.request.UserUpdateDashboardDTO;
+import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.domain.credential.User;
@@ -27,5 +27,5 @@ public interface UserService extends UserDetailsPasswordService {
     @Transactional
     void createFromBot(@Nullable Group group, boolean needApproval, TelegramCreateUserDTO req);
 
-    User updatePartial(String userId, UserUpdateDashboardDTO dto);
+    User updatePartial(String userId, UpdateUserDashboardDTO dto);
 }

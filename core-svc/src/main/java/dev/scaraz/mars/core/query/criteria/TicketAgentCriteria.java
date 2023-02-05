@@ -19,6 +19,7 @@ public class TicketAgentCriteria extends AuditableCriteria {
 
     private AgStatusFilter status;
 
+    private TcStatusFilter takeStatus;
     private TcStatusFilter closeStatus;
 
     private UserCriteria user;

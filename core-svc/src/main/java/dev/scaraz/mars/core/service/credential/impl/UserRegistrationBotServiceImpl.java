@@ -258,7 +258,7 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
             return SendMessage.builder()
                     .chatId(registration.getId())
                     .parseMode(ParseMode.MARKDOWNV2)
-                    .text(TelegramUtil.esc("Silahkan sebutkan *STO* anda, atau tuliskan *WOC* jika anda merupakan helpdesk di kantor witel"))
+                    .text(TelegramUtil.esc("Silahkan sebutkan *STO* anda, atau tuliskan *WOC* jika anda merupakan help desk di kantor witel"))
                     .build();
         }
 

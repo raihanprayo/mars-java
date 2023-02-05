@@ -1,8 +1,9 @@
 package dev.scaraz.mars.core.service.credential.impl;
 
+import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
-import dev.scaraz.mars.common.domain.request.UserUpdateDashboardDTO;
+import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
@@ -24,8 +25,6 @@ import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,10 +34,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -46,6 +42,7 @@ import java.util.Set;
 @Service
 public class UserServiceImpl implements UserService {
 
+    private final MarsProperties marsProperties;
     private final AppConfigService appConfigService;
     private final AuditProvider auditProvider;
     private final TelegramBotService botService;
@@ -147,6 +144,10 @@ public class UserServiceImpl implements UserService {
 
             Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
             nuser.setRoles(Set.of(roleUser));
+            if (marsProperties.getWitel() == nuser.getWitel()) {
+                Role roleAgent = roleQueryService.findByIdOrName(AppConstants.Authority.AGENT_ROLE);
+                nuser.addRoles(roleAgent);
+            }
 
             try {
                 botService.getClient().execute(SendMessage.builder()
@@ -182,7 +183,7 @@ public class UserServiceImpl implements UserService {
                                 "",
                                 "Silahkan menghubungi admin *MARS-ROC2* via email ke:",
                                 concatedEmails,
-                                "dengan melampirkan KTP dan NDA (Pakta Integritas) terbaru.",
+                                "dengan melampirkan *KTP* dan *NDA* (Pakta Integritas) terbaru.",
                                 "",
                                 "Terima Kasih"
                         ))
@@ -239,7 +240,7 @@ public class UserServiceImpl implements UserService {
                                 "Registrasi *" + regNo + "*",
                                 "Terima kasih, permintaan anda kami terima. Menunggu konfirmasi admin *MARS*",
                                 "",
-                                "_Jika dalam 1x24 jam tidak jawaban,",
+                                "_Jika dalam 1x24 jam belum terkonfirmasi,",
                                 "silahkan mengirim kembali registrasimu_"
                         ))
                         .build());
@@ -259,8 +260,12 @@ public class UserServiceImpl implements UserService {
                                 .build())
                         .build());
 
-                Role roleUser = roleQueryService.findByIdOrName("user");
+                Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
                 user.addRoles(roleUser);
+                if (marsProperties.getWitel() == user.getWitel()) {
+                    Role roleAgent = roleQueryService.findByIdOrName(AppConstants.Authority.AGENT_ROLE);
+                    user.addRoles(roleAgent);
+                }
 
                 save(user);
             }
@@ -275,7 +280,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updatePartial(String userId, UserUpdateDashboardDTO dto) {
+    public User updatePartial(String userId, UpdateUserDashboardDTO dto) {
         log.info("PARTIAL DATA USER UPDATE {}", dto);
         User user = userQueryService.findById(userId);
 
@@ -284,7 +289,14 @@ public class UserServiceImpl implements UserService {
         if (dto.getActive() != null) user.setActive(dto.getActive());
         if (dto.getWitel() != null) user.setWitel(dto.getWitel());
         if (dto.getSto() != null) user.setSto(dto.getSto());
+        if (dto.getEmail() != null) user.setEmail(dto.getEmail());
 
+        if (dto.getTg() != null) {
+            UpdateUserDashboardDTO.UpdateTelegram tg = dto.getTg();
+
+            if (!Objects.equals(user.getTg().getUsername(), tg.getUsername()))
+                user.getTg().setUsername(tg.getUsername());
+        }
 
         if (dto.getRoles() != null) {
             List<String> removedIds = dto.getRoles().getRemoved();

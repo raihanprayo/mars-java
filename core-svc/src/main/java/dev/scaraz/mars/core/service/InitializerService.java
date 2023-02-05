@@ -76,11 +76,11 @@ public class InitializerService {
         }
         else adminRole = roleService.create(ADMIN_ROLE, 100);
 
-        if (!roleRepo.existsByName(USER_ROLE))
-            roleService.create(AppConstants.Authority.USER_ROLE, 1);
-
         if (!roleRepo.existsByName(AGENT_ROLE))
             roleService.create(AGENT_ROLE, 2);
+
+        if (!roleRepo.existsByName(USER_ROLE))
+            roleService.create(AppConstants.Authority.USER_ROLE, 1);
 
         if (!userQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
             log.debug("CREATE DEFAULT ADMIN USER");

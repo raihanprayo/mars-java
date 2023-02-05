@@ -13,13 +13,17 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserUpdateDashboardDTO {
+public class UpdateUserDashboardDTO {
 
     private String nik;
     private String phone;
     private Witel witel;
     private String sto;
     private Boolean active;
+    private String email;
+
+    @Builder.Default
+    private UpdateTelegram tg = new UpdateTelegram();
 
     @Builder.Default
     private UpdateRole roles = new UpdateRole();
@@ -35,4 +39,13 @@ public class UserUpdateDashboardDTO {
         @Builder.Default
         private List<String> selected = new ArrayList<>();
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateTelegram {
+        private String username;
+    }
+
 }

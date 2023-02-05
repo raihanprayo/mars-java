@@ -32,6 +32,10 @@ public class TicketAgent extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     private AgStatus status;
 
+    @Column(name = "tc_take_status", updatable = false)
+    @Enumerated(EnumType.STRING)
+    private TcStatus takeStatus;
+
     @Column(name = "tc_close_status")
     @Enumerated(EnumType.STRING)
     private TcStatus closeStatus;

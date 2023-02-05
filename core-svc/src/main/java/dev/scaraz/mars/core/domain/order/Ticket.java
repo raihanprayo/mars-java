@@ -86,6 +86,12 @@ public class Ticket extends AuditableEntity {
     @OneToMany(mappedBy = "ticket")
     private Set<TicketAgent> agents = new HashSet<>();
 
+    @JsonIgnore
+    @Builder.Default
+    @ToString.Exclude
+    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+    private Set<LogTicket> logs = new HashSet<>();
+
     public boolean isGaul() {
         return gaul > 0;
     }

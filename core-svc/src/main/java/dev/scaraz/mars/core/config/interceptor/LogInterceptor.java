@@ -16,8 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 @RequiredArgsConstructor
 public class LogInterceptor implements HandlerInterceptor {
 
-    @Autowired
-    private ObjectProvider<AuditProvider> auditProvider;
+    private final AuditProvider auditProvider;
 
     private static final String[] IP_HEADER_CANDIDATES = {
             "X-Forwarded-For",
@@ -58,7 +57,7 @@ public class LogInterceptor implements HandlerInterceptor {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        auditProvider.ifAvailable(AuditProvider::clear);
+        auditProvider.clear();
     }
 
     private String getClientIpAddress(HttpServletRequest request) {

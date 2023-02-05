@@ -1,13 +1,20 @@
 package dev.scaraz.mars.core.service.order;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
+import dev.scaraz.mars.common.domain.response.UserLeaderboardDTO;
+import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
-import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
+import dev.scaraz.mars.core.query.criteria.LeaderboardCriteria;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface ChartService {
     Duration MILI_15_MINUTES = Duration.ofMinutes(15),
@@ -20,6 +27,11 @@ public interface ChartService {
             CATEGORY_MORE_THAN_60_MINUTES = "60+ menit";
 
     List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries);
+
+    CompletableFuture<Page<UserLeaderboardDTO>> getLeaderBoard(
+            LeaderboardCriteria criteria,
+            Pageable pageable
+    );
 
     List<PieChartDTO<String>> pieTicketByAge(List<TicketSummary> summaries);
 

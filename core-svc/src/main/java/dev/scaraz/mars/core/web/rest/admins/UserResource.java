@@ -2,7 +2,7 @@ package dev.scaraz.mars.core.web.rest.admins;
 
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.UserPasswordUpdateDTO;
-import dev.scaraz.mars.common.domain.request.UserUpdateDashboardDTO;
+import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
 import dev.scaraz.mars.common.domain.response.UserDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.ResourceUtil;
@@ -13,6 +13,7 @@ import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.credential.UserApprovalRepo;
 import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -74,9 +75,18 @@ public class UserResource {
     @PutMapping("/partial/{userId}")
     public ResponseEntity<?> updateUser(
             @PathVariable String userId,
-            @RequestBody UserUpdateDashboardDTO req
+            @RequestBody UpdateUserDashboardDTO req
     ) {
         User user = userService.updatePartial(userId, req);
+        return ResponseEntity.ok(credentialMapper.toDTO(user));
+    }
+
+    @PutMapping("/partial")
+    public ResponseEntity<?> updateUser(
+            @RequestBody UpdateUserDashboardDTO req
+    ) {
+        User currentUser = SecurityUtil.getCurrentUser();
+        User user = userService.updatePartial(currentUser.getId(), req);
         return ResponseEntity.ok(credentialMapper.toDTO(user));
     }
 

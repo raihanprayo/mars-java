@@ -43,11 +43,7 @@ import java.util.stream.Stream;
 @RequestMapping("/ticket")
 public class TicketResource {
 
-    private final TicketService service;
-
     private final TicketQueryService queryService;
-
-    private final TicketAgentQueryService agentQueryService;
     private final TicketSummaryQueryService summaryQueryService;
 
     private final TicketAssetRepo assetRepo;
@@ -100,28 +96,6 @@ public class TicketResource {
     public ResponseEntity<?> getRelations(@PathVariable String ticketIdOrNo) {
         List<TicketSummary> summaries = summaryQueryService.getGaulRelatedByIdOrNo(ticketIdOrNo);
         return ResponseEntity.ok(summaries);
-    }
-
-    @GetMapping("/agents")
-    public ResponseEntity<?> findAgents(TicketAgentCriteria criteria, Pageable pageable) {
-        Page<TicketAgent> page = agentQueryService.findAll(criteria, pageable);
-        return ResourceUtil.pagination(page, "/api/ticket/agents");
-    }
-
-    @GetMapping("/agents/{ticketIdOrNo}")
-    public ResponseEntity<?> findAgents(@PathVariable String ticketIdOrNo, TicketAgentCriteria criteria) {
-        try {
-            UUID uuid = UUID.fromString(ticketIdOrNo);
-            criteria.setTicketId(new StringFilter().setEq(ticketIdOrNo));
-        }
-        catch (IllegalArgumentException e) {
-            criteria.setTicketNo(new StringFilter().setEq(ticketIdOrNo));
-        }
-
-        return new ResponseEntity<>(
-                agentQueryService.findAll(criteria),
-                HttpStatus.OK
-        );
     }
 
     @GetMapping("/assets/{ticketNo}")
