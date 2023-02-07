@@ -10,6 +10,7 @@ import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
+import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.repository.order.TicketRepo;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
@@ -21,12 +22,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static dev.scaraz.mars.common.utils.AppConstants.TICKET_CSV_HEADER;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -104,6 +111,56 @@ public class TicketServiceImpl implements TicketService {
                 .build());
 
         return ticket;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public File report(TicketCriteria criteria) throws IOException {
+        List<Ticket> tickets = queryService.findAll(criteria);
+
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm:ss");
+        final ZoneId jakartaTz = ZoneId.of("Asia/Jakarta");
+
+        List<List<String>> rows = tickets.stream()
+                .map(ticket -> {
+                    List<String> row = new ArrayList<>();
+                    row.add(ticket.getNo());
+                    row.add(ticket.getWitel().name());
+                    row.add(nonNull(ticket.getSto(), "-"));
+                    row.add(nonNull(ticket.getIncidentNo(), "-"));
+                    row.add(nonNull(ticket.getServiceNo(), "-"));
+                    row.add(ticket.getSource().name());
+                    row.add(ticket.getSenderName());
+                    row.add(ticket.isGaul() ? "Y" : "N");
+                    row.add(ticket.getIssue().getName());
+                    row.add(ticket.getIssue().getProduct().name());
+
+                    row.add(ticket.getCreatedAt()
+                            .atZone(jakartaTz)
+                            .format(formatter));
+                    row.add(Optional.ofNullable(ticket.getUpdatedAt())
+                            .map(ins -> ins.atZone(jakartaTz)
+                                    .toLocalDateTime()
+                                    .format(formatter))
+                            .orElse("-"));
+                    return row;
+                })
+                .collect(Collectors.toList());
+
+        File tmpFile = storageService.createFileInTemporary(UUID.randomUUID() + ".csv");
+        try (FileWriter writer = new FileWriter(tmpFile)) {
+            writer.write(String.join(";", TICKET_CSV_HEADER) + "\n");
+
+            for (List<String> row : rows) {
+                writer.write(String.join(";", row) + "\n");
+            }
+
+            return tmpFile;
+        }
+    }
+
+    private <T> T nonNull(T a, T defaults) {
+        return Objects.requireNonNullElse(a, defaults);
     }
 
 }

@@ -1,11 +1,16 @@
 package dev.scaraz.mars.common.utils;
 
+import dev.scaraz.mars.common.tools.TempFileResource;
+import org.apache.commons.io.FileUtils;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class ResourceUtil {
@@ -56,4 +61,107 @@ public class ResourceUtil {
         return UriComponentsBuilder.fromUriString(baseUrl).queryParam("page", page).queryParam("size", size).toUriString();
     }
 
+
+    public static ResponseEntity<FileSystemResource> download(File file) {
+        return download(file, file.getName());
+    }
+
+
+    public static ResponseEntity<FileSystemResource> download(File file, String filename) {
+        return download(file, filename, HttpStatus.OK);
+    }
+
+
+    public static ResponseEntity<FileSystemResource> download(File file, HttpHeaders headers) {
+        return download(file, file.getName(), headers);
+    }
+
+
+    public static ResponseEntity<FileSystemResource> download(File file, HttpStatus status) {
+        return download(file, file.getName(), status);
+    }
+
+
+    public static ResponseEntity<FileSystemResource> download(File file, String filename, HttpHeaders headers) {
+        return download(file, filename, headers, HttpStatus.OK);
+    }
+
+
+    public static ResponseEntity<FileSystemResource> download(File file, String filename, HttpStatus status) {
+        return download(file, filename, new HttpHeaders(), status);
+    }
+
+
+    public static ResponseEntity<FileSystemResource> download(File file, String filename, HttpHeaders headers, HttpStatus status) {
+        return downloadpicker(file, filename, headers, status, false);
+    }
+
+
+    public static ResponseEntity<FileSystemResource> downloadAndDelete(File file) {
+        return downloadAndDelete(file, file.getName());
+    }
+
+    public static ResponseEntity<FileSystemResource> downloadAndDelete(File file, String filename) {
+        return downloadAndDelete(file, filename, new HttpHeaders(), HttpStatus.OK);
+    }
+
+    public static ResponseEntity<FileSystemResource> downloadAndDelete(File file, HttpHeaders headers) {
+        return downloadAndDelete(file, file.getName(), headers, HttpStatus.OK);
+    }
+
+    public static ResponseEntity<FileSystemResource> downloadAndDelete(File file, HttpStatus status) {
+        return downloadAndDelete(file, file.getName(), status);
+    }
+
+    public static ResponseEntity<FileSystemResource> downloadAndDelete(File file, String filename, HttpHeaders headers) {
+        return downloadAndDelete(file, filename, headers, HttpStatus.OK);
+    }
+
+    public static ResponseEntity<FileSystemResource> downloadAndDelete(File file, String filename, HttpStatus status) {
+        return downloadAndDelete(file, filename, new HttpHeaders(), status);
+    }
+
+    public static ResponseEntity<FileSystemResource> downloadAndDelete(File file, String filename, HttpHeaders headers, HttpStatus status) {
+        return downloadpicker(file, filename, headers, status, true);
+    }
+
+    private static ResponseEntity<FileSystemResource> downloadpicker(File file, String filename, HttpHeaders headers, HttpStatus status, boolean delete) {
+        FileSystemResource resource = new FileSystemResource(file) {
+            @Override
+            public InputStream getInputStream() throws IOException {
+                if (!delete) return super.getInputStream();
+
+                File attached = getFile();
+                return new FileInputStream(attached) {
+                    @Override
+                    public void close() throws IOException {
+                        super.close();
+                        FileUtils.deleteQuietly(attached);
+                    }
+                };
+            }
+        };
+        return new ResponseEntity<>(
+                resource,
+                attachHeader(file, filename, headers),
+                status
+        );
+    }
+
+    private static HttpHeaders attachHeader(File file, String filename, HttpHeaders headers) {
+        if (headers.getContentType() == null) {
+            String absolutePath = file.getAbsolutePath();
+            String ext = absolutePath.substring(absolutePath.lastIndexOf(".") + 1)
+                    .toLowerCase();
+
+            MediaType mediaType = AppConstants.MimeType.MAPPED_MIME_TYPE.get(ext);
+            headers.setContentType(mediaType);
+        }
+
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename(filename)
+                .build());
+        headers.set("filename", filename);
+        return headers;
+    }
 }

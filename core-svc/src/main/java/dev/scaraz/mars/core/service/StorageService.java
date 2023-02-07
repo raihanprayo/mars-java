@@ -18,10 +18,7 @@ import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -191,6 +188,32 @@ public class StorageService {
     @Async
     public void addPhotoForAgentAsync(Ticket ticket, TicketAgent agent, Collection<MultipartFile> photos) {
         this.addPhotoForAgent(ticket, agent, photos);
+    }
+
+    public File createFileInTemporary(String filePath) {
+        Path tmpFile = DirectoryAlias.TMP.getPath()
+                .resolve(filePath);
+
+        if (Files.exists(tmpFile)) {
+            log.info("DELETING FILE IN TMP DIR: {}", tmpFile);
+            FileUtils.deleteQuietly(tmpFile.toFile());
+        }
+
+        File result = tmpFile.toFile();
+        try {
+            if (!result.getParentFile().exists()) {
+                log.debug("CREATE FILE DIRECTORY {}", result.getParentFile().getAbsolutePath());
+                result.getParentFile().mkdirs();
+            }
+
+            boolean newFile = result.createNewFile();
+            log.debug("CREATE NEW FILE -- {} | {}", newFile ? "OK" : "FAIL", result.getAbsolutePath());
+        }
+        catch (IOException e) {
+            log.error("FAIL TO CREATE NEW FILE IN TMP", e);
+        }
+
+        return result;
     }
 
 }

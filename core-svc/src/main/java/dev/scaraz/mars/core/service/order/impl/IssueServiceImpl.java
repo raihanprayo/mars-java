@@ -59,6 +59,7 @@ public class IssueServiceImpl implements IssueService {
         Issue issue = Issue.builder()
                 .name(dto.getName())
                 .alias(dto.getAlias())
+                .product(dto.getProduct())
                 .description(dto.getDescription())
                 .build();
 

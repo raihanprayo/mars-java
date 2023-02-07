@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.LogTicket;
@@ -15,6 +16,7 @@ import dev.scaraz.mars.core.query.TicketAgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
+import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.order.LogTicketRepo;
@@ -23,6 +25,7 @@ import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
@@ -30,6 +33,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,6 +48,7 @@ import java.util.stream.Stream;
 @RequestMapping("/ticket")
 public class TicketResource {
 
+    private final TicketService service;
     private final TicketQueryService queryService;
     private final TicketSummaryQueryService summaryQueryService;
 
@@ -125,6 +131,12 @@ public class TicketResource {
     ) {
         List<LogTicket> logs = logTicketRepo.findAllByTicketIdOrTicketNo(ticketIdOrNo, ticketIdOrNo);
         return ResponseEntity.ok(logs);
+    }
+
+    @GetMapping(path = "/reports", produces = AppConstants.MimeType.APPLICATION_CSV_VALUE)
+    public ResponseEntity<?> getReports(TicketCriteria criteria) throws IOException {
+        File report = service.report(criteria);
+        return ResourceUtil.downloadAndDelete(report);
     }
 
     private void attachProductCountHeader(HttpHeaders headers, TicketSummaryCriteria criteria, boolean currentUser) {

@@ -16,11 +16,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.ResourceHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.servlet.LocaleResolver;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import javax.annotation.PostConstruct;
@@ -31,6 +32,7 @@ import java.util.Locale;
 
 import static dev.scaraz.mars.common.tools.Translator.LANG_EN;
 import static dev.scaraz.mars.common.tools.Translator.LANG_ID;
+import static dev.scaraz.mars.common.utils.AppConstants.MimeType.MAPPED_MIME_TYPE;
 
 @Configuration
 @EnableWebMvc
@@ -63,6 +65,20 @@ public class WebConfiguration implements WebMvcConfigurer, LocaleResolver {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .combine(marsProperties.getCors());
+    }
+
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer
+                .mediaTypes(MAPPED_MIME_TYPE);
+    }
+
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        converters.add(new StringHttpMessageConverter());
+        converters.add(new ResourceHttpMessageConverter());
+        converters.add(new ByteArrayHttpMessageConverter());
+        WebMvcConfigurer.super.configureMessageConverters(converters);
     }
 
     @Bean

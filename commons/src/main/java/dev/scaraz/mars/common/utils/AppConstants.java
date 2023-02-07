@@ -1,9 +1,13 @@
 package dev.scaraz.mars.common.utils;
 
 import dev.scaraz.mars.common.tools.enums.Product;
+import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import java.util.List;
+import java.util.Map;
 
 public abstract class AppConstants {
 
@@ -83,4 +87,45 @@ public abstract class AppConstants {
         }
     }
 
+    public interface MimeType {
+        String JPEG = MediaType.IMAGE_JPEG_VALUE,
+                PNG = MediaType.IMAGE_PNG_VALUE;
+
+        String IMAGE_WEBP_VALUE = "image/webp";
+        MediaType IMAGE_WEBP = MediaType.parseMediaType(IMAGE_WEBP_VALUE);
+
+        String APPLICATION_CSV_VALUE = "application/csv";
+        MediaType APPLICATION_CSV = MediaType.parseMediaType(APPLICATION_CSV_VALUE);
+
+        String APPLICATION_XLS_VALUE = "application/vnd.ms-excel";
+        MediaType APPLICATION_XLS = MediaType.parseMediaType(APPLICATION_XLS_VALUE);
+
+        String APPLICATION_XLSX_VALUE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        MediaType APPLICATION_XLSX = MediaType.parseMediaType(APPLICATION_XLSX_VALUE);
+
+        Map<String, MediaType> MAPPED_MIME_TYPE = Map.ofEntries(
+                Map.entry("jpeg", MediaType.IMAGE_JPEG),
+                Map.entry("jpg", MediaType.IMAGE_JPEG),
+                Map.entry("png", MediaType.IMAGE_PNG),
+                Map.entry("webp", IMAGE_WEBP),
+                Map.entry("csv", APPLICATION_CSV),
+                Map.entry("xls", APPLICATION_XLS),
+                Map.entry("xlsx", APPLICATION_XLSX)
+        );
+    }
+
+    public static final List<String> TICKET_CSV_HEADER = List.of(
+            "Order No",
+            "Witel",
+            "STO",
+            "Tiket NOSSA",
+            "Service No",
+            "Source",
+            "Sender",
+            "Gaul",
+            "Kendala",
+            "Produk",
+            "Tgl Dibuat",
+            "Tgl Diupdate"
+    );
 }
