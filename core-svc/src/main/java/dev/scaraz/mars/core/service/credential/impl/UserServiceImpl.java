@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
+import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
@@ -143,7 +144,7 @@ public class UserServiceImpl implements UserService {
                     .build());
 
             Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
-            nuser.setRoles(Set.of(roleUser));
+            nuser.addRoles(roleUser);
             if (marsProperties.getWitel() == nuser.getWitel()) {
                 Role roleAgent = roleQueryService.findByIdOrName(AppConstants.Authority.AGENT_ROLE);
                 nuser.addRoles(roleAgent);
@@ -168,33 +169,53 @@ public class UserServiceImpl implements UserService {
             save(nuser);
         }
         else {
-            approval.setStatus(UserApproval.REQUIRE_DOCUMENT);
-            try {
-                List<String> emails = appConfigService.getApprovalAdminEmails_arr()
-                        .getAsArray();
+            if (approval.getStatus().equals(UserApproval.REQUIRE_DOCUMENT)) {
+                userApprovalService.delete(approvalId);
 
-                String concatedEmails = emails.isEmpty() ? " - " : String.join("\n", emails);
+                try {
+                    botService.getClient().execute(SendMessage.builder()
+                            .chatId(approval.getTg().getId())
+                            .parseMode(ParseMode.MARKDOWNV2)
+                            .text(TelegramUtil.esc(
+                                    "Maaf, request registrasi *" + approval.getNo() + "*, telah ditolak.",
+                                    "",
+                                    ""
+                            ))
+                            .build());
+                }
+                catch (TelegramApiException e) {
+                    throw InternalServerException.args(e, "Unable to notify requestor");
+                }
+            }
+            else {
+                userApprovalService.deleteCache(approvalId);
+                approval.setStatus(UserApproval.REQUIRE_DOCUMENT);
+                try {
+                    List<String> emails = appConfigService.getApprovalAdminEmails_arr()
+                            .getAsArray();
 
-                botService.getClient().execute(SendMessage.builder()
-                        .chatId(approval.getTg().getId())
-                        .parseMode(ParseMode.MARKDOWNV2)
-                        .text(TelegramUtil.esc(
-                                "Request registrasi *" + approval.getNo() + "*, telah ditolak.",
-                                "",
-                                "Silahkan menghubungi admin *MARS-ROC2* via email ke:",
-                                concatedEmails,
-                                "dengan melampirkan *KTP* dan *NDA* (Pakta Integritas) terbaru.",
-                                "",
-                                "Terima Kasih"
-                        ))
-                        .build());
+                    String concatedEmails = emails.isEmpty() ? " - " : String.join("\n", emails);
+
+                    botService.getClient().execute(SendMessage.builder()
+                            .chatId(approval.getTg().getId())
+                            .parseMode(ParseMode.MARKDOWNV2)
+                            .text(TelegramUtil.esc(
+                                    "Maaf, request registrasi *" + approval.getNo() + "*, telah ditolak.",
+                                    "",
+                                    "Silahkan menghubungi admin *MARS-ROC2* via email ke:",
+                                    concatedEmails,
+                                    "dengan melampirkan *KTP* dan *NDA* (Pakta Integritas) terbaru.",
+                                    "",
+                                    "Terima Kasih"
+                            ))
+                            .build());
+                }
+                catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+                userApprovalService.save(approval);
             }
-            catch (TelegramApiException e) {
-                throw new RuntimeException(e);
-            }
-            userApprovalService.save(approval);
         }
-        userApprovalService.deleteCache(approvalId);
     }
 
     @Override
@@ -233,6 +254,10 @@ public class UserServiceImpl implements UserService {
 
                 registrationApprovalRepo.save(new RegistrationApproval(approval.getId(), 24));
 
+                int hourDuration = appConfigService.getApprovalDurationHour_int()
+                        .getAsNumber()
+                        .intValue();
+
                 botService.getClient().execute(SendMessage.builder()
                         .chatId(req.getTgId())
                         .parseMode(ParseMode.MARKDOWNV2)
@@ -240,8 +265,7 @@ public class UserServiceImpl implements UserService {
                                 "Registrasi *" + regNo + "*",
                                 "Terima kasih, permintaan anda kami terima. Menunggu konfirmasi admin *MARS*",
                                 "",
-                                "_Jika dalam 1x24 jam belum terkonfirmasi,",
-                                "silahkan mengirim kembali registrasimu_"
+                                "_Jika dalam 1x" + hourDuration + " jam belum terkonfirmasi, silahkan mengirim kembali registrasimu_"
                         ))
                         .build());
             }

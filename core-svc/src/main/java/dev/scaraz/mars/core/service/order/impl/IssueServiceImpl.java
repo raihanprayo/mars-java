@@ -56,6 +56,8 @@ public class IssueServiceImpl implements IssueService {
     @Override
     @Transactional
     public Issue create(CreateIssueDTO dto) {
+        log.info("CREATE NEW ISSUE {}/{}", dto.getProduct(), dto.getName());
+
         Issue issue = Issue.builder()
                 .name(dto.getName())
                 .alias(dto.getAlias())

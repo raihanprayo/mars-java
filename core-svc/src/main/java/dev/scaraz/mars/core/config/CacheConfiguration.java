@@ -41,46 +41,46 @@ import java.util.List;
         shadowCopy = RedisKeyValueAdapter.ShadowCopy.ON)
 public class CacheConfiguration {
 
-    @Bean
-    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return RedisCacheManager.RedisCacheManagerBuilder::enableStatistics;
-    }
-
-    @Bean
-    @Primary
-    public JedisClientConfigurationBuilderCustomizer jedisClientConfigurationBuilderCustomizer() {
-        return b -> b.readTimeout(Duration.ofSeconds(10))
-                .connectTimeout(Duration.ofSeconds(10))
-                .usePooling()
-                .poolConfig(new JedisPoolConfig())
-                .and()
-                .clientName("mars-roc");
-    }
-
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory(RedisProperties props) {
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setPassword(props.getPassword());
-        config.setDatabase(props.getDatabase());
-        config.setPort(props.getPort());
-        config.setHostName(props.getHost());
-
-        JedisConnectionFactory factory = new JedisConnectionFactory(config);
-        factory.afterPropertiesSet();
-        return factory;
-    }
-
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(factory);
-        return template;
-    }
-
-    @Bean
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
-        return new StringRedisTemplate(factory);
-    }
+//    @Bean
+//    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+//        return RedisCacheManager.RedisCacheManagerBuilder::enableStatistics;
+//    }
+//
+//    @Bean
+//    @Primary
+//    public JedisClientConfigurationBuilderCustomizer jedisClientConfigurationBuilderCustomizer() {
+//        return b -> b.readTimeout(Duration.ofSeconds(10))
+//                .connectTimeout(Duration.ofSeconds(10))
+//                .usePooling()
+//                .poolConfig(new JedisPoolConfig())
+//                .and()
+//                .clientName("mars-roc");
+//    }
+//
+//    @Bean
+//    public RedisConnectionFactory redisConnectionFactory(RedisProperties props) {
+//        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
+//        config.setPassword(props.getPassword());
+//        config.setDatabase(props.getDatabase());
+//        config.setPort(props.getPort());
+//        config.setHostName(props.getHost());
+//
+//        JedisConnectionFactory factory = new JedisConnectionFactory(config);
+//        factory.afterPropertiesSet();
+//        return factory;
+//    }
+//
+//    @Bean
+//    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+//        RedisTemplate<String, Object> template = new RedisTemplate<>();
+//        template.setConnectionFactory(factory);
+//        return template;
+//    }
+//
+//    @Bean
+//    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
+//        return new StringRedisTemplate(factory);
+//    }
 
     @Bean
     public RedisMessageListenerContainer expiredListenerContainer(

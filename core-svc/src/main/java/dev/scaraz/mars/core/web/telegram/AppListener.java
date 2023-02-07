@@ -30,6 +30,8 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.Optional;
+
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 
 @Slf4j
@@ -65,53 +67,56 @@ public class AppListener {
         log.info("{}", gson.toJson(update));
 
         if (marsUser == null) {
-            BotRegistration registration = registrationRepo.findById(user.getId())
-                    .orElseThrow();
-
-            switch (registration.getState()) {
-                case NAME:
-                    return userRegistrationBotService.answerNameThenAskNik(registration, text.trim());
-                case NIK:
-                    return userRegistrationBotService.answerNikThenAskPhone(registration, text.trim());
-                case PHONE:
-                    return userRegistrationBotService.answerPhoneThenAskWitel(registration, text.trim());
-                case WITEL:
-                    try {
-                        Witel witel = Witel.valueOf(text.toUpperCase());
-                        return userRegistrationBotService.answerWitelThenAskSubregion(registration, witel);
-                    }
-                    catch (IllegalArgumentException ex) {
-                        return SendMessage.builder()
-                                .chatId(user.getId())
-                                .text("Pilihan witel salah")
-                                .build();
-                    }
-                case REGION:
-                    return userRegistrationBotService.answerSubregionThenEnd(registration, text.trim());
-                case PAIR_NIK:
-                    return userRegistrationBotService.pairAccountAnsNik(registration, text.trim());
-                case PAIR_WITEL:
-                    try {
-                        Witel witel = Witel.valueOf(text.toUpperCase());
-                        return userRegistrationBotService.pairAccountAnsWitel(registration, witel);
-                    }
-                    catch (IllegalArgumentException ex) {
-                        return SendMessage.builder()
-                                .chatId(user.getId())
-                                .text("Pilihan witel salah")
-                                .build();
-                    }
+            Optional<BotRegistration> registrationOpt = registrationRepo.findById(user.getId());
+            if (registrationOpt.isPresent()) {
+                BotRegistration registration = registrationOpt.get();
+                switch (registration.getState()) {
+                    case NAME:
+                        return userRegistrationBotService.answerNameThenAskNik(registration, text.trim());
+                    case NIK:
+                        return userRegistrationBotService.answerNikThenAskPhone(registration, text.trim());
+                    case PHONE:
+                        return userRegistrationBotService.answerPhoneThenAskWitel(registration, text.trim());
+                    case WITEL:
+                        try {
+                            Witel witel = Witel.valueOf(text.toUpperCase());
+                            return userRegistrationBotService.answerWitelThenAskSubregion(registration, witel);
+                        }
+                        catch (IllegalArgumentException ex) {
+                            return SendMessage.builder()
+                                    .chatId(user.getId())
+                                    .text("Pilihan witel salah")
+                                    .build();
+                        }
+                    case REGION:
+                        return userRegistrationBotService.answerSubregionThenEnd(registration, text.trim());
+                    case PAIR_NIK:
+                        return userRegistrationBotService.pairAccountAnsNik(registration, text.trim());
+                    case PAIR_WITEL:
+                        try {
+                            Witel witel = Witel.valueOf(text.toUpperCase());
+                            return userRegistrationBotService.pairAccountAnsWitel(registration, witel);
+                        }
+                        catch (IllegalArgumentException ex) {
+                            return SendMessage.builder()
+                                    .chatId(user.getId())
+                                    .text("Pilihan witel salah")
+                                    .build();
+                        }
+                }
             }
         }
-        else if (message.getReplyToMessage() != null) {
-            log.info("REPLY TO MESSAGE STATE -- MESSAGE ID {}", message.getReplyToMessage().getMessageId());
+        else {
+            if (message.getReplyToMessage() != null) {
+                log.info("REPLY TO MESSAGE STATE -- MESSAGE ID {}", message.getReplyToMessage().getMessageId());
 
-            Message reply = message.getReplyToMessage();
-            if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.POST_PENDING_CONFIRMATION)) {
-                ticketBotService.confirmedPostPending(reply.getMessageId(), text, message.getPhoto());
-            }
-            else if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.INSTANT_FORM)) {
-                return ticketBotService.instantForm_end(reply.getMessageId(), text, message.getPhoto());
+                Message reply = message.getReplyToMessage();
+                if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.POST_PENDING_CONFIRMATION)) {
+                    ticketBotService.confirmedPostPending(reply.getMessageId(), text, message.getPhoto());
+                }
+                else if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.INSTANT_FORM)) {
+                    return ticketBotService.instantForm_end(reply.getMessageId(), text, message.getPhoto());
+                }
             }
         }
 
