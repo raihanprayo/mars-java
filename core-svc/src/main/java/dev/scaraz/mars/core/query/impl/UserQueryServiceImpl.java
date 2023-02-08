@@ -27,15 +27,30 @@ public class UserQueryServiceImpl implements UserQueryService {
     private final UserSpecBuilder specBuilder;
 
     @Override
-    public DelegateUser loadUserByUsername(String username) throws UsernameNotFoundException {
+    public User loadUserByUsername(String username) throws UsernameNotFoundException {
+        // bisa nik, telegramId, email, & username
         Optional<User> user = repo.findByNik(username);
-        if (user.isEmpty())
+
+        // Cari dengan telegram id
+        if (user.isEmpty()) {
+            try {
+                long telegramId = Long.parseLong(username);
+                user = repo.findByTgId(telegramId);
+            }
+            catch (NumberFormatException ex) {
+            }
+        }
+
+        // Cari dengan tg username
+        if (user.isEmpty()) {
             user = repo.findByEmailOrTgUsername(username, username);
+        }
 
+        // Jika masih ga ada
         if (user.isEmpty())
-            throw new UsernameNotFoundException("cannot find user with NIK/Username " + username);
+            throw new UsernameNotFoundException("No user found");
 
-        return new DelegateUser(user.get());
+        return user.get();
     }
 
     @Override

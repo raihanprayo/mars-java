@@ -169,8 +169,4 @@ public class TelegramArgumentMapper implements BeanPostProcessor {
         return false;
     }
 
-    private Predicate<TelegramArgResolver> isAnnotationArgResolver(boolean b) {
-        return r -> r instanceof TelegramAnnotationArgResolver;
-    }
-
 }

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import java.io.Serializable;
 
 
 @Data
@@ -15,7 +16,7 @@ import javax.persistence.Embeddable;
 @AllArgsConstructor
 
 @Embeddable
-public class UserTg {
+public class UserTg implements Serializable {
 
     @Column(name = "tg_id")
     private Long id;

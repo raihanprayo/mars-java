@@ -14,6 +14,7 @@ import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.order.IssueRepo;
+import dev.scaraz.mars.core.repository.order.StoRepo;
 import dev.scaraz.mars.core.service.credential.GroupService;
 import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.UserService;
@@ -58,6 +59,8 @@ public class InitializerService {
     private final IssueQueryService issueQueryService;
 
     private final AppConfigService appConfigService;
+
+    private final StoRepo stoRepo;
 
 
     public void checkWitel() {

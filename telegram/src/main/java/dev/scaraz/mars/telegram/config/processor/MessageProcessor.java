@@ -48,17 +48,18 @@ public class MessageProcessor extends TelegramProcessor {
             );
         }
         else {
-            Optional<String> commandCommandOpt = command.getCommand();
-            optionalCommandHandler = commandCommandOpt.map(cmd -> handlers.getCommandList().get(cmd));
+            optionalCommandHandler = findCommandIgnoreCase(handlers, command);
             if (optionalCommandHandler.isEmpty()) {
-                if (commandCommandOpt.isPresent()) {
-                    String commandCommand = commandCommandOpt.get();
+                Optional<String> commandOpt = command.getCommand();
+                if (commandOpt.isPresent()) {
+                    String commandCommand = commandOpt.get();
                     optionalCommandHandler = handlers.getPatternCommandList().entrySet().stream()
                             .filter(entry -> commandCommand.startsWith(entry.getKey()))
                             .max(KEY_LENGTH_COMPARATOR)
                             .map(Map.Entry::getValue);
                 }
                 if (optionalCommandHandler.isEmpty()) {
+                    log.debug("USING DEFAULT MESSAGE HANDLER");
                     optionalCommandHandler = Optional.ofNullable(handlers.getDefaultMessageHandler());
                 }
             }
@@ -67,9 +68,6 @@ public class MessageProcessor extends TelegramProcessor {
         log.debug("Command handler: {}", optionalCommandHandler);
         if (optionalCommandHandler.isPresent()) {
             TelegramHandler handler = optionalCommandHandler.get();
-//            if (handler.getTelegramCommand().filter(TelegramCommand::isHelp).isPresent()) {
-//                return bot.getHelpList(update, userKey);
-//            }
             return bot.processHandler(handler, makeArgumentList(
                     bot,
                     handler,
@@ -78,6 +76,16 @@ public class MessageProcessor extends TelegramProcessor {
             ));
         }
 
+        return Optional.empty();
+    }
+
+    private Optional<TelegramHandler> findCommandIgnoreCase(TelegramHandlers handlers, TelegramMessageCommand tgCommand) {
+        if (tgCommand.isCommand()) {
+            String inputCmd = tgCommand.getCommand().get();
+            for (String cmd : handlers.getCommandList().keySet()) {
+                if (inputCmd.equalsIgnoreCase(cmd)) return Optional.of(handlers.getCommandList().get(cmd));
+            }
+        }
         return Optional.empty();
     }
 

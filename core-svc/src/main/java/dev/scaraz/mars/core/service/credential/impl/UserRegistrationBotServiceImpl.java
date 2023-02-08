@@ -3,6 +3,8 @@ package dev.scaraz.mars.core.service.credential.impl;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.exception.telegram.TgError;
+import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
@@ -10,9 +12,11 @@ import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
+import dev.scaraz.mars.core.repository.order.StoRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
 import dev.scaraz.mars.core.service.credential.UserService;
@@ -44,6 +48,7 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
     private final UserService userService;
     private final UserQueryService userQueryService;
 
+    private final StoRepo stoRepo;
     private final BotRegistrationRepo registrationRepo;
 
     private final TelegramBotService botService;
@@ -268,8 +273,16 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
     @Override
     @Transactional
     public SendMessage answerSubregionThenEnd(BotRegistration registration, @Nullable String ansSubRegion) {
+        if (registration.getWitel() != Witel.ROC) {
+            if (ansSubRegion == null)
+                throw BadRequestException.args("Mohon input STO anda");
 
-        registrationRepo.deleteById(registration.getId());
+            if (!ansSubRegion.equalsIgnoreCase("WOC")) {
+                Sto sto = stoRepo.findByWitelAndAliasIgnoreCase(registration.getWitel(), ansSubRegion)
+                        .orElseThrow(() -> new TgInvalidFormError("STO", "STO tidak ditemukan"));
+                ansSubRegion = sto.getAlias();
+            }
+        }
 
         boolean needApproval = appConfigService.getRegistrationRequireApproval_bool()
                 .getAsBoolean();
@@ -294,6 +307,7 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
                     .build();
         }
 
+        registrationRepo.deleteById(registration.getId());
         return null;
     }
 

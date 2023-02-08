@@ -21,6 +21,7 @@ import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.AuthSource;
+import dev.scaraz.mars.core.util.DelegateUser;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,37 +55,9 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional(readOnly = true)
-    public User loadUserByUsername(String username) throws UsernameNotFoundException {
-        // bisa nik, telegramId, email, & username
-        Optional<User> user = userRepo.findByNik(username);
-
-        // Cari dengan telegram id
-        if (user.isEmpty()) {
-            try {
-                long telegramId = Long.parseLong(username);
-                user = userRepo.findByTgId(telegramId);
-            }
-            catch (NumberFormatException ex) {
-            }
-        }
-
-        // Cari dengan username atau email
-        if (user.isEmpty()) {
-            user = userRepo.findByEmailOrTgUsername(username, username);
-        }
-
-        // Jika masih ga ada
-        if (user.isEmpty())
-            throw new UsernameNotFoundException("No user found");
-
-        return user.get();
-    }
-
-    @Override
     @Transactional
     public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
-        User user = loadUserByUsername(authReq.getNik());
+        User user = userQueryService.loadUserByUsername(authReq.getNik());
 
         boolean allowedLogin = user.hasAnyRole(
                 AppConstants.Authority.ADMIN_ROLE,

@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface UserQueryService extends UserDetailsService, BaseQueryService<User, UserCriteria> {
 
     @Override
-    DelegateUser loadUserByUsername(String username) throws UsernameNotFoundException;
+    User loadUserByUsername(String username) throws UsernameNotFoundException;
 
     Optional<User> findOne(UserCriteria criteria);
 

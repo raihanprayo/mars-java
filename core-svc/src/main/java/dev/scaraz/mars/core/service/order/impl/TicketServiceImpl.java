@@ -104,10 +104,7 @@ public class TicketServiceImpl implements TicketService {
         logTicketService.add(LogTicket.builder()
                 .ticket(ticket)
                 .curr(ticket.getStatus())
-                .message(String.format(
-                        "created ticket with gaul is %s",
-                        totalGaul != 0
-                ))
+                .message("Order Created")
                 .build());
 
         return ticket;
