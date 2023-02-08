@@ -103,27 +103,6 @@ public class InitializerService {
 
     @Async
     @Transactional
-    public void preInitGroups() {
-        Map<String, Boolean> names = Map.of(
-                "ROC Assurance", true,
-                "ROC TIAL", true,
-                "Banten", false,
-                "Bekasi", false,
-                "Bogor", false,
-                "Jakbar", false,
-                "Jakpus", false,
-                "Jaktim", false,
-                "Jakut", false,
-                "Tangerang", false);
-
-        for (String name : names.keySet()) {
-            boolean groupExist = groupRepo.findByName(name).isPresent();
-            if (!groupExist) groupService.create(name, names.get(name));
-        }
-    }
-
-    @Async
-    @Transactional
     public void preInitIssue() {
         Map<String, Product> names = Map.of("lambat", Product.INTERNET,
                 "intermittent", Product.INTERNET,
@@ -159,7 +138,6 @@ public class InitializerService {
                 List<InlineKeyboardButton> buttons = new ArrayList<>();
                 List<Issue> issues = Objects.requireNonNull(issuesMap.get(product));
                 for (Issue issue : issues) {
-
                     String name = Objects.requireNonNullElse(
                             issue.getAlias(),
                             issue.getName()

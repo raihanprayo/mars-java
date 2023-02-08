@@ -68,28 +68,28 @@ public class WebSecurityConfiguration {
                         .authenticationEntryPoint(problemSupport)
                 )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-                .formLogin(f -> f
-                        .loginProcessingUrl("/auth/login")
-                        .successHandler((request, response, authentication) -> {
-                        })
-                )
-                .logout().and()
-//                .formLogin(l -> l
+//                .formLogin(f -> f
 //                        .loginProcessingUrl("/auth/login")
-//                        .permitAll()
+//                        .successHandler((request, response, authentication) -> {
+//                        })
 //                )
-//                .logout(l -> l
-//                        .logoutUrl("/auth/logout")
-//                )
-//                .authorizeRequests(r -> r
-//                        .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-//                        .antMatchers(HttpMethod.GET, "/app/test").permitAll()
-//                        .antMatchers(
-//                                "/auth/token",
-//                                "/auth/refresh"
-//                        ).permitAll()
-//                        .anyRequest().authenticated()
-//                )
+//                .logout().and()
+                .formLogin(l -> l
+                        .loginProcessingUrl("/auth/login")
+                        .permitAll()
+                )
+                .logout(l -> l
+                        .logoutUrl("/auth/logout")
+                )
+                .authorizeRequests(r -> r
+                        .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .antMatchers(HttpMethod.GET, "/app/test").permitAll()
+                        .antMatchers(
+                                "/auth/token",
+                                "/auth/refresh"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
