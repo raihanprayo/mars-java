@@ -6,6 +6,8 @@
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/core-svc/pom.xml" />
+        <option value="$PROJECT_DIR$/libs-telegram/pom.xml" />
+        <option value="$PROJECT_DIR$/lib-telegram/pom.xml" />
       </list>
     </option>
   </component>
