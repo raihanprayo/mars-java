@@ -28,5 +28,5 @@ public class TicketCriteria extends AuditableCriteria {
 
     private ProductFilter product;
     private IssueCriteria issue;
-    private TicketAgentCriteria agents;
+    private AgentCriteria agents;
 }

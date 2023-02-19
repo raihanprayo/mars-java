@@ -6,6 +6,9 @@ import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.repository.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.TicketConfirmService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
+import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
+import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
+import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -32,6 +35,13 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
     @Lazy
     private final TicketFlowService flowService;
 
+    @Lazy
+    private final CloseFlowService closeFlowService;
+    @Lazy
+    private final PendingFlowService pendingFlowService;
+    @Lazy
+    private final DispatchFlowService dispatchFlowService;
+
     @Override
     public String getNamespace() {
         return TC_CONFIRM_NS;
@@ -45,16 +55,16 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
         try {
             switch (confirm.getStatus()) {
                 case TicketConfirm.CLOSED:
-                    flowService.confirmClose(confirm.getValue(), false, new TicketStatusFormDTO());
+                    closeFlowService.confirmClose(confirm.getValue(), false, new TicketStatusFormDTO());
                     break;
                 case TicketConfirm.PENDING:
-                    flowService.confirmPending(confirm.getValue(), false, new TicketStatusFormDTO());
+                    pendingFlowService.confirmPending(confirm.getValue(), false, new TicketStatusFormDTO());
                     break;
                 case TicketConfirm.POST_PENDING:
-                    flowService.askPostPending(confirm.getValue());
+                    pendingFlowService.askPostPending(confirm.getValue());
                     break;
                 case TicketConfirm.POST_PENDING_CONFIRMATION:
-                    flowService.confirmPostPending(confirm.getValue(), new TicketStatusFormDTO());
+                    pendingFlowService.confirmPostPending(confirm.getValue(), new TicketStatusFormDTO());
                     break;
             }
         }

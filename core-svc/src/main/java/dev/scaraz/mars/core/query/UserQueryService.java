@@ -17,6 +17,8 @@ public interface UserQueryService extends UserDetailsService, BaseQueryService<U
 
     User findById(String id);
 
+    Optional<User> findByIdOpt(String id);
+
     User findByTelegramId(long tgId);
 
     User findByNik(String nik);

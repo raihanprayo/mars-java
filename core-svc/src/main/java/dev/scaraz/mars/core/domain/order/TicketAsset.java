@@ -2,7 +2,6 @@ package dev.scaraz.mars.core.domain.order;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import lombok.*;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 @Getter
 @Setter
@@ -41,7 +39,7 @@ public class TicketAsset extends TimestampEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @JsonIgnore
     @JoinColumn(name = "ref_agent_id")
-    private TicketAgent agent;
+    private Agent agent;
 
     @Column
     @Builder.Default

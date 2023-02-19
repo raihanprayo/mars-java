@@ -6,7 +6,7 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.*;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
+import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.spec.TicketSpecBuilder;
 import dev.scaraz.mars.core.repository.order.TicketRepo;
@@ -83,7 +83,7 @@ public class TicketQueryServiceImpl implements TicketQueryService {
     }
 
     @Override
-    public Map<Product, Long> countProducts(@Nullable TicketAgentCriteria agentCriteria) {
+    public Map<Product, Long> countProducts(@Nullable AgentCriteria agentCriteria) {
         EnumMap<Product, Long> map = new EnumMap<>(Product.class);
         TcStatusFilter statusFilter = new TcStatusFilter()
                 .setEq(TcStatus.OPEN);

@@ -10,6 +10,9 @@ import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.core.service.order.TicketService;
+import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
+import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
+import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +33,9 @@ public class TicketWipResource {
     private final TicketService service;
 
     private final TicketFlowService flowService;
+    private final CloseFlowService closeFlowService;
+    private final PendingFlowService pendingFlowService;
+    private final DispatchFlowService dispatchFlowService;
 
     private final TicketSummaryQueryService summaryQueryService;
 
@@ -64,7 +70,7 @@ public class TicketWipResource {
             @Valid @ModelAttribute TicketStatusFormDTO form
     ) {
         form.setStatus(TcStatus.CLOSED);
-        flowService.close(ticketIdOrNo, form);
+        closeFlowService.close(ticketIdOrNo, form);
         return new ResponseEntity<>(
                 summaryQueryService.findByIdOrNo(ticketIdOrNo),
                 HttpStatus.OK
@@ -78,7 +84,7 @@ public class TicketWipResource {
             @Valid @ModelAttribute TicketStatusFormDTO form
     ) {
         form.setStatus(TcStatus.DISPATCH);
-        flowService.dispatch(ticketIdOrNo, form);
+        dispatchFlowService.dispatch(ticketIdOrNo, form);
         return new ResponseEntity<>(
                 summaryQueryService.findByIdOrNo(ticketIdOrNo),
                 HttpStatus.OK
@@ -92,7 +98,7 @@ public class TicketWipResource {
             @Valid @ModelAttribute TicketStatusFormDTO form
     ) {
         form.setStatus(TcStatus.PENDING);
-        flowService.pending(ticketIdOrNo, form);
+        pendingFlowService.pending(ticketIdOrNo, form);
         return new ResponseEntity<>(
                 summaryQueryService.findByIdOrNo(ticketIdOrNo),
                 HttpStatus.OK

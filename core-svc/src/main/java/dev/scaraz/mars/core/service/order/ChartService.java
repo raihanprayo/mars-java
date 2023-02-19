@@ -28,10 +28,10 @@ public interface ChartService {
 
     List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries);
 
-    CompletableFuture<Page<UserLeaderboardDTO>> getLeaderBoard(
-            LeaderboardCriteria criteria,
-            Pageable pageable
-    );
+//    CompletableFuture<Page<UserLeaderboardDTO>> getLeaderBoard(
+//            LeaderboardCriteria criteria,
+//            Pageable pageable
+//    );
 
     List<PieChartDTO<String>> pieTicketByAge(List<TicketSummary> summaries);
 

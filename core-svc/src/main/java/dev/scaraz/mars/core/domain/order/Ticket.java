@@ -81,10 +81,13 @@ public class Ticket extends AuditableEntity {
 //    @OneToOne(mappedBy = "ticket")
 //    private TicketImport imports;
 
-    @JsonIgnore
-    @Builder.Default
-    @OneToMany(mappedBy = "ticket")
-    private Set<TicketAgent> agents = new HashSet<>();
+//    @JsonIgnore
+//    @ManyToMany
+//    @Builder.Default
+//    @JoinTable(name = "t_agent_workspace",
+//            inverseJoinColumns = @JoinColumn(name = "ref_ticket_id"),
+//            joinColumns = @JoinColumn(name = "ref_agent_id"))
+//    private Set<Agent> agents = new HashSet<>();
 
     @JsonIgnore
     @Builder.Default

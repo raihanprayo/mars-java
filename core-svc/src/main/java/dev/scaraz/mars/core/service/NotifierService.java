@@ -6,19 +6,16 @@ import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.UserApproval;
-import dev.scaraz.mars.core.domain.credential.UserSetting;
 import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.repository.credential.UserSettingRepo;
 import dev.scaraz.mars.core.repository.order.SolutionRepo;
-import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -29,7 +26,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
@@ -65,9 +61,7 @@ public class NotifierService {
                     .keyboardRow(List.of(BTN_AGREE))
                     .build();
 
-            Locale lang = useLocale(ticket.getSenderId());
-
-            String expireMinute = minute + " " + Translator.tr("date.minute", lang);
+            String expireMinute = minute + " " + Translator.tr("date.minute");
             Optional<TicketStatusFormDTO> optForm = Optional.ofNullable(form);
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
@@ -107,16 +101,14 @@ public class NotifierService {
                     .keyboardRow(List.of(BTN_PENDING, BTN_PENDING_CLOSE))
                     .build();
 
-            Locale lang = useLocale(ticket.getSenderId());
-
-            String replyDuration = minute + " " + Translator.tr("date.minute", lang);
+            String replyDuration = minute + " " + Translator.tr("date.minute");
 
             int pendingMinute = appConfigService.getPostPending_int()
                     .getAsNumber()
                     .intValue();
             String pendingDuration = String.format("%s %s",
                     pendingMinute,
-                    Translator.tr("date.minute", lang)
+                    Translator.tr("date.minute")
             );
 
             Optional<TicketStatusFormDTO> optForm = Optional.ofNullable(form);
@@ -152,9 +144,7 @@ public class NotifierService {
                     .keyboardRow(CONFIRMATION_POST_PENDING)
                     .build();
 
-            Locale lang = useLocale(ticket.getSenderId());
-
-            String replyDuration = minute + " " + Translator.tr("date.minute", lang);
+            String replyDuration = minute + " " + Translator.tr("date.minute");
 
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
@@ -179,7 +169,7 @@ public class NotifierService {
         try {
             log.info("SENDING MESSAGE TO TELEGRAM USER {}", telegramId);
 
-            String message = Translator.tr(codeOrMessage, useLocale(telegramId), args);
+            String message = Translator.tr(codeOrMessage, args);
             return botService.getClient().execute(SendMessage.builder()
                             .chatId(telegramId)
                             .text(TelegramUtil.esc(message))
@@ -215,41 +205,41 @@ public class NotifierService {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Locale useLocale(long telegramId) {
-        User currentUser = SecurityUtil.getCurrentUser();
-        if (currentUser != null && currentUser.getTg().getId() == telegramId) {
-            return currentUser.getSetting().getLang();
-        }
-
-        log.debug("GET LOCALE FROM USER SETTING");
-        return userSettingRepo.findByUserTgId(telegramId)
-                .map(UserSetting::getLang)
-                .orElse(Translator.LANG_ID);
-    }
+//    @Transactional(readOnly = true)
+//    public Locale useLocale(long telegramId) {
+//        User currentUser = SecurityUtil.getCurrentUser();
+//        if (currentUser != null && currentUser.getTg().getId() == telegramId) {
+//            return currentUser.getSetting().getLang();
+//        }
+//
+//        log.debug("GET LOCALE FROM USER SETTING");
+//        return userSettingRepo.findByUserTgId(telegramId)
+//                .map(UserSetting::getLang)
+//                .orElse(Translator.LANG_ID);
+//    }
 
 
     public static final InlineKeyboardButton
             BTN_AGREE = InlineKeyboardButton.builder()
-            .text(Translator.tr("Ya"))
+            .text(Translator.tr("text.agree"))
             .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
             .build(),
             BTN_DISAGREE = InlineKeyboardButton.builder()
-                    .text(Translator.tr("Tidak"))
+                    .text(Translator.tr("text.disagree"))
                     .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
                     .build(),
             BTN_PENDING = InlineKeyboardButton.builder()
-                    .text(Translator.tr("Pending"))
+                    .text(Translator.tr("text.btn.pending"))
                     .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
                     .build(),
             BTN_PENDING_CLOSE = InlineKeyboardButton.builder()
-                    .text(Translator.tr("Close"))
+                    .text(Translator.tr("text.bnt.close"))
                     .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
                     .build();
 
     public static final List<InlineKeyboardButton> CONFIRMATION_POST_PENDING = List.of(
             InlineKeyboardButton.builder()
-                    .text(Translator.tr("Sudah"))
+                    .text(Translator.tr("text.btn.done"))
                     .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
                     .build()
     );
@@ -257,11 +247,11 @@ public class NotifierService {
     public static final List<InlineKeyboardButton> UNREGISTERED_USER = List.of(
             InlineKeyboardButton.builder()
                     .callbackData(AppConstants.Telegram.REG_PAIR)
-                    .text("Account Pairing")
+                    .text(Translator.tr("text.btn.pair"))
                     .build(),
             InlineKeyboardButton.builder()
                     .callbackData(AppConstants.Telegram.REG_NEW)
-                    .text("Registration")
+                    .text(Translator.tr("text.btn.regist"))
                     .build()
     );
 

@@ -45,10 +45,12 @@ public class LogTicket {
     @Column(name = "curr_status")
     private TcStatus curr;
 
-    @ManyToOne
-    @JsonIgnore
-    @JoinColumn(name = "ref_agent_id")
-    private TicketAgent agent;
+//    @ManyToOne
+//    @JsonIgnore
+//    @JoinColumn(name = "ref_agent_id")
+//    private Agent agent;
+    @Column(name = "ref_agent_id")
+    private String agentId;
 
     @CreatedBy
     @Column(name = "created_by", updatable = false)

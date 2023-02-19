@@ -4,10 +4,10 @@ import dev.scaraz.mars.common.query.AuditableSpec;
 import dev.scaraz.mars.core.domain.credential.User_;
 import dev.scaraz.mars.core.domain.order.Issue_;
 import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.domain.order.TicketAgent_;
+import dev.scaraz.mars.core.domain.order.Agent_;
 import dev.scaraz.mars.core.domain.order.Ticket_;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
-import dev.scaraz.mars.core.query.criteria.TicketAgentCriteria;
+import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -41,15 +41,15 @@ public class TicketSpecBuilder extends AuditableSpec<Ticket, TicketCriteria> {
                 spec = nonNull(spec, issue.getProduct(), Ticket_.issue, Issue_.product);
                 spec = auditSpec(spec, Ticket_.issue, issue);
             }
-            if (criteria.getAgents() != null) {
-                TicketAgentCriteria agents = criteria.getAgents();
-                spec = nonNull(spec, agents.getId(), Ticket_.agents, TicketAgent_.id);
-                spec = nonNull(spec, agents.getStatus(), Ticket_.agents, TicketAgent_.status);
-
-                spec = nonNull(spec, agents.getUserId(), Ticket_.agents, TicketAgent_.user, User_.id);
-                spec = nonNull(spec, agents.getTicketId(), Ticket_.agents, TicketAgent_.ticket, Ticket_.id);
-                spec = auditSpec(spec, Ticket_.issue, agents);
-            }
+//            if (criteria.getAgents() != null) {
+//                AgentCriteria agents = criteria.getAgents();
+//                spec = nonNull(spec, agents.getId(), Ticket_.agents, Agent_.id);
+//                spec = nonNull(spec, agents.getStatus(), Ticket_.agents, Agent_.status);
+//
+//                spec = nonNull(spec, agents.getUserId(), Ticket_.agents, Agent_.user, User_.id);
+//                spec = nonNull(spec, agents.getTicketId(), Ticket_.agents, Agent_.ticket, Ticket_.id);
+//                spec = auditSpec(spec, Ticket_.issue, agents);
+//            }
         }
         return auditSpec(spec, criteria);
     }

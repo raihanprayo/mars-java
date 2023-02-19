@@ -17,6 +17,9 @@ import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.*;
+import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
+import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
+import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
@@ -56,6 +59,10 @@ public class TicketBotServiceImpl implements TicketBotService {
 
 
     private final TicketFormService ticketFormService;
+    private final CloseFlowService closeFlowService;
+    private final PendingFlowService pendingFlowService;
+    private final DispatchFlowService dispatchFlowService;
+
     private final TicketConfirmService ticketConfirmService;
 
     private final StorageService storageService;
@@ -116,7 +123,7 @@ public class TicketBotServiceImpl implements TicketBotService {
             @Nullable String note) {
         TicketConfirm confirmData = ticketConfirmService.findById(messageId);
 
-        flowService.confirmClose(confirmData.getValue(), !closeTicket, TicketStatusFormDTO.builder()
+        closeFlowService.confirmClose(confirmData.getValue(), !closeTicket, TicketStatusFormDTO.builder()
                 .note(note)
                 .build());
 
@@ -126,7 +133,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     @Override
     public void confirmedPending(long messageId, boolean pendingTicket) {
         TicketConfirm confirmData = ticketConfirmService.findById(messageId);
-        flowService.confirmPending(confirmData.getValue(), pendingTicket, new TicketStatusFormDTO());
+        pendingFlowService.confirmPending(confirmData.getValue(), pendingTicket, new TicketStatusFormDTO());
         ticketConfirmService.deleteById(messageId);
     }
 
@@ -139,7 +146,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .build();
 
         if (photos != null && !photos.isEmpty()) form.setPhotos(new ArrayList<>(photos));
-        flowService.confirmPostPending(confirmData.getValue(), form);
+        pendingFlowService.confirmPostPending(confirmData.getValue(), form);
         ticketConfirmService.deleteById(messageId);
     }
 

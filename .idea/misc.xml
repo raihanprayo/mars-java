@@ -61,7 +61,4 @@
   <component name="ProjectType">
     <option name="id" value="jpab" />
   </component>
-  <component name="PropertiesSeparatorManager">
-    <file url="file://$PROJECT_DIR$/commons/src/main/resources/i18n/messages" separator="\u002e" />
-  </component>
 </project>

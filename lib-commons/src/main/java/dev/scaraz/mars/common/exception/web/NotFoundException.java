@@ -18,6 +18,10 @@ public class NotFoundException extends MarsException {
         this(TITLE, "entity.not.found");
     }
 
+    public static NotFoundException args(String message, Object... args) {
+        return new NotFoundException(message, args);
+    }
+
     public static NotFoundException entity(Class<?> entity, String field, Object value) {
         return new NotFoundException("entity.not.found.detail", new Object[] {
                 entity.getSimpleName(), field, value

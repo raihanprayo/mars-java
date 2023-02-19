@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.domain.order.TicketAgent;
+import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.order.TicketAsset;
 import dev.scaraz.mars.core.repository.order.TicketAssetRepo;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
@@ -129,7 +129,7 @@ public class StorageService {
         return asset;
     }
 
-    public TicketAsset addPhotoForAgent(Ticket ticket, TicketAgent agent, Collection<MultipartFile> photos) {
+    public TicketAsset addPhotoForAgent(Ticket ticket, Agent agent, Collection<MultipartFile> photos) {
         String no = ticket.getNo();
         Path storage = Path.of(marsProperties.getDirectory().get(DirectoryAlias.SHARED))
                 .resolve("tickets")
@@ -186,7 +186,7 @@ public class StorageService {
     }
 
     @Async
-    public void addPhotoForAgentAsync(Ticket ticket, TicketAgent agent, Collection<MultipartFile> photos) {
+    public void addPhotoForAgentAsync(Ticket ticket, Agent agent, Collection<MultipartFile> photos) {
         this.addPhotoForAgent(ticket, agent, photos);
     }
 

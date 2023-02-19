@@ -58,6 +58,8 @@ public class MessageProcessor extends TelegramProcessor {
                             .max(KEY_LENGTH_COMPARATOR)
                             .map(Map.Entry::getValue);
                 }
+
+                // Jika tetap kosong
                 if (optionalCommandHandler.isEmpty()) {
                     log.debug("USING DEFAULT MESSAGE HANDLER");
                     optionalCommandHandler = Optional.ofNullable(handlers.getDefaultMessageHandler());

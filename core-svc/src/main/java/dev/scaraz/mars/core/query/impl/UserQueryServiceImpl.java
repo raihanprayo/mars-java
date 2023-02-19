@@ -6,7 +6,6 @@ import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.query.spec.UserSpecBuilder;
 import dev.scaraz.mars.core.repository.credential.UserRepo;
-import dev.scaraz.mars.core.util.DelegateUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -93,6 +92,11 @@ public class UserQueryServiceImpl implements UserQueryService {
         return repo.findById(id)
                 .orElseThrow(() -> NotFoundException.entity(
                         User.class, "id", id));
+    }
+
+    @Override
+    public Optional<User> findByIdOpt(String id) {
+        return repo.findById(id);
     }
 
     @Override
