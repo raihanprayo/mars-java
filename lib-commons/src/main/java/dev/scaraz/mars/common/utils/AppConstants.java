@@ -6,12 +6,15 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 
 public abstract class AppConstants {
 
     public static final String RESET_ISSUE_INLINE_BTN_EVENT = "recreate-inline-btn";
+
+    public static final ZoneId ZONE_LOCAL = ZoneId.of("Asia/Jakarta");
 
     public interface Auth {
         String SUCCESS = "ok";
@@ -64,6 +67,7 @@ public abstract class AppConstants {
         long POST_PENDING_CONFIRM_ID_INT = 5;
         long USER_REG_APPROVAL_DURATION_ID_INT = 6;
         long APPROVAL_ADMIN_EMAILS_ID_ARR = 7;
+        long ALLOW_AGENT_CREATE_TICKET_BOOL = 8;
 
         static String title(long id) {
             switch ((int) id) {
@@ -81,6 +85,8 @@ public abstract class AppConstants {
                     return "Lama Waktu Approval";
                 case (int) APPROVAL_ADMIN_EMAILS_ID_ARR:
                     return "Email admin untuk Approval";
+                case (int) ALLOW_AGENT_CREATE_TICKET_BOOL:
+                    return "Tiket dibuat Agen";
             }
 
             return null;

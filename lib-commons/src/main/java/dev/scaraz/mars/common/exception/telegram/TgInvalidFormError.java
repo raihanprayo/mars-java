@@ -32,12 +32,12 @@ public class TgInvalidFormError extends TgError {
 
     @Override
     public String format() {
-        String footer = "field (" + field +")";
+        String footer = "field: " + field + "";
 
         if (!aliases.isEmpty())
-            footer += String.format(" alias (%s)", String.join("/", aliases));
+            footer += String.format("\nalias: %s", String.join("/ ", aliases));
 
-        return format(getMessage(), footer);
+        return format(getMessage(), "", footer);
     }
 
 }

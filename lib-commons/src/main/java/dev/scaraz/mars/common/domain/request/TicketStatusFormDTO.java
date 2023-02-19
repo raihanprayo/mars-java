@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 
+import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -24,4 +25,8 @@ public class TicketStatusFormDTO {
 
     private List<PhotoSize> photos;
 
+    public Collection<MultipartFile> getFilesCollection() {
+        if (files != null) return List.of(files);
+        return List.of();
+    }
 }

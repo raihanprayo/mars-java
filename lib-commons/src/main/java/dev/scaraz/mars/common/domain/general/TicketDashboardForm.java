@@ -9,6 +9,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.List;
 
 @Data
 @Builder
@@ -37,4 +39,8 @@ public class TicketDashboardForm implements Serializable {
 
     private MultipartFile[] files;
 
+    public Collection<MultipartFile> getFilesCollection() {
+        if (files != null) return List.of(files);
+        return List.of();
+    }
 }

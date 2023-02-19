@@ -7,10 +7,12 @@ import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.TicketAsset;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
@@ -27,6 +29,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -50,6 +54,8 @@ public class TicketResource {
     private final TicketAssetRepo assetRepo;
     private final LogTicketRepo logTicketRepo;
 
+    private final AgentQueryService agentQueryService;
+
     @GetMapping
     public ResponseEntity<?> findAll(TicketSummaryCriteria criteria, Pageable pageable) {
         HttpHeaders headers = new HttpHeaders();
@@ -67,10 +73,10 @@ public class TicketResource {
             TicketSummaryCriteria criteria,
             Pageable pageable
     ) {
-        UserCriteria userCriteria = criteria.getWipBy();
-        if (userCriteria == null) criteria.setWipBy(userCriteria = new UserCriteria());
+        StringFilter userIdFilter = criteria.getWipBy();
+        if (userIdFilter == null) criteria.setWipBy(userIdFilter = new StringFilter());
 
-        userCriteria.setId(new StringFilter().setEq(SecurityUtil.getCurrentUser().getId()));
+        userIdFilter.setEq(SecurityUtil.getCurrentUser().getId());
 
         if (counter) {
             long count = summaryQueryService.count(criteria);
@@ -97,6 +103,13 @@ public class TicketResource {
     public ResponseEntity<?> getRelations(@PathVariable String ticketIdOrNo) {
         List<TicketSummary> summaries = summaryQueryService.getGaulRelatedByIdOrNo(ticketIdOrNo);
         return ResponseEntity.ok(summaries);
+    }
+
+    @GetMapping("/detail/{ticketIdOrNo}/workspaces")
+    public ResponseEntity<?> getWorklogs(@PathVariable String ticketIdOrNo) {
+        return new ResponseEntity<>(
+                agentQueryService.findWorkspacesByTicket(ticketIdOrNo),
+                HttpStatus.OK);
     }
 
     @GetMapping("/assets/{ticketNo}")
@@ -138,21 +151,19 @@ public class TicketResource {
         if (currentUser) {
             User usr = SecurityUtil.getCurrentUser();
             if (usr != null) {
-                UserCriteria userCriteria = UserCriteria.builder()
-                        .id(new StringFilter(usr.getId()))
-                        .build();
+                StringFilter userIdFilter = new StringFilter(usr.getId());
 
                 long countInternet = summaryQueryService.count(criteria.toBuilder()
                         .product(new ProductFilter().setEq(Product.INTERNET))
-                        .wipBy(userCriteria)
+                        .wipBy(userIdFilter)
                         .build());
                 long countIptv = summaryQueryService.count(criteria.toBuilder()
                         .product(new ProductFilter().setEq(Product.IPTV))
-                        .wipBy(userCriteria)
+                        .wipBy(userIdFilter)
                         .build());
                 long countVoice = summaryQueryService.count(criteria.toBuilder()
                         .product(new ProductFilter().setEq(Product.VOICE))
-                        .wipBy(userCriteria)
+                        .wipBy(userIdFilter)
                         .build());
 
                 headers.add("Tc-Count", String.valueOf(countInternet));

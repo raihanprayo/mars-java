@@ -3,11 +3,14 @@ package dev.scaraz.mars.core.service.order.flow;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
+import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.*;
+import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
+import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
@@ -36,7 +39,7 @@ public class PendingFlowService {
 
     private final TicketService service;
     private final TicketQueryService queryService;
-    //    private final TicketSummaryQueryService summaryQueryService;
+    private final TicketSummaryQueryService summaryQueryService;
     private final TicketConfirmService ticketConfirmService;
     private final LogTicketService logTicketService;
 
@@ -53,12 +56,12 @@ public class PendingFlowService {
     public Ticket pending(String ticketIdOrNo, TicketStatusFormDTO form) {
         log.info("PENDING FORM {}", form);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
-//        TicketSummary summary = summaryQueryService.findByIdOrNo(ticketIdOrNo);
+        TicketSummary summary = summaryQueryService.findByIdOrNo(ticketIdOrNo);
 
-//        if (!summary.isWip())
-//            throw BadRequestException.args("error.ticket.update.stat");
-//        else if (!summary.getWipBy().getId().equals(SecurityUtil.getCurrentUser().getId()))
-//            throw BadRequestException.args("error.ticket.update.stat.agent");
+        if (!summary.isWip())
+            throw BadRequestException.args("error.ticket.update.stat");
+        else if (!summary.getWipBy().equals(SecurityUtil.getCurrentUser().getId()))
+            throw BadRequestException.args("error.ticket.update.stat.agent");
 
         final TcStatus prevStatus = ticket.getStatus();
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
@@ -68,7 +71,9 @@ public class PendingFlowService {
             worklog.setCloseStatus(TcStatus.PENDING);
             worklog.setSolution(form.getSolution());
             worklog.setMessage(form.getNote());
+
             agentService.save(worklog);
+
         });
 
         if (form.getNote() == null || StringUtils.isBlank(form.getNote().trim()))
@@ -226,13 +231,11 @@ public class PendingFlowService {
                     form.getNote() :
                     "<no description>";
 
-//            agentRepo.save(Agent.builder()
-//                    .ticketId(ticket.getId())
-//                    .status(AgStatus.PROGRESS)
-//                    .user(prevAgent.getUser())
-//                    .reopenDescription(reopenDesc)
-//                    .build());
-
+            AgentWorklog worklog = agentService.save(AgentWorklog.builder()
+                    .workspace(workspace)
+                    .takeStatus(TcStatus.REOPEN)
+                    .reopenMessage(reopenDesc)
+                    .build());
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)
@@ -248,10 +251,7 @@ public class PendingFlowService {
                     reopenDesc);
 
             if (form.getPhotos() != null) {
-                storageService.addPhotoForTicketAsync(
-                        form.getPhotos(),
-                        ticket
-                );
+                storageService.addTelegramAssets(ticket, worklog, form.getPhotos(), "requestor");
             }
         }
         // Requestor menjawab sudah
@@ -286,6 +286,9 @@ public class PendingFlowService {
                         "tg.ticket.confirm.auto-closed",
                         ticket.getNo());
             }
+
+            workspace.setStatus(AgStatus.CLOSED);
+            agentService.save(workspace);
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)

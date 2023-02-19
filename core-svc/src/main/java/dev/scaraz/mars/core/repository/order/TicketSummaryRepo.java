@@ -25,5 +25,5 @@ public interface TicketSummaryRepo extends
 
     long countByProductAndWipIsFalse(Product product);
 
-    long countByProductAndWipById(Product product, String userId);
+    long countByProductAndWipBy(Product product, String userId);
 }

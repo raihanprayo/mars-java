@@ -14,12 +14,13 @@ public interface AgentWorkspaceRepo extends
         JpaRepository<AgentWorkspace, Long>,
         JpaSpecificationExecutor<AgentWorkspace> {
 
-    List<AgentWorkspace> findByTicketId(String ticketId);
+    List<AgentWorkspace> findByTicketIdOrTicketNo(String tid, String tno);
+    List<AgentWorkspace> findByTicketIdOrTicketNoOrderByCreatedAt(String tid, String tno);
 
     Optional<AgentWorkspace> findFirstByTicketIdOrderByCreatedAtDesc(String ticketId);
 
     Optional<AgentWorkspace> findFirstByTicketIdAndAgentIdOrderByCreatedAtDesc(String ticketId, String agentId);
 
-    boolean existsByTicketIdAndStatus(String ticketId, AgStatus status);
+    boolean existsByTicketIdOrTicketNoAndStatus(String tid, String tno, AgStatus status);
 
 }

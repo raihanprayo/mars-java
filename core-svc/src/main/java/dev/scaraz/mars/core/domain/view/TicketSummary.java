@@ -86,13 +86,8 @@ public class TicketSummary extends AuditableEntity {
     @Column(name = "wip_status")
     private AgStatus wipStatus;
 
-    @ManyToOne
-    @JoinColumn(name = "wip_by")
-    private User wipBy;
-
-    @Column
-    @Type(type = "string-array")
-    private String[] assets;
+    @Column(name = "wip_by")
+    private String wipBy;
 
     @Embedded
     private TicketAge age;

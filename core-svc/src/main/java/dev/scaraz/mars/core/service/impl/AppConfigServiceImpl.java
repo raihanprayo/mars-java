@@ -158,6 +158,16 @@ public class AppConfigServiceImpl implements AppConfigService {
                 ));
     }
 
+    @Override
+    public AppConfig getAllowAgentCreateTicket_bool() {
+        return repo.findById(ALLOW_AGENT_CREATE_TICKET_BOOL)
+                .orElseGet(() -> create(ALLOW_AGENT_CREATE_TICKET_BOOL,
+                        "allow-agent-create-ticket",
+                        false,
+                        "Agent diperbolehkan membuat tiket sendiri"
+                ));
+    }
+
     private AppConfig createNew(long id, String name, @Nullable String description) {
         AppConfig appConfig = new AppConfig();
         appConfig.setId(id);

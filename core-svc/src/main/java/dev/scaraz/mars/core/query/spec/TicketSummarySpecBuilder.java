@@ -38,19 +38,8 @@ public class TicketSummarySpecBuilder extends AuditableSpec<TicketSummary, Ticke
             spec = nonNull(spec, criteria.getProduct(), TicketSummary_.product);
 
             spec = nonNull(spec, criteria.getWip(), TicketSummary_.wip);
+            spec = nonNull(spec, criteria.getWipBy(), TicketSummary_.wipBy);
 
-            if (criteria.getWipBy() != null) {
-                UserCriteria wip = criteria.getWipBy();
-                spec = nonNull(spec, wip.getId(), TicketSummary_.wipBy, User_.id);
-                spec = nonNull(spec, wip.getName(), TicketSummary_.wipBy, User_.name);
-                spec = nonNull(spec, wip.getNik(), TicketSummary_.wipBy, User_.nik);
-
-                if (wip.getTg() != null) {
-                    UserTgCriteria tg = wip.getTg();
-                    spec = nonNull(spec, tg.getId(), TicketSummary_.wipBy, User_.tg, UserTg_.id);
-                    spec = nonNull(spec, tg.getUsername(), TicketSummary_.wipBy, User_.tg, UserTg_.username);
-                }
-            }
             if (criteria.getIssue() != null) {
                 IssueCriteria issue = criteria.getIssue();
                 spec = nonNull(spec, issue.getId(), TicketSummary_.issue, Issue_.id);

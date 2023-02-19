@@ -32,7 +32,7 @@ public class TicketSummaryCriteria extends AuditableCriteria {
     private ProductFilter product;
 
     private BooleanFilter wip;
-    private UserCriteria wipBy;
+    private StringFilter wipBy;
 
     private IssueCriteria issue;
 

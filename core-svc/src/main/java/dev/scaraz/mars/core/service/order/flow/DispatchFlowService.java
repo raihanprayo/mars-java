@@ -12,7 +12,6 @@ import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
-import dev.scaraz.mars.core.repository.order.AgentRepo;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.AgentService;
@@ -23,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -46,12 +43,11 @@ public class DispatchFlowService {
     @Transactional
     public Ticket dispatch(String ticketIdOrNo, TicketStatusFormDTO form) {
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
-        TicketSummary summary = summaryQueryService.findByIdOrNo(ticketIdOrNo);
 
-        if (!summary.isWip())
-            throw BadRequestException.args("error.ticket.update.stat");
-        else if (!summary.getWipBy().getId().equals(SecurityUtil.getCurrentUser().getId()))
-            throw BadRequestException.args("error.ticket.update.stat.agent");
+//        if (!summary.isWip())
+//            throw BadRequestException.args("error.ticket.update.stat");
+//        else if (!summary.getWipBy().equals(SecurityUtil.getCurrentUser().getId()))
+//            throw BadRequestException.args("error.ticket.update.stat.agent");
 
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
         Agent agent = workspace.getAgent();
@@ -63,10 +59,11 @@ public class DispatchFlowService {
             workspace.setStatus(AgStatus.CLOSED);
 
             agentService.save(workspace);
+            storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());
         });
 
-        if (form.getFiles() != null)
-            storageService.addPhotoForAgentAsync(ticket, agent, List.of(form.getFiles()));
+//        if (form.getFiles() != null)
+//            storageService.addPhotoForAgentAsync(ticket, agent, List.of(form.getFiles()));
 
         ticket.setStatus(TcStatus.DISPATCH);
 

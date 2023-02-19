@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.service.order.impl;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Issue;
@@ -34,6 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static dev.scaraz.mars.common.utils.AppConstants.TICKET_CSV_HEADER;
+import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -95,11 +97,7 @@ public class TicketServiceImpl implements TicketService {
                 .gaul(totalGaul)
                 .build());
 
-        if (form.getFiles() != null) {
-            storageService.addPhotoForTicketDashboardAsync(
-                    List.of(form.getFiles()),
-                    ticket);
-        }
+        storageService.addDashboardAssets(ticket, form.getFilesCollection());
 
         logTicketService.add(LogTicket.builder()
                 .ticket(ticket)
@@ -116,7 +114,6 @@ public class TicketServiceImpl implements TicketService {
         List<Ticket> tickets = queryService.findAll(criteria);
 
         final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm:ss");
-        final ZoneId jakartaTz = ZoneId.of("Asia/Jakarta");
 
         List<List<String>> rows = tickets.stream()
                 .map(ticket -> {
@@ -133,10 +130,10 @@ public class TicketServiceImpl implements TicketService {
                     row.add(ticket.getIssue().getProduct().name());
 
                     row.add(ticket.getCreatedAt()
-                            .atZone(jakartaTz)
+                            .atZone(ZONE_LOCAL)
                             .format(formatter));
                     row.add(Optional.ofNullable(ticket.getUpdatedAt())
-                            .map(ins -> ins.atZone(jakartaTz)
+                            .map(ins -> ins.atZone(ZONE_LOCAL)
                                     .toLocalDateTime()
                                     .format(formatter))
                             .orElse("-"));
@@ -144,7 +141,7 @@ public class TicketServiceImpl implements TicketService {
                 })
                 .collect(Collectors.toList());
 
-        File tmpFile = storageService.createFileInTemporary(UUID.randomUUID() + ".csv");
+        File tmpFile = storageService.createFile(DirectoryAlias.TMP, "report", UUID.randomUUID() + ".csv");
         try (FileWriter writer = new FileWriter(tmpFile)) {
             writer.write(String.join(";", TICKET_CSV_HEADER) + "\n");
 

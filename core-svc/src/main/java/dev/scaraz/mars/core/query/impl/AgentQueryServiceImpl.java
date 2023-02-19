@@ -1,13 +1,16 @@
 package dev.scaraz.mars.core.query.impl;
 
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.core.domain.order.Agent;
+import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.spec.TicketAgentSpecBuilder;
 import dev.scaraz.mars.core.repository.order.AgentRepo;
+import dev.scaraz.mars.core.repository.order.AgentWorklogRepo;
 import dev.scaraz.mars.core.repository.order.AgentWorkspaceRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +30,7 @@ public class AgentQueryServiceImpl implements AgentQueryService {
 
     private final AgentRepo repo;
     private final AgentWorkspaceRepo workspaceRepo;
+    private final AgentWorklogRepo worklogRepo;
 
     private final TicketAgentSpecBuilder specBuilder;
 
@@ -60,16 +64,32 @@ public class AgentQueryServiceImpl implements AgentQueryService {
         return repo.count(specBuilder.createSpec(criteria));
     }
 
+    @Override
+    public List<AgentWorkspace> findWorkspacesByTicket(String ticketIdOrNo) {
+        return workspaceRepo.findByTicketIdOrTicketNoOrderByCreatedAt(ticketIdOrNo, ticketIdOrNo);
+    }
+
+    @Override
+    public List<AgentWorklog> findWorklogByTicketIdOrNo(String ticketIdOrNo) {
+        return worklogRepo.findByWorkspaceTicketIdOrWorkspaceTicketNo(ticketIdOrNo, ticketIdOrNo);
+    }
 
     @Override
     public AgentWorkspace getLastWorkspace(String ticketId) {
         return workspaceRepo.findFirstByTicketIdOrderByCreatedAtDesc(ticketId)
+                .map(workspace -> {
+                    if (workspace.getStatus() == AgStatus.CLOSED)
+                        throw new BadRequestException("Agen Workspace telah ditutup");
+                    return workspace;
+                })
                 .orElseThrow(() -> NotFoundException.entity(AgentWorkspace.class, "ticket", ticketId));
     }
 
     @Override
     public boolean isWorkInProgress(String ticketId) {
-        return workspaceRepo.existsByTicketIdAndStatus(ticketId, AgStatus.PROGRESS);
+        return workspaceRepo.existsByTicketIdOrTicketNoAndStatus(
+                ticketId, ticketId,
+                AgStatus.PROGRESS);
     }
 
 }

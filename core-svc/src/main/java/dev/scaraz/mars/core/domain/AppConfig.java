@@ -79,7 +79,7 @@ public class AppConfig extends AuditableEntity {
     public void setAsBoolean(boolean value) {
         type = Type.BOOLEAN;
         classType = Boolean.class.getCanonicalName();
-        this.value = String.valueOf(value);
+        this.value = value ? "t" : "f";
     }
 
     public void setAsNumber(Number value) {
@@ -112,6 +112,7 @@ public class AppConfig extends AuditableEntity {
 
     @JsonIgnore
     public Boolean getAsBoolean() {
+        if (value.length() == 1) return value.equalsIgnoreCase("t");
         return Boolean.parseBoolean(value);
     }
 
@@ -188,10 +189,14 @@ public class AppConfig extends AuditableEntity {
         return type == Type.JSON;
     }
 
+
+    @JsonIgnore
     public boolean isDuration() {
         return type == Type.DURATION;
     }
 
+
+    @JsonIgnore
     public boolean isArray() {
         return type == Type.ARRAY;
     }

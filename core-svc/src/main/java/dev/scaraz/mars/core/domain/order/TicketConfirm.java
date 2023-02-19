@@ -33,7 +33,7 @@ public class TicketConfirm {
     @Column
     private String status;
 
-    @Column(name = "issue_id")
+    @Column(name = "ref_issue_id")
     private Long issueId;
 
     @Builder.Default

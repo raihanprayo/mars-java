@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,10 +45,20 @@ public class UserResource {
     private final UserApprovalRepo userApprovalRepo;
 
     @GetMapping
-    public ResponseEntity<?> findAll(UserCriteria criteria, Pageable pageable) {
-        Page<UserDTO> page = userQueryService.findAll(criteria, pageable)
-                .map(credentialMapper::toDTO);
-        return ResourceUtil.pagination(page, "/user");
+    public ResponseEntity<?> findAll(
+            @RequestParam(defaultValue = "false") boolean plain,
+            @RequestParam(defaultValue = "false") boolean mapped,
+            UserCriteria criteria,
+            Pageable pageable
+    ) {
+        return ResourceUtil.plainMappedResponse(plain, mapped,
+                "/user",
+                () -> userQueryService.findAll(criteria, pageable)
+                        .map(credentialMapper::toDTO),
+                () -> userQueryService.findAll(criteria).stream()
+                        .map(credentialMapper::toDTO)
+                        .collect(Collectors.toList()),
+                UserDTO::getId);
     }
 
     @GetMapping("/approvals")

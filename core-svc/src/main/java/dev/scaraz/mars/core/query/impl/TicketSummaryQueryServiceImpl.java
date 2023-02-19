@@ -12,7 +12,6 @@ import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.query.spec.TicketSummarySpecBuilder;
 import dev.scaraz.mars.core.repository.order.TicketSummaryRepo;
 import dev.scaraz.mars.core.util.SecurityUtil;
@@ -24,8 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.List;
+
+import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -63,7 +63,7 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
         Instant createdAt = tc.getCreatedAt()
                 .minusSeconds(1);
 
-        Instant weekAgo = createdAt.atZone(ZoneId.of("Asia/Jakarta"))
+        Instant weekAgo = createdAt.atZone(ZONE_LOCAL)
                 .minusDays(7)
                 .toInstant();
 
@@ -104,7 +104,7 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
     public long countByProduct(Product product, boolean currentUser) {
         if (currentUser) {
             User usr = SecurityUtil.getCurrentUser();
-            if (usr != null) return repo.countByProductAndWipById(product, usr.getId());
+            if (usr != null) return repo.countByProductAndWipBy(product, usr.getId());
         }
         return repo.countByProductAndWipIsFalse(product);
     }
@@ -123,9 +123,7 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
 
         if (currentUser) {
             User user = SecurityUtil.getCurrentUser();
-            criteria.setWipBy(UserCriteria.builder()
-                    .id(new StringFilter().setEq(user.getId()))
-                    .build());
+            criteria.setWipBy(new StringFilter().setEq(user.getId()));
         }
 
         return repo.exists(specBuilder.createSpec(criteria));

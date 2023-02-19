@@ -27,8 +27,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 import static dev.scaraz.mars.core.service.order.LogTicketService.*;
 
 @Slf4j
@@ -61,16 +59,10 @@ public class CloseFlowService {
 
         if (!summary.isWip())
             throw BadRequestException.args("error.ticket.update.stat");
-        else if (!summary.getWipBy().getId().equals(SecurityUtil.getCurrentUser().getId()))
+        else if (!summary.getWipBy().equals(SecurityUtil.getCurrentUser().getId()))
             throw BadRequestException.args("error.ticket.update.stat.agent");
 
-//        Agent agent = agentRepo.updateStatusAndCloseStatusAndCloseDesc(
-//                summary.getWipId(),
-//                AgStatus.CLOSED,
-//                TcStatus.CLOSED,
-//                form.getSolution(),
-//                form.getNote());
-        AgentWorkspace workspace = agentService.getWorkspaceByCurrentUser(ticket.getId());
+        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
         Agent agent = workspace.getAgent();
 
         workspace.getLastWorklog().ifPresent(worklog -> {
@@ -78,6 +70,8 @@ public class CloseFlowService {
             worklog.setSolution(form.getSolution());
             worklog.setMessage(form.getNote());
             agentService.save(worklog);
+
+            storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());
         });
 
         int minute = appConfigService.getCloseConfirm_int()
@@ -103,9 +97,6 @@ public class CloseFlowService {
                 .agentId(agent.getId())
                 .message(LOG_CLOSE_CONFIRMATION)
                 .build());
-
-        if (form.getFiles() != null)
-            storageService.addPhotoForAgentAsync(ticket, agent, List.of(form.getFiles()));
 
         return service.save(ticket);
     }
@@ -135,13 +126,12 @@ public class CloseFlowService {
                     form.getNote() : "<no description>";
 
             // Buat baru worklog
-            workspace.getLastWorklog().ifPresent(worklog -> {
-                agentService.save(AgentWorklog.builder()
-                        .takeStatus(TcStatus.REOPEN)
-                        .workspace(workspace)
-                        .reopenMessage(reopenMessage)
-                        .build());
-            });
+            AgentWorklog newWorklog = agentService.save(AgentWorklog.builder()
+                    .takeStatus(TcStatus.REOPEN)
+                    .workspace(workspace)
+                    .reopenMessage(reopenMessage)
+                    .build());
+            storageService.addTelegramAssets(ticket, newWorklog, form.getPhotos(), "requestor");
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)
@@ -175,8 +165,8 @@ public class CloseFlowService {
                 notifierService.safeSend(agent.getTelegramId(),
                         "tg.ticket.confirm.closed.agent",
                         ticket.getNo(),
-                        Translator.tr("app.done.watermark",
-                                notifierService.useLocale(agent.getTelegramId())));
+                        Translator.tr("app.done.watermark")
+                );
             }
             else {
                 logMessage = LOG_AUTO_CLOSE;

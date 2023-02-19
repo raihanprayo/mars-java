@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
@@ -10,10 +11,12 @@ import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
+import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.*;
@@ -50,6 +53,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_L
 @Service
 public class TicketBotServiceImpl implements TicketBotService {
 
+    private final AppConfigService appConfigService;
     private final TelegramBotService botService;
 
     private final TicketService service;
@@ -95,8 +99,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 issue.getProduct(),
                 issue.getName());
 
-        if (photos != null && !photos.isEmpty())
-            storageService.addPhotoForTicketAsync(photos, ticket);
+        storageService.addTelegramAssets(ticket, photos);
 
         logTicketService.add(LogTicket.builder()
                 .ticket(ticket)
@@ -196,8 +199,16 @@ public class TicketBotServiceImpl implements TicketBotService {
                     .build();
         }
 
-        String name = SecurityUtil.getCurrentUser().getName();
+        User user = SecurityUtil.getCurrentUser();
+        if (user.hasAnyRole(AppConstants.Authority.AGENT_ROLE)) {
+            boolean allowedCreate = appConfigService.getAllowAgentCreateTicket_bool()
+                    .getAsBoolean();
 
+            if (!allowedCreate)
+                throw new BadRequestException("Agen tidak diperbolehkan membuat tiket sendiri");
+        }
+
+        String name = user.getName();
         InlineKeyboardMarkup markUp = new InlineKeyboardMarkup();
         SendMessage toSend = SendMessage.builder()
                 .parseMode(ParseMode.MARKDOWNV2)

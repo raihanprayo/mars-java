@@ -28,6 +28,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
+import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
+
 @Slf4j
 @RequiredArgsConstructor
 
@@ -221,25 +223,25 @@ public class NotifierService {
 
     public static final InlineKeyboardButton
             BTN_AGREE = InlineKeyboardButton.builder()
-            .text(Translator.tr("text.agree"))
+            .text(Translator.tr("Ya"))
             .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
             .build(),
             BTN_DISAGREE = InlineKeyboardButton.builder()
-                    .text(Translator.tr("text.disagree"))
+                    .text(Translator.tr("Tidak"))
                     .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
                     .build(),
             BTN_PENDING = InlineKeyboardButton.builder()
-                    .text(Translator.tr("text.btn.pending"))
+                    .text(Translator.tr("Pending"))
                     .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
                     .build(),
             BTN_PENDING_CLOSE = InlineKeyboardButton.builder()
-                    .text(Translator.tr("text.bnt.close"))
+                    .text(Translator.tr("Tutup"))
                     .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
                     .build();
 
     public static final List<InlineKeyboardButton> CONFIRMATION_POST_PENDING = List.of(
             InlineKeyboardButton.builder()
-                    .text(Translator.tr("text.btn.done"))
+                    .text(Translator.tr("Sudah"))
                     .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
                     .build()
     );
@@ -247,11 +249,11 @@ public class NotifierService {
     public static final List<InlineKeyboardButton> UNREGISTERED_USER = List.of(
             InlineKeyboardButton.builder()
                     .callbackData(AppConstants.Telegram.REG_PAIR)
-                    .text(Translator.tr("text.btn.pair"))
+                    .text(Translator.tr("Account Pairing"))
                     .build(),
             InlineKeyboardButton.builder()
                     .callbackData(AppConstants.Telegram.REG_NEW)
-                    .text(Translator.tr("text.btn.regist"))
+                    .text(Translator.tr("Registrasi"))
                     .build()
     );
 
@@ -264,7 +266,7 @@ public class NotifierService {
                         "",
                         "NO: " + approval.getNo(),
                         "Tgl Dibuat: " + approval.getCreatedAt()
-                                .atZone(ZoneId.of("Asia/Jakarta"))
+                                .atZone(ZONE_LOCAL)
                                 .toLocalDateTime()
                                 .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
                 ))

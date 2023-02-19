@@ -164,6 +164,7 @@ public class InitializerService {
         appConfigService.getPostPending_int();
         appConfigService.getApprovalDurationHour_int();
         appConfigService.getApprovalAdminEmails_arr();
+        appConfigService.getAllowAgentCreateTicket_bool();
     }
 
     @Async

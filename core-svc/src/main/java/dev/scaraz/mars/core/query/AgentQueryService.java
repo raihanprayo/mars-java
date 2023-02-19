@@ -1,15 +1,21 @@
 package dev.scaraz.mars.core.query;
 
+import dev.scaraz.mars.common.exception.web.BadRequestException;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.domain.order.Agent;
+import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface AgentQueryService extends BaseQueryService<Agent, AgentCriteria> {
 
-    AgentWorkspace getLastWorkspace(String ticketId);
+    List<AgentWorkspace> findWorkspacesByTicket(String ticketIdOrNo);
+
+    List<AgentWorklog> findWorklogByTicketIdOrNo(String ticketIdOrNo);
+
+    AgentWorkspace getLastWorkspace(String ticketId) throws BadRequestException, NotFoundException;
 
     boolean isWorkInProgress(String ticketId);
 }

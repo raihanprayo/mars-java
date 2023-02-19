@@ -35,4 +35,6 @@ public interface AppConfigService {
     AppConfig getApprovalDurationHour_int();
 
     AppConfig getApprovalAdminEmails_arr();
+
+    AppConfig getAllowAgentCreateTicket_bool();
 }
