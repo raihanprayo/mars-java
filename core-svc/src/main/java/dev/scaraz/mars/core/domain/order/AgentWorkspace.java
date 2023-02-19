@@ -1,11 +1,11 @@
 package dev.scaraz.mars.core.domain.order;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -30,10 +30,13 @@ public class AgentWorkspace extends TimestampEntity {
     private AgStatus status;
 
     @ManyToOne
+    @JsonIgnore
+    @ToString.Exclude
     @JoinColumn(name = "ref_ticket_id", updatable = false)
     private Ticket ticket;
 
     @ManyToOne
+    @ToString.Exclude
     @JoinColumn(name = "ref_agent_id", updatable = false)
     private Agent agent;
 
@@ -42,6 +45,7 @@ public class AgentWorkspace extends TimestampEntity {
     @OneToMany(mappedBy = "workspace", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<AgentWorklog> worklogs = new HashSet<>();
 
+    @JsonIgnore
     public Optional<AgentWorklog> getLastWorklog() {
         if (worklogs.isEmpty()) return Optional.empty();
 

@@ -61,7 +61,7 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
     public List<TicketSummary> getGaulRelatedByIdOrNo(String tcIdOrNo) {
         TicketSummary tc = findByIdOrNo(tcIdOrNo);
         Instant createdAt = tc.getCreatedAt()
-                .minusSeconds(1);
+                .minusMillis(1);
 
         Instant weekAgo = createdAt.atZone(ZONE_LOCAL)
                 .minusDays(7)

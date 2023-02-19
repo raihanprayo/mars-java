@@ -7,11 +7,9 @@ import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.order.AgentWorklog;
-import dev.scaraz.mars.core.domain.order.LogTicket;
-import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.domain.order.TicketAsset;
+import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.mapper.AgentMapper;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
@@ -54,17 +52,19 @@ public class TicketResource {
     private final TicketAssetRepo assetRepo;
     private final LogTicketRepo logTicketRepo;
 
+    private final AgentMapper agentMapper;
     private final AgentQueryService agentQueryService;
 
     @GetMapping
     public ResponseEntity<?> findAll(TicketSummaryCriteria criteria, Pageable pageable) {
-        HttpHeaders headers = new HttpHeaders();
-        if (criteria.getWip() == null)
-            criteria.setWip(new BooleanFilter().setEq(false));
-
+//        HttpHeaders headers = new HttpHeaders();
+//        if (criteria.getWip() == null)
+//            criteria.setWip(new BooleanFilter().setEq(false));
+//
         Page<TicketSummary> page = summaryQueryService.findAll(criteria, pageable);
-        attachProductCountHeader(headers, criteria.copy(), false);
-        return ResourceUtil.pagination(page, headers, "/api/ticket");
+//        attachProductCountHeader(headers, criteria.copy(), false);
+//        return ResourceUtil.pagination(page, headers, "/api/ticket");
+        return ResourceUtil.pagination(page, "/ticket");
     }
 
     @GetMapping("/inbox")
@@ -73,11 +73,7 @@ public class TicketResource {
             TicketSummaryCriteria criteria,
             Pageable pageable
     ) {
-        StringFilter userIdFilter = criteria.getWipBy();
-        if (userIdFilter == null) criteria.setWipBy(userIdFilter = new StringFilter());
-
-        userIdFilter.setEq(SecurityUtil.getCurrentUser().getId());
-
+        criteria.setWipBy(new StringFilter().setEq(SecurityUtil.getCurrentUser().getId()));
         if (counter) {
             long count = summaryQueryService.count(criteria);
             return ResponseEntity.ok(
@@ -106,10 +102,31 @@ public class TicketResource {
     }
 
     @GetMapping("/detail/{ticketIdOrNo}/workspaces")
-    public ResponseEntity<?> getWorklogs(@PathVariable String ticketIdOrNo) {
-        return new ResponseEntity<>(
-                agentQueryService.findWorkspacesByTicket(ticketIdOrNo),
-                HttpStatus.OK);
+    public ResponseEntity<?> getWorkspaces(
+            @RequestParam(defaultValue = "false") boolean full,
+            @PathVariable String ticketIdOrNo) {
+        List<AgentWorkspace> workspaces = agentQueryService.findWorkspacesByTicket(ticketIdOrNo);
+        return ResponseEntity.ok(workspaces.stream()
+                .map(o -> full ? agentMapper.toFullDTO(o) : agentMapper.toDTO(o))
+                .collect(Collectors.toList()));
+    }
+
+    @GetMapping("/detail/{ticketIdOrNo}/worklogs")
+    public ResponseEntity<?> getWorklogs(
+            @RequestParam(defaultValue = "false") boolean full,
+            @PathVariable String ticketIdOrNo) {
+        List<AgentWorklog> workspaces = agentQueryService.findWorklogsByTicketIdOrNo(ticketIdOrNo);
+        return ResponseEntity.ok(workspaces.stream()
+                .map(o -> full ? agentMapper.toFullDTO(o) : agentMapper.toDTO(o))
+                .collect(Collectors.toList()));
+    }
+
+    @GetMapping("/detail/{ticketIdOrNo}/logs")
+    public ResponseEntity<?> getLogs(
+            @PathVariable String ticketIdOrNo
+    ) {
+        List<LogTicket> logs = logTicketRepo.findAllByTicketIdOrTicketNo(ticketIdOrNo, ticketIdOrNo);
+        return ResponseEntity.ok(logs);
     }
 
     @GetMapping("/assets/{ticketNo}")
@@ -131,14 +148,6 @@ public class TicketResource {
                         .collect(Collectors.toSet()),
                 HttpStatus.OK
         );
-    }
-
-    @GetMapping("/logs/{ticketIdOrNo}")
-    public ResponseEntity<?> getLogs(
-            @PathVariable String ticketIdOrNo
-    ) {
-        List<LogTicket> logs = logTicketRepo.findAllByTicketIdOrTicketNo(ticketIdOrNo, ticketIdOrNo);
-        return ResponseEntity.ok(logs);
     }
 
     @GetMapping(path = "/reports", produces = AppConstants.MimeType.APPLICATION_CSV_VALUE)

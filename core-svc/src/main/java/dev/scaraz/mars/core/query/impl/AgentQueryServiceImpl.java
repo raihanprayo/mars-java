@@ -70,8 +70,8 @@ public class AgentQueryServiceImpl implements AgentQueryService {
     }
 
     @Override
-    public List<AgentWorklog> findWorklogByTicketIdOrNo(String ticketIdOrNo) {
-        return worklogRepo.findByWorkspaceTicketIdOrWorkspaceTicketNo(ticketIdOrNo, ticketIdOrNo);
+    public List<AgentWorklog> findWorklogsByTicketIdOrNo(String ticketIdOrNo) {
+        return worklogRepo.findByWorkspaceTicketIdOrWorkspaceTicketNoOrderByCreatedAt(ticketIdOrNo, ticketIdOrNo);
     }
 
     @Override

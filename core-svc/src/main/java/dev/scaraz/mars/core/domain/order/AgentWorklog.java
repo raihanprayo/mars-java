@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.order;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import lombok.*;
@@ -39,8 +40,9 @@ public class AgentWorklog extends TimestampEntity {
     @Column(name = "reopen_message", updatable = false)
     private String reopenMessage;
 
+    @JsonIgnore
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "ref_workspace_id")
     private AgentWorkspace workspace;
 

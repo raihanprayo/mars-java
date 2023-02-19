@@ -80,7 +80,7 @@ public class TicketSummary extends AuditableEntity {
     private boolean wip;
 
     @Column(name="wip_id")
-    private String wipId;
+    private Long wipId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "wip_status")
@@ -91,8 +91,5 @@ public class TicketSummary extends AuditableEntity {
 
     @Embedded
     private TicketAge age;
-
-    @Transient
-    private Set<LogTicket> logs = new HashSet<>();
 
 }

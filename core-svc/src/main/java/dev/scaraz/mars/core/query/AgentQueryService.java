@@ -13,7 +13,7 @@ public interface AgentQueryService extends BaseQueryService<Agent, AgentCriteria
 
     List<AgentWorkspace> findWorkspacesByTicket(String ticketIdOrNo);
 
-    List<AgentWorklog> findWorklogByTicketIdOrNo(String ticketIdOrNo);
+    List<AgentWorklog> findWorklogsByTicketIdOrNo(String ticketIdOrNo);
 
     AgentWorkspace getLastWorkspace(String ticketId) throws BadRequestException, NotFoundException;
 

@@ -48,6 +48,6 @@ select tc.id                                           as id,
 from t_ticket as tc
          join t_issue issue on tc.ref_issue_id = issue.id
          left join t_agent_workspace ag_ws on ag_ws.ref_ticket_id = tc.id and ag_ws.status = 'PROGRESS'
-         join t_agent ag on ag_ws.ref_agent_id = ag.id
+         left join t_agent ag on ag.id = ag_ws.ref_agent_id
 
 group by tc.id, issue.product, ag_ws.id, ag_ws.status, ag.ref_user_id;

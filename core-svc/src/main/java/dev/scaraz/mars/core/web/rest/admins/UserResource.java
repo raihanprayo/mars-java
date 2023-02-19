@@ -61,6 +61,11 @@ public class UserResource {
                 UserDTO::getId);
     }
 
+    @GetMapping("/detail/{nik}")
+    public ResponseEntity<?> findByNik(@PathVariable String nik) {
+        return ResponseEntity.ok(userQueryService.findByNik(nik));
+    }
+
     @GetMapping("/approvals")
     public ResponseEntity<?> findAllApprovals(Pageable pageable) {
         Page<UserApproval> page = userApprovalRepo.findAll(pageable);

@@ -82,11 +82,12 @@ public class AgentServiceImpl implements AgentService {
                 .orElseGet(() -> save(Agent.builder()
                         .nik(user.getNik())
                         .telegramId(user.getTg().getId())
+                        .userId(user.getId())
                         .build()));
 
         Supplier<AgentWorkspace> fn = () -> save(AgentWorkspace.builder()
-                .ticket(Ticket.builder().id(ticketId).build())
                 .agent(agent)
+                .ticket(Ticket.builder().id(ticketId).build())
                 .status(AgStatus.PROGRESS)
                 .build());
 

@@ -20,7 +20,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 
 @Entity
-@Table(name = "t_ticket_agent")
+@Table(name = "t_agent")
 public class Agent extends AuditableEntity {
 
     @Id

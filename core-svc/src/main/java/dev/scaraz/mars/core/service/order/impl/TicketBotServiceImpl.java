@@ -104,10 +104,7 @@ public class TicketBotServiceImpl implements TicketBotService {
         logTicketService.add(LogTicket.builder()
                 .ticket(ticket)
                 .curr(ticket.getStatus())
-                .message(String.format(
-                        "created ticket with gaul is %s",
-                        totalGaul != 0
-                ))
+                .message("created")
                 .build());
 
         return ticket;

@@ -15,11 +15,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogTicketService {
 
-    public static final String LOG_AUTO_CLOSE = "auto close";
-    public static final String LOG_AUTO_CLOSE_PENDING = "pending auto close";
-    public static final String LOG_CONFIRMED_CLOSE = "request confirmed, closing ticket";
-    public static final String LOG_CONFIRMED_PENDING = "request confirmed, pending ticket";
-    public static final String LOG_REOPEN = "reopen ticket";
+    public static final String LOG_AUTO_CLOSE = "(auto) closed";
+    public static final String LOG_CONFIRMED_CLOSE = "confirmed ticket closed";
+    public static final String LOG_CONFIRMED_PENDING = "confirmed ticket pending";
+    public static final String LOG_REOPEN = "ticket reopened";
     public static final String LOG_CLOSE_CONFIRMATION = "close confirmation request";
     public static final String LOG_PENDING_CONFIRMATION = "pending confirmation request";
     public static final String LOG_DISPATCH_REQUEST = "ticket dispatched";

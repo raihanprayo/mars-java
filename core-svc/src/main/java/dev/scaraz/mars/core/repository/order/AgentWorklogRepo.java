@@ -13,6 +13,6 @@ public interface AgentWorklogRepo extends
         JpaRepository<AgentWorklog, Long>,
         JpaSpecificationExecutor<AgentWorklog> {
 
-    List<AgentWorklog> findByWorkspaceTicketIdOrWorkspaceTicketNo(String tid, String tno);
+    List<AgentWorklog> findByWorkspaceTicketIdOrWorkspaceTicketNoOrderByCreatedAt(String tid, String tno);
 
 }

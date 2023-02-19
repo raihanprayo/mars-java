@@ -69,7 +69,17 @@ public class InitializerService {
             throw new IllegalStateException("Unknown Witel region, please set first from environtment 'MARS_WITEL'");
     }
 
-    @Async
+    public void preInitAppConfigs() {
+        appConfigService.getCloseConfirm_int();
+        appConfigService.getAllowLogin_bool();
+        appConfigService.getRegistrationRequireApproval_bool();
+        appConfigService.getSendRegistrationApproval_bool();
+        appConfigService.getPostPending_int();
+        appConfigService.getApprovalDurationHour_int();
+        appConfigService.getApprovalAdminEmails_arr();
+        appConfigService.getAllowAgentCreateTicket_bool();
+    }
+
     @Transactional
     public void preInitRolesAndCreateAdmin() {
         Role adminRole;
@@ -122,7 +132,7 @@ public class InitializerService {
         createIssueInlineButton();
     }
 
-    public void createIssueInlineButton() {
+    private void createIssueInlineButton() {
         log.info("(RE)CREATE ISSUE INLINE BUTTONS");
 
         synchronized (ISSUES_BUTTON_LIST) {
@@ -153,18 +163,6 @@ public class InitializerService {
 
             log.debug("ISSUE BUTTONS CACHE {}", ISSUES_BUTTON_LIST);
         }
-    }
-
-    @Async
-    public void preInitAppConfigs() {
-        appConfigService.getCloseConfirm_int();
-        appConfigService.getAllowLogin_bool();
-        appConfigService.getRegistrationRequireApproval_bool();
-        appConfigService.getSendRegistrationApproval_bool();
-        appConfigService.getPostPending_int();
-        appConfigService.getApprovalDurationHour_int();
-        appConfigService.getApprovalAdminEmails_arr();
-        appConfigService.getAllowAgentCreateTicket_bool();
     }
 
     @Async
