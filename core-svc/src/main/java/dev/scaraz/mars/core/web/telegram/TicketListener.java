@@ -18,7 +18,7 @@ import dev.scaraz.mars.core.service.order.TicketFormService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
-import dev.scaraz.mars.telegram.annotation.Text;
+import dev.scaraz.mars.telegram.annotation.context.Text;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -137,7 +137,7 @@ public class TicketListener {
         }
     }
 
-    @TelegramCommand("/resume")
+    @TelegramCommand("/confirm")
     public void resume(@TgAuth User user, @Text String text) {
         // Melanjutkan tiket dengan status pending
 

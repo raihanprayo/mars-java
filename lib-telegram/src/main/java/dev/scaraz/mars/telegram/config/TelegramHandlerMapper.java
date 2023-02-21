@@ -61,14 +61,14 @@ public class TelegramHandlerMapper implements BeanPostProcessor {
                         throw new RuntimeException("NPE at beanClass: " + beanClass + " on userId: " + userId);
                     }
                     for (String evaluatedUserId : evalUserId.split(",")) {
-                        log.info("Init TelegramBot controller: {} for userId: {}", beanClass, userId);
+                        log.info("Bind TelegramBot controller: {} for userId: {}", beanClass, userId);
                         botControllerMapByUserId.computeIfAbsent(OptionalLong.of(Long.parseLong(evaluatedUserId)), key -> new HashMap<>())
                                 .put(beanName, beanClass);
                     }
                 }
             }
             else {
-                log.info("Init TelegramBot controller: {}", beanClass);
+                log.info("Bind TelegramBot controller: {}", beanClass);
                 botControllerMap.put(beanName, beanClass);
             }
         }
@@ -161,23 +161,31 @@ public class TelegramHandlerMapper implements BeanPostProcessor {
     }
 
     private void bindDefaultMessageHandler(Object bean, Method method, OptionalLong userId) {
-        log.debug("Init TelegramBot message controller: {}:{} for {}",
+        log.debug("Bind TelegramBot message controller: {}:{} for {}",
                 bean.getClass(), method.getName(), userId
         );
         addHandlers(userId, t -> t.setDefaultMessageHandler(new TelegramHandler(bean, method, null)));
     }
 
     private void bindCallbackQueryHandler(Object bean, Method method, OptionalLong userId) {
-        log.debug("Init TelegramBot callback query controller: {}:{} for {}",
+        log.debug("Bind TelegramBot callback query controller: {}:{} for {}",
                 bean.getClass(), method.getName(), userId
         );
-        addHandlers(userId, t -> t.setDefaultCallbackQueryHandler(new TelegramHandler(bean, method, null)));
+
+        TelegramCallbackQuery cbq = AnnotatedElementUtils.findMergedAnnotation(method, TelegramCallbackQuery.class);
+
+        if (cbq.callbackData().length == 0)
+            addHandlers(userId, t -> t.setDefaultCallbackQueryHandler(new TelegramHandler(bean, method, null)));
+        else {
+            for (String data : cbq.callbackData())
+                addHandlers(userId, t -> t.getCallbackQueryList().put(data, new TelegramHandler(bean, method, null)));
+        }
     }
 
     private void bindCommandHandler(Object bean, Method method, OptionalLong userId) {
         TelegramCommand command = AnnotatedElementUtils.findMergedAnnotation(method, TelegramCommand.class);
         if (command != null) {
-            log.debug("Init TelegramBot command controller: {}:{} for {}", bean.getClass(), method.getName(), userId);
+            log.debug("Bind TelegramBot command controller: {}:{} for {}", bean.getClass(), method.getName(), userId);
 
             for (String cmd : command.commands()) {
                 TelegramHandler telegramHandler = new TelegramHandler(bean, method, command);
@@ -193,7 +201,7 @@ public class TelegramHandlerMapper implements BeanPostProcessor {
     }
 
     private void bindForwardHandler(Object bean, Method method, OptionalLong userId) {
-        log.debug("Init TelegramBot forward controller: {}:{} for {}",
+        log.debug("Bind TelegramBot forward controller: {}:{} for {}",
                 bean.getClass(), method.getName(), userId
         );
 //        telegramBotService.addForwardMessageHandler(bean, method, userId);
@@ -201,7 +209,7 @@ public class TelegramHandlerMapper implements BeanPostProcessor {
     }
 
     private void bindHelpPrefix(Object bean, Method method, OptionalLong userId) {
-        log.debug("Init TelegramBot help prefix method: {}:{} for {}",
+        log.debug("Bind TelegramBot help prefix method: {}:{} for {}",
                 bean.getClass(), method.getName(), userId
         );
 

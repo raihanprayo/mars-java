@@ -14,6 +14,10 @@ import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketConfirmService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.*;
+import dev.scaraz.mars.telegram.annotation.context.CallbackData;
+import dev.scaraz.mars.telegram.annotation.context.ChatId;
+import dev.scaraz.mars.telegram.annotation.context.Text;
+import dev.scaraz.mars.telegram.annotation.context.UserId;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
@@ -126,45 +130,30 @@ public class AppListener {
 
     @TelegramCallbackQuery
     public SendMessage onCallbackQuery(
-            CallbackQuery cq,
             User user,
+            CallbackQuery cq,
+            Message message,
+            @CallbackData String data,
             @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
     ) throws TelegramApiException {
         log.info("{}", gson.toJson(cq));
 
-        Message message = cq.getMessage();
-        String queryData = cq.getData();
-
         int messageId = message.getMessageId();
-        switch (queryData) {
-            // Disini tiket bisa jadi kondisi status mau pending atau close
-            case AppConstants.Telegram.CONFIRM_AGREE:
-            case AppConstants.Telegram.CONFIRM_DISAGREE: {
-                boolean agree = AppConstants.Telegram.CONFIRM_AGREE.equals(cq.getData());
+        if (data.startsWith(REPORT_ISSUE) && ticketConfirmService.existsById(messageId)) {
+            long issueId = Long.parseLong(data.substring(data.lastIndexOf(":") + 1));
+            ticketBotService.instantForm_answerIssue(messageId, issueId);
+        }
+        return null;
+    }
 
-                if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.CLOSED)) {
-                    log.info("TICKET CLOSE CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", messageId, agree);
-                    ticketBotService.confirmedClose(message.getMessageId(), agree, "");
-                }
-                else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.PENDING)) {
-                    log.info("TICKET PENDING CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", messageId, agree);
-                    ticketBotService.confirmedPending(message.getMessageId(), agree);
-                }
-                else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING)) {
-                    log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", TicketConfirm.POST_PENDING, messageId, agree);
-                    ticketBotService.confirmedPostPending(messageId, null, null);
-                }
-                else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_NETWORK)) {
-                    log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
-                    return ticketBotService.instantForm_answerNetwork(messageId, agree);
-                }
-                else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_PARAM)) {
-                    log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
-                    return ticketBotService.instantForm_answerParamRequirement(messageId, agree);
-                }
-                break;
-            }
-
+    @TelegramCallbackQuery({AppConstants.Telegram.REG_PAIR, AppConstants.Telegram.REG_NEW, AppConstants.Telegram.REG_IGNORE_WITEL})
+    public SendMessage registrationCallback(
+            User user,
+            Message message,
+            @CallbackData String data,
+            @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
+    ) {
+        switch (data) {
             case AppConstants.Telegram.REG_PAIR: {
                 if (marsUser != null) return null;
                 else if (authService.isUserInApproval(user.getId())) return null;
@@ -176,7 +165,6 @@ public class AppListener {
                 else if (authService.isUserInApproval(user.getId())) return null;
                 return userRegistrationBotService.start(user.getId(), user.getUserName());
             }
-
             case AppConstants.Telegram.REG_IGNORE_WITEL: {
                 if (!registrationRepo.existsById(user.getId())) return null;
                 BotRegistration registration = registrationRepo.findById(user.getId())
@@ -188,14 +176,42 @@ public class AppListener {
 
                 throw new IllegalStateException("Invalid registration state");
             }
-
-            default: {
-                if (queryData.startsWith(REPORT_ISSUE) && ticketConfirmService.existsById(messageId)) {
-                    long issueId = Long.parseLong(queryData.substring(queryData.lastIndexOf(":") + 1));
-                    ticketBotService.instantForm_answerIssue(messageId, issueId);
-                }
-            }
         }
+
+        return null;
+    }
+
+    @TelegramCallbackQuery({AppConstants.Telegram.CONFIRM_AGREE, AppConstants.Telegram.CONFIRM_DISAGREE})
+    public SendMessage agreeDisagreeCallback(
+            Message message,
+            @CallbackData String data,
+            @TgAuth dev.scaraz.mars.core.domain.credential.User marsUser
+    ) throws TelegramApiException {
+        // Disini tiket bisa jadi kondisi status mau pending atau close
+        boolean agree = AppConstants.Telegram.CONFIRM_AGREE.equals(data);
+
+        int messageId = message.getMessageId();
+        if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.CLOSED)) {
+            log.info("TICKET CLOSE CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", messageId, agree);
+            ticketBotService.confirmedClose(message.getMessageId(), agree, "");
+        }
+        else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.PENDING)) {
+            log.info("TICKET PENDING CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", messageId, agree);
+            ticketBotService.confirmedPending(message.getMessageId(), agree);
+        }
+        else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING)) {
+            log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", TicketConfirm.POST_PENDING, messageId, agree);
+            ticketBotService.confirmedPostPending(messageId, null, null);
+        }
+        else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_NETWORK)) {
+            log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
+            return ticketBotService.instantForm_answerNetwork(messageId, agree);
+        }
+        else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_PARAM)) {
+            log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
+            return ticketBotService.instantForm_answerParamRequirement(messageId, agree);
+        }
+
         return null;
     }
 
@@ -213,7 +229,7 @@ public class AppListener {
 
         return SendMessage.builder()
                 .chatId(chatId)
-                .text("Maaf, menu ini hanya bisa ditampilkan melalui private chat")
+                .text("Maaf, command ini hanya bisa ditampilkan melalui private chat")
                 .build();
     }
 
@@ -243,7 +259,7 @@ public class AppListener {
                         "*/take /sayaambil* _<no-tiket>_",
                         "Untuk mengambil tiket, dimana argument _<no-tiket>_ adalah no tiket yang tersedia",
                         "",
-                        "*/resume* _<no-tiket>_",
+                        "*/confirm* _<no-tiket>_",
                         "Untuk melakukan konfirmasi tiket yang sedang dalam keadaan pending",
                         "",
                         "*/tiket* _<no-tiket>_",

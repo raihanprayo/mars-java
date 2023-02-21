@@ -1,4 +1,4 @@
-package dev.scaraz.mars.telegram.annotation;
+package dev.scaraz.mars.telegram.annotation.context;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Text {
+public @interface Command {
 }

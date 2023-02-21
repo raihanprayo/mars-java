@@ -14,10 +14,16 @@ import javax.annotation.Nullable;
 
 @Component
 public final class MessageArgResolver implements TelegramTypeArgResolver<Message> {
+
     @Override
     public Message resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
-        return ctx.getScope() == HandlerType.CALLBACK_QUERY ?
-                update.getCallbackQuery().getMessage() :
-                update.getMessage();
+        switch (ctx.getScope()) {
+            case CALLBACK_QUERY:
+                return update.getCallbackQuery().getMessage();
+            case MESSAGE:
+                return update.getMessage();
+        }
+
+        return null;
     }
 }

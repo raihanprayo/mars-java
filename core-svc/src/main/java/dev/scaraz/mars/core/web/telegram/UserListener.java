@@ -10,8 +10,8 @@ import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
-import dev.scaraz.mars.telegram.annotation.Text;
-import dev.scaraz.mars.telegram.annotation.UserId;
+import dev.scaraz.mars.telegram.annotation.context.Text;
+import dev.scaraz.mars.telegram.annotation.context.UserId;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,10 +20,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 import static dev.scaraz.mars.common.tools.Translator.LANG_EN;
 import static dev.scaraz.mars.common.tools.Translator.LANG_ID;

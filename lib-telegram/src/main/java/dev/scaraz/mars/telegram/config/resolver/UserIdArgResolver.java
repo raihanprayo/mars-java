@@ -1,8 +1,7 @@
 package dev.scaraz.mars.telegram.config.resolver;
 
-import dev.scaraz.mars.telegram.annotation.UserId;
+import dev.scaraz.mars.telegram.annotation.context.UserId;
 import dev.scaraz.mars.telegram.model.TelegramAnnotationArgResolver;
-import dev.scaraz.mars.telegram.model.TelegramArgResolver;
 import dev.scaraz.mars.telegram.model.TelegramHandlerContext;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
 import org.springframework.core.MethodParameter;

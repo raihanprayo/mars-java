@@ -88,7 +88,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     public SendMessage info(String ticketNo) {
         TicketSummary tc = summaryQueryService.findByIdOrNo(ticketNo);
         Map<String, Object> infoMap = new LinkedHashMap<>();
-//        infoMap.put("No", tc.getNo());
+        infoMap.put("No", tc.getNo());
         infoMap.put("Witel", tc.getWitel());
         infoMap.put("STO", tc.getSto());
         infoMap.put("Requestor", tc.getSenderName());
@@ -98,9 +98,7 @@ public class TicketBotServiceImpl implements TicketBotService {
         infoMap.put("Status", tc.getStatus());
 
         StringBuilder content = new StringBuilder()
-                .append("Informasi Tiket *")
-                .append(tc.getNo())
-                .append("*:\n");
+                .append("Informasi Tiket:\n");
 
         for (String k : infoMap.keySet()) {
             String value = Objects.requireNonNullElse(infoMap.get(k), "-")

@@ -1,6 +1,7 @@
 package dev.scaraz.mars.telegram.config.processor;
 
 import dev.scaraz.mars.telegram.model.TelegramHandler;
+import dev.scaraz.mars.telegram.model.TelegramHandlers;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.Util;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
@@ -28,16 +29,19 @@ public class CallbackQueryProcessor extends TelegramProcessor {
 
     @Override
     public Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) throws Exception {
-        Optional<TelegramHandler> defaultCallbackQueryHandler = Optional.ofNullable(
-                getHandlerMapper().getHandlers(Util.optionalOf(update.getCallbackQuery().getFrom().getId()))
-                        .getDefaultCallbackQueryHandler()
-        );
+        TelegramHandlers handlers = getHandlerMapper().getHandlers(Util.optionalOf(update.getCallbackQuery().getFrom().getId()));
 
-        if (defaultCallbackQueryHandler.isPresent()) {
-            TelegramHandler handler = defaultCallbackQueryHandler.get();
-            return bot.processHandler(handler, makeArgumentList(bot, handler, update, null));
-        }
+        TelegramHandler handler = findSpecificHandler(handlers, update);
 
-        return Optional.empty();
+        return handler == null ?
+                Optional.empty() :
+                bot.processHandler(handler, makeArgumentList(bot, handler, update, null));
     }
+
+    private TelegramHandler findSpecificHandler(TelegramHandlers handlers, Update update) {
+        String data = update.getCallbackQuery().getData();
+        return Optional.ofNullable(handlers.getCallbackQueryList().get(data))
+                .orElseGet(handlers::getDefaultCallbackQueryHandler);
+    }
+
 }
