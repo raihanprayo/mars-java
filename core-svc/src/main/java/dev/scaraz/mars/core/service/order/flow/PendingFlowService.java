@@ -130,9 +130,12 @@ public class PendingFlowService {
                     .intValue();
 
             int messageId = notifierService.sendRaw(ticket.getSenderId(),
-                    String.format("Tiket *%s* - *PENDING*", ticket.getNo()),
+                    String.format("Tiket *%s*:", ticket.getNo()),
+                    "status berubah ke  *PENDING*",
                     "",
-                    "_MARS akan kembali dalam " + minute + " menit_"
+                    "_MARS akan kembali dalam " + minute + " menit_",
+                    "",
+                    "_Ketik */resume " + ticket.getNo() + "* untuk melakukan konfirmasi_"
             );
 
             ticketConfirmService.save(TicketConfirm.builder()
@@ -211,13 +214,6 @@ public class PendingFlowService {
     public Ticket confirmPostPending(String ticketNo, TicketStatusFormDTO form) {
         Ticket ticket = queryService.findByIdOrNo(ticketNo);
         TcStatus prevStatus = ticket.getStatus();
-
-//        Agent prevAgent = agentQueryService.findAll(
-//                TicketAgentCriteria.builder()
-//                        .ticketId(new StringFilter().setEq(ticket.getId()))
-//                        .build(),
-//                PageRequest.of(0, 1, Sort.Direction.DESC, "createdAt")
-//        ).stream().findFirst().orElseThrow();
 
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
         Agent agent = workspace.getAgent();

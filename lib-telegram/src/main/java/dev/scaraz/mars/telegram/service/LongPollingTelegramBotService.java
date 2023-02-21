@@ -42,10 +42,6 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
         this.executor = executor;
         try {
             this.session = api.registerBot(client);
-//            this.botExecutor = new ThreadPoolExecutor(1, botProperties.getMaxThreads(),
-//                    1L, TimeUnit.HOURS,
-//                    new SynchronousQueue<>()
-//            );
         }
         catch (TelegramApiException e) {
             log.error("Cannot register Long Polling with {}", botProperties, e);

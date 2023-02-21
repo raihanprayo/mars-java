@@ -17,6 +17,8 @@ public interface TicketQueryService extends BaseQueryService<Ticket, TicketCrite
 
     long count(TicketCriteria criteria);
 
+    boolean exist(TicketCriteria criteria);
+
     Map<Product, Long> countProducts(@Nullable AgentCriteria agentCriteria);
 
     int countGaul(long issueId, String serviceNo);

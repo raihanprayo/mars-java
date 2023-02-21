@@ -58,11 +58,12 @@ public class AppListener {
     private final Gson gson = new Gson();
 
     @TelegramMessage
-    public SendMessage generalMessage(User user,
-                                      Update update,
-                                      Message message,
-                                      @Text String text,
-                                      @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
+    public SendMessage generalMessage(
+            User user,
+            Update update,
+            Message message,
+            @Text String text,
+            @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
     ) {
         log.info("{}", gson.toJson(update));
 
@@ -233,17 +234,23 @@ public class AppListener {
                         "*/start*",
                         "Instan Form Lapor",
                         "",
+                        "*/reg /register*",
+                        "Untuk melakukan registrasi user",
+                        "",
                         "*/report /lapor*",
                         "Form lapor manual",
                         "",
                         "*/take /sayaambil* _<no-tiket>_",
-                        "Untuk mengambil tiket, dimana argument <no-tiket> adalah no tiket yang tersedia",
+                        "Untuk mengambil tiket, dimana argument _<no-tiket>_ adalah no tiket yang tersedia",
                         "",
-                        "*/reg /register*",
-                        "Untuk melakukan registrasi user",
+                        "*/resume* _<no-tiket>_",
+                        "Untuk melakukan konfirmasi tiket yang sedang dalam keadaan pending",
+                        "",
+                        "*/tiket* _<no-tiket>_",
+                        "Untuk melihat info/summary tiket",
                         "",
                         "*/help* _[cmd]_",
-                        "List command yang tersedia, Dimana argument [cmd] nama command yang tersedia untuk detail penjelasan (tanpa slash)."
+                        "List command yang tersedia, Dimana argument _[cmd]_ nama command yang tersedia untuk detail penjelasan (tanpa forward slash)."
                 ))
                 .build();
     }

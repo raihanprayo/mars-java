@@ -83,6 +83,11 @@ public class TicketQueryServiceImpl implements TicketQueryService {
     }
 
     @Override
+    public boolean exist(TicketCriteria criteria) {
+        return repo.exists(specBuilder.createSpec(criteria));
+    }
+
+    @Override
     public Map<Product, Long> countProducts(@Nullable AgentCriteria agentCriteria) {
         EnumMap<Product, Long> map = new EnumMap<>(Product.class);
         TcStatusFilter statusFilter = new TcStatusFilter()

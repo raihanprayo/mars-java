@@ -11,11 +11,14 @@ import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.query.IssueQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
+import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.*;
+import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.repository.order.LogTicketRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
@@ -43,10 +46,12 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
+import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -56,9 +61,15 @@ public class TicketBotServiceImpl implements TicketBotService {
     private final AppConfigService appConfigService;
     private final TelegramBotService botService;
 
+    private final AgentQueryService agentQueryService;
+
     private final TicketService service;
     private final TicketFlowService flowService;
     private final TicketQueryService queryService;
+    private final TicketSummaryQueryService summaryQueryService;
+    private final LogTicketRepo logTicketRepo;
+
+    private final UserQueryService userQueryService;
     private final IssueQueryService issueQueryService;
 
 
@@ -71,6 +82,88 @@ public class TicketBotServiceImpl implements TicketBotService {
 
     private final StorageService storageService;
     private final LogTicketService logTicketService;
+
+    @Override
+    @Transactional(readOnly = true)
+    public SendMessage info(String ticketNo) {
+        TicketSummary tc = summaryQueryService.findByIdOrNo(ticketNo);
+        Map<String, Object> infoMap = new LinkedHashMap<>();
+//        infoMap.put("No", tc.getNo());
+        infoMap.put("Witel", tc.getWitel());
+        infoMap.put("STO", tc.getSto());
+        infoMap.put("Requestor", tc.getSenderName());
+        infoMap.put("Gaul", tc.isGaul() ? "Ya" : "Tidak");
+        infoMap.put("No Service", tc.getServiceNo());
+        infoMap.put("Tiket NOSSA", tc.getIncidentNo());
+        infoMap.put("Status", tc.getStatus());
+
+        StringBuilder content = new StringBuilder()
+                .append("Informasi Tiket *")
+                .append(tc.getNo())
+                .append("*:\n");
+
+        for (String k : infoMap.keySet()) {
+            String value = Objects.requireNonNullElse(infoMap.get(k), "-")
+                    .toString();
+            content.append(k).append(": \t*")
+                    .append(value)
+                    .append("*\n");
+        }
+
+        content.append("\n\n")
+                .append("Timeline:\n");
+
+        DateTimeFormatter formatDateLog = DateTimeFormatter.ofPattern("dd/MM/yyy - HH:mm:ss");
+        List<LogTicket> logs = logTicketRepo.findAllByTicketIdOrTicketNoOrderByCreatedAtAsc(tc.getId(), tc.getNo());
+        for (int i = 0; i < logs.size(); i++) {
+            int index = i + 1;
+            LogTicket lt = logs.get(i);
+
+            TcStatus prev = lt.getPrev();
+            TcStatus curr = lt.getCurr();
+
+            content.append(index).append(". *")
+                    .append(lt.getCreatedAt()
+                            .atZone(ZONE_LOCAL)
+                            .toLocalDateTime()
+                            .format(formatDateLog))
+                    .append("*\n\t")
+                    .append(lt.getMessage())
+                    .append("\n\t*")
+                    .append(prev == null ? "" : prev.name())
+                    .append("* => *")
+                    .append(curr == null ? "" : curr.name())
+                    .append("*\n\n");
+        }
+
+        content.append("\n")
+                .append("Pernah Diproses oleh:\n");
+
+        UserCriteria userCriteria = UserCriteria.builder()
+                .id(new StringFilter().setIn(agentQueryService.findWorkspacesByTicket(tc.getId()).stream()
+                        .map(AgentWorkspace::getAgent)
+                        .map(Agent::getUserId)
+                        .collect(Collectors.toList())))
+                .build();
+
+        List<String> names = userQueryService.findAll(userCriteria).stream()
+                .map(User::getName)
+                .distinct()
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < names.size(); i++) {
+            int index = i + 1;
+            String name = names.get(i);
+            content.append(index).append(". *")
+                    .append(name).append("*\n");
+        }
+
+        return SendMessage.builder()
+                .chatId(TelegramContextHolder.getChatId())
+                .parseMode(ParseMode.MARKDOWNV2)
+                .text(TelegramUtil.esc(content.toString()))
+                .build();
+    }
 
     @Override
     @Transactional
@@ -148,6 +241,11 @@ public class TicketBotServiceImpl implements TicketBotService {
         if (photos != null && !photos.isEmpty()) form.setPhotos(new ArrayList<>(photos));
         pendingFlowService.confirmPostPending(confirmData.getValue(), form);
         ticketConfirmService.deleteById(messageId);
+    }
+
+    @Override
+    public void endPendingEarly(String ticketNo) {
+        pendingFlowService.askPostPending(ticketNo);
     }
 
     @Override

@@ -14,6 +14,8 @@ import java.util.Collection;
 
 public interface TicketBotService {
 
+    SendMessage info(String ticketNo);
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     Ticket registerForm(TicketBotForm form, Collection<PhotoSize> photos);
 
@@ -28,6 +30,8 @@ public interface TicketBotService {
     void confirmedPending(long messageId, boolean pendingTicket);
 
     void confirmedPostPending(long messageId, String text, @Nullable Collection<PhotoSize> photos);
+
+    void endPendingEarly(String ticketNo);
 
     void validateForm(TicketBotForm form) throws TgInvalidFormError;
 
