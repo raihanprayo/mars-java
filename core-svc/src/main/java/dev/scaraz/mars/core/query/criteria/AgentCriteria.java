@@ -23,14 +23,13 @@ public class AgentCriteria extends AuditableCriteria {
     private LongFilter telegram;
 
 //    private AgStatusFilter status;
-//
 //    private TcStatusFilter takeStatus;
 //    private TcStatusFilter closeStatus;
 //
 //    private UserCriteria user;
 //    private TicketCriteria ticket;
 //
-//    private StringFilter userId;
+    private StringFilter userId;
 //    private StringFilter ticketId;
 //    private StringFilter ticketNo;
 }

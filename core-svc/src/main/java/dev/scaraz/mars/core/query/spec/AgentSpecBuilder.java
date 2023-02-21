@@ -1,21 +1,13 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
-import dev.scaraz.mars.core.domain.credential.UserTg_;
-import dev.scaraz.mars.core.domain.credential.User_;
-import dev.scaraz.mars.core.domain.order.Issue_;
 import dev.scaraz.mars.core.domain.order.Agent;
-import dev.scaraz.mars.core.domain.order.Agent_;
-import dev.scaraz.mars.core.domain.order.Ticket_;
 import dev.scaraz.mars.core.query.criteria.AgentCriteria;
-import dev.scaraz.mars.core.query.criteria.TicketCriteria;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
-import dev.scaraz.mars.core.query.criteria.UserTgCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class TicketAgentSpecBuilder extends AuditableSpec<Agent, AgentCriteria> {
+public class AgentSpecBuilder extends AuditableSpec<Agent, AgentCriteria> {
     @Override
     public Specification<Agent> createSpec(AgentCriteria criteria) {
         Specification<Agent> spec = Specification.where(null);

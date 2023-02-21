@@ -11,6 +11,8 @@ import java.util.List;
 
 public interface AgentQueryService extends BaseQueryService<Agent, AgentCriteria> {
 
+    List<AgentWorkspace> findByUserId(String userId);
+
     List<AgentWorkspace> findWorkspacesByTicket(String ticketIdOrNo);
 
     List<AgentWorklog> findWorklogsByTicketIdOrNo(String ticketIdOrNo);

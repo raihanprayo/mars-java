@@ -1,7 +1,6 @@
 package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.tools.enums.Product;
-import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
@@ -15,7 +14,6 @@ import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.order.LogTicketRepo;
 import dev.scaraz.mars.core.repository.order.TicketAssetRepo;
 import dev.scaraz.mars.core.service.order.TicketService;
@@ -27,8 +25,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -57,13 +53,7 @@ public class TicketResource {
 
     @GetMapping
     public ResponseEntity<?> findAll(TicketSummaryCriteria criteria, Pageable pageable) {
-//        HttpHeaders headers = new HttpHeaders();
-//        if (criteria.getWip() == null)
-//            criteria.setWip(new BooleanFilter().setEq(false));
-//
         Page<TicketSummary> page = summaryQueryService.findAll(criteria, pageable);
-//        attachProductCountHeader(headers, criteria.copy(), false);
-//        return ResourceUtil.pagination(page, headers, "/api/ticket");
         return ResourceUtil.pagination(page, "/ticket");
     }
 

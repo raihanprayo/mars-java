@@ -15,10 +15,10 @@ import java.util.List;
 public class UserLeaderboardDTO {
 
     private String id;
+
     private String nik;
+
     private String name;
-
-
 
     private int totalDispatch;
 

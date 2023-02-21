@@ -1,28 +1,15 @@
 package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
-import dev.scaraz.mars.common.domain.response.UserLeaderboardDTO;
-import dev.scaraz.mars.common.tools.enums.AgStatus;
-import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
-import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
-import dev.scaraz.mars.core.query.criteria.*;
 import dev.scaraz.mars.core.repository.order.LogTicketRepo;
 import dev.scaraz.mars.core.service.order.ChartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,22 +18,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RequiredArgsConstructor
 
 @Service
 public class ChartServiceImpl implements ChartService {
-
-
-    private final LogTicketRepo logTicketRepo;
-
-    private final TicketQueryService ticketQueryService;
-    private final TicketSummaryQueryService ticketSummaryQueryService;
-    private final AgentQueryService agentQueryService;
-
-    private final UserQueryService userQueryService;
 
 //    @Override
 //    @Async

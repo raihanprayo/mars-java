@@ -64,6 +64,25 @@ public class QueryFieldUtil {
         return null;
     }
 
+    protected static <T, E, A1, A2, A3> Specification<E> create(
+            Filter<T> filter,
+            SingularAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, A2> attr2,
+            SingularAttribute<? super A2, A3> attr3,
+            SingularAttribute<? super A3, T> valAttr
+    ) {
+        boolean negated = filter.isNegated();
+
+        if (filter.getEq() != null)
+            return Equals.spec(filter.getEq(), negated, attr1, attr2, attr3, valAttr);
+        if (filter.getIn() != null)
+            return Inclusion.spec(filter.getIn(), negated, attr1, attr2, attr3, valAttr);
+        if (filter.getSpecified() != null)
+            return Specified.spec(filter.getSpecified(), attr1, attr2, attr3, valAttr);
+
+        return null;
+    }
+
     protected static <T, E, A1> Specification<E> create(
             Filter<T> filter,
             SetAttribute<? super E, A1> attr1,
@@ -140,6 +159,21 @@ public class QueryFieldUtil {
         return spec;
     }
 
+    protected static <E, A1, A2, A3> Specification<E> createReadable(
+            ReadableFilter<String> filter,
+            SingularAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, A2> attr2,
+            SingularAttribute<? super A2, A3> attr3,
+            SingularAttribute<? super A3, String> valAttr
+    ) {
+        Specification<E> spec = create(filter, attr1, attr2, attr3, valAttr);
+        if (spec == null) {
+            if (filter.getLike() != null)
+                return Like.spec(filter.getLike(), filter.isNegated(), attr1, attr2, attr3, valAttr);
+        }
+        return spec;
+    }
+
 
     // Range Filter
     protected static <E, T extends Comparable<? super T>> Specification<E> createRange(
@@ -192,6 +226,26 @@ public class QueryFieldUtil {
 
             if (filter.getLt() != null) spec.and(LessThan.spec(filter.getLt(), false, attr1, attr2, valAttr));
             else if (filter.getLte() != null) spec.and(LessThan.spec(filter.getLte(), true, attr1, attr2, valAttr));
+        }
+        return spec;
+    }
+
+    protected static <T extends Comparable<? super T>, E, A1, A2, A3> Specification<E> createRange(
+            RangeFilter<T> filter,
+            SingularAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, A2> attr2,
+            SingularAttribute<? super A2, A3> attr3,
+            SingularAttribute<? super A3, T> valAttr
+    ) {
+        Specification<E> spec = create(filter, attr1, attr2, attr3, valAttr);
+        if (spec == null) {
+            spec = Specification.where(null);
+
+            if (filter.getGt() != null) spec.and(GreaterThan.spec(filter.getGt(), false, attr1, attr2, attr3, valAttr));
+            else if (filter.getGte() != null) spec.and(GreaterThan.spec(filter.getGt(), true, attr1, attr2, attr3, valAttr));
+
+            if (filter.getLt() != null) spec.and(LessThan.spec(filter.getLt(), false, attr1, attr2, attr3, valAttr));
+            else if (filter.getLte() != null) spec.and(LessThan.spec(filter.getLte(), true, attr1, attr2, attr3, valAttr));
         }
         return spec;
     }

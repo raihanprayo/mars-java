@@ -74,6 +74,18 @@ public abstract class QueryBuilder<E, C extends Criteria> {
         return spec.and(QueryFieldUtil.create(filter, attr1, attr2, valAttr));
     }
 
+    protected <T, A1, A2, A3> Specification<E> nonNull(
+            Specification<E> spec,
+            Filter<T> filter,
+            SingularAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, A2> attr2,
+            SingularAttribute<? super A2, A3> attr3,
+            SingularAttribute<? super A3, T> valAttr
+    ) {
+        if (filter == null) return spec;
+        return spec.and(QueryFieldUtil.create(filter, attr1, attr2, attr3, valAttr));
+    }
+
 
     // Readable Filter
     protected Specification<E> nonNull(
@@ -106,6 +118,18 @@ public abstract class QueryBuilder<E, C extends Criteria> {
         return spec.and(QueryFieldUtil.createReadable(filter, attr1, attr2, valAttr));
     }
 
+    protected <A1, A2, A3> Specification<E> nonNull(
+            Specification<E> spec,
+            ReadableFilter<String> filter,
+            SingularAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, A2> attr2,
+            SingularAttribute<? super A2, A3> attr3,
+            SingularAttribute<? super A3, String> valAttr
+    ) {
+        if (filter == null) return spec;
+        return spec.and(QueryFieldUtil.createReadable(filter, attr1, attr2, attr3, valAttr));
+    }
+
 
     // Range Filter
     protected <T extends Comparable<? super T>> Specification<E> nonNull(
@@ -136,6 +160,18 @@ public abstract class QueryBuilder<E, C extends Criteria> {
     ) {
         if (filter == null) return spec;
         return spec.and(QueryFieldUtil.createRange(filter, attr1, attr2, valAttr));
+    }
+
+    protected <T extends Comparable<? super T>, A1, A2, A3> Specification<E> nonNull(
+            Specification<E> spec,
+            RangeFilter<T> filter,
+            SingularAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, A2> attr2,
+            SingularAttribute<? super A2, A3> attr3,
+            SingularAttribute<? super A3, T> valAttr
+    ) {
+        if (filter == null) return spec;
+        return spec.and(QueryFieldUtil.createRange(filter, attr1, attr2, attr3, valAttr));
     }
 
 }
