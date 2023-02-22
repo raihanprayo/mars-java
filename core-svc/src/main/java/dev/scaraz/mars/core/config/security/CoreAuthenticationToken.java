@@ -13,12 +13,11 @@ public class CoreAuthenticationToken extends AbstractAuthenticationToken {
     private final DelegateUser principal;
     private final String credentials;
 
-    public CoreAuthenticationToken(AuthSource source, User user) {
+    public CoreAuthenticationToken(AuthSource source, User user, String token) {
         super(user.getRoles());
         this.source = source;
         this.principal = new DelegateUser(user);
-
-        this.credentials = user.getPassword();
+        this.credentials = token;
 
         if (user.isActive()) super.setAuthenticated(true);
     }

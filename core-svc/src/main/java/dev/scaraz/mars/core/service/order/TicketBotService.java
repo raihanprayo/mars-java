@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 
 public interface TicketBotService {
 
@@ -25,13 +26,15 @@ public interface TicketBotService {
     void confirmedClose(
             long messageId,
             boolean closeTicket,
-            @Nullable String note);
+            @Nullable String note,
+            @Nullable List<PhotoSize> photos);
 
     void confirmedPending(long messageId, boolean pendingTicket);
 
     void confirmedPostPending(long messageId, String text, @Nullable Collection<PhotoSize> photos);
 
-    void endPendingEarly(String ticketNo);
+
+    void endPendingEarly(long messageId, String ticketNo);
 
     void validateForm(TicketBotForm form) throws TgInvalidFormError;
 

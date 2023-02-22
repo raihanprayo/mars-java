@@ -6,9 +6,7 @@ import dev.scaraz.mars.common.tools.enums.AgStatus;
 import lombok.*;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -42,20 +40,15 @@ public class AgentWorkspace extends TimestampEntity {
 
     @ToString.Exclude
     @Builder.Default
+    @OrderBy("id ASC")
     @OneToMany(mappedBy = "workspace", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<AgentWorklog> worklogs = new HashSet<>();
 
     @JsonIgnore
     public Optional<AgentWorklog> getLastWorklog() {
         if (worklogs.isEmpty()) return Optional.empty();
-
-        int i = 0;
-        int last = worklogs.size() - 1;
-        for (AgentWorklog worklog : worklogs) {
-            if (i == last) return Optional.of(worklog);
-            i++;
-        }
-        return Optional.empty();
+        List<AgentWorklog> wls = new ArrayList<>(worklogs);
+        return Optional.ofNullable(wls.get(worklogs.size() - 1));
     }
 
 }

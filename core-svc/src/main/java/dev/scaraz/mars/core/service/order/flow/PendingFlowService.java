@@ -134,8 +134,7 @@ public class PendingFlowService {
                     "status berubah ke  *PENDING*",
                     "",
                     "_MARS akan kembali dalam " + minute + " menit_",
-                    "",
-                    "_Ketik */resume " + ticket.getNo() + "* untuk melakukan konfirmasi_"
+                    "_Ketik */confirm " + ticket.getNo() + "* untuk konfirmasi_"
             );
 
             ticketConfirmService.save(TicketConfirm.builder()

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.annotation.Nullable;
+import javax.persistence.metamodel.ListAttribute;
 import javax.persistence.metamodel.SetAttribute;
 import javax.persistence.metamodel.SingularAttribute;
 import java.util.function.Consumer;
@@ -53,27 +54,6 @@ public abstract class QueryBuilder<E, C extends Criteria> {
         return spec.and(QueryFieldUtil.create(filter, attr1, attr2, valAttr));
     }
 
-    protected <T, A1> Specification<E> nonNull(
-            Specification<E> spec,
-            Filter<T> filter,
-            SetAttribute<? super E, A1> attr1,
-            SingularAttribute<? super A1, T> valAttr
-    ) {
-        if (filter == null) return spec;
-        return spec.and(QueryFieldUtil.create(filter, attr1, valAttr));
-    }
-
-    protected <T, A1, A2> Specification<E> nonNull(
-            Specification<E> spec,
-            Filter<T> filter,
-            SetAttribute<? super E, A1> attr1,
-            SingularAttribute<? super A1, A2> attr2,
-            SingularAttribute<? super A2, T> valAttr
-    ) {
-        if (filter == null) return spec;
-        return spec.and(QueryFieldUtil.create(filter, attr1, attr2, valAttr));
-    }
-
     protected <T, A1, A2, A3> Specification<E> nonNull(
             Specification<E> spec,
             Filter<T> filter,
@@ -84,6 +64,48 @@ public abstract class QueryBuilder<E, C extends Criteria> {
     ) {
         if (filter == null) return spec;
         return spec.and(QueryFieldUtil.create(filter, attr1, attr2, attr3, valAttr));
+    }
+
+    protected <T, A1> Specification<E> nonNull(
+            Specification<E> spec,
+            Filter<T> filter,
+            SetAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, T> valAttr
+    ) {
+        if (filter == null) return spec;
+        return spec.and(PluralQueryUtil.create(filter, attr1, valAttr));
+    }
+
+    protected <T, A1, A2> Specification<E> nonNull(
+            Specification<E> spec,
+            Filter<T> filter,
+            SetAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, A2> attr2,
+            SingularAttribute<? super A2, T> valAttr
+    ) {
+        if (filter == null) return spec;
+        return spec.and(PluralQueryUtil.create(filter, attr1, attr2, valAttr));
+    }
+
+    protected <T, A1> Specification<E> nonNull(
+            Specification<E> spec,
+            Filter<T> filter,
+            ListAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, T> valAttr
+    ) {
+        if (filter == null) return spec;
+        return spec.and(PluralQueryUtil.create(filter, attr1, valAttr));
+    }
+
+    protected <T, A1, A2> Specification<E> nonNull(
+            Specification<E> spec,
+            Filter<T> filter,
+            ListAttribute<? super E, A1> attr1,
+            SingularAttribute<? super A1, A2> attr2,
+            SingularAttribute<? super A2, T> valAttr
+    ) {
+        if (filter == null) return spec;
+        return spec.and(PluralQueryUtil.create(filter, attr1, attr2, valAttr));
     }
 
 

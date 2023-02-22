@@ -54,13 +54,12 @@ public class StorageService {
         return Path.of(marsProperties.getDirectory().get(DirectoryAlias.SHARED));
     }
 
-    public File createFile(DirectoryAlias target, Serializable... filepaths) {
+    public File createFile(DirectoryAlias target, String... filepaths) {
         log.debug("CREATE NEW FILE TO {}", target);
         Path path = target.getPath();
 
         String joined = Arrays.stream(filepaths)
                 .filter(this::warnNullSegment)
-                .map(Serializable::toString)
                 .collect(Collectors.joining("/"));
 
         Path outPath = path.resolve(joined);
@@ -82,11 +81,11 @@ public class StorageService {
         return outFile;
     }
 
-    public void addSharedAsset(InputStream is, String filename, Serializable... dirPaths) {
+    public void addSharedAsset(InputStream is, String filename, String... dirPaths) {
         try (is) {
             String dirPath = Stream.of(dirPaths)
                     .filter(this::warnNullSegment)
-                    .map(Serializable::toString)
+                    .map(t -> t.startsWith("/") ? t.substring(1) : t)
                     .collect(Collectors.joining("/"));
 
             log.info("ADDING SHARED ASSET TO -- {}", dirPath);
@@ -110,45 +109,41 @@ public class StorageService {
 
 
     @Async
-    public void addTelegramAssets(Ticket ticket, Collection<PhotoSize> assets, Serializable... dirPaths) {
-        addTelegramAsset(assets,
+    public void addTelegramAssets(Ticket ticket, Collection<PhotoSize> assets, String... dirPaths) {
+        addTelegramAsset(assets, concatSegments(dirPaths,
                 TICKET_STORAGE_PATH,
-                ticket.getNo(),
-                dirPaths);
+                ticket.getNo()));
     }
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    public void addTelegramAssets(Ticket ticket, AgentWorklog worklog, Collection<PhotoSize> assets, Serializable... dirPaths) {
-        addTelegramAssets(ticket, assets,
+    public void addTelegramAssets(Ticket ticket, AgentWorklog worklog, Collection<PhotoSize> assets, String... dirPaths) {
+        addTelegramAssets(ticket, assets, concatSegments(dirPaths,
                 WORKSPACE_STORAGE_PATH,
                 worklog.getWorkspace().getId(),
                 WORKLOG_STORAGE_PATH,
-                worklog.getId(),
-                dirPaths);
+                worklog.getId()));
     }
 
     @Async
-    public void addDashboardAssets(Ticket ticket, Collection<MultipartFile> assets, Serializable... dirPaths) {
-        addDashboardAsset(assets,
+    public void addDashboardAssets(Ticket ticket, Collection<MultipartFile> assets, String... dirPaths) {
+        addDashboardAsset(assets, concatSegments(dirPaths,
                 TICKET_STORAGE_PATH,
-                ticket.getNo(),
-                dirPaths);
+                ticket.getNo()));
     }
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-    public void addDashboardAssets(Ticket ticket, AgentWorklog worklog, Collection<MultipartFile> assets, Serializable... dirPaths) {
-        addDashboardAssets(ticket, assets,
+    public void addDashboardAssets(Ticket ticket, AgentWorklog worklog, Collection<MultipartFile> assets, String... dirPaths) {
+        addDashboardAssets(ticket, assets, concatSegments(dirPaths,
                 WORKSPACE_STORAGE_PATH,
                 worklog.getWorkspace().getId(),
                 WORKLOG_STORAGE_PATH,
-                worklog.getId(),
-                dirPaths);
+                worklog.getId()));
     }
 
 
-    private void addTelegramAsset(Collection<PhotoSize> assets, Serializable... dirPaths) {
+    private void addTelegramAsset(Collection<PhotoSize> assets, String... dirPaths) {
         if (assets == null || assets.isEmpty()) return;
 
         log.info("ADDING TELEGRAM SHARED ASSET");
@@ -171,7 +166,7 @@ public class StorageService {
         }
     }
 
-    private void addDashboardAsset(Collection<MultipartFile> assets, Serializable... dirPaths) {
+    private void addDashboardAsset(Collection<MultipartFile> assets, String... dirPaths) {
         if (assets == null || assets.isEmpty()) return;
 
         log.info("ADDING DASHBOARD SHARED ASSET");
@@ -188,10 +183,15 @@ public class StorageService {
         }
     }
 
-    private boolean warnNullSegment(Serializable t) {
-        boolean b = Objects.nonNull(t);
-        if (!b) log.warn("Please make sure there's no nullified segment");
+    private boolean warnNullSegment(String t) {
+        boolean b = StringUtils.isNoneBlank(t);
+        if (!b) log.warn("Please make sure there's no null/empty segment");
         return b;
+    }
+
+    private String[] concatSegments(String[] dirPaths, Object... shifts) {
+        return Stream.concat(Stream.of(shifts).map(Object::toString), Stream.of(dirPaths))
+                .toArray(String[]::new);
     }
 
 }

@@ -132,7 +132,7 @@ public class TicketListener {
 
             confirmRepo.findById(messageId).ifPresent(confirm -> {
                 log.info("TICKET REOPEN CONFIRMATION -- MESSAGE ID={}", messageId);
-                botService.confirmedClose(messageId, false, text);
+                botService.confirmedClose(messageId, false, text, message.getPhoto());
             });
         }
     }
@@ -150,7 +150,7 @@ public class TicketListener {
                         .status(new TcStatusFilter().setEq(TcStatus.PENDING))
                         .build());
 
-                if (ticketExist) botService.endPendingEarly(text);
+                if (ticketExist) botService.endPendingEarly(confirmOpt.get().getId(), text);
             }
         }
     }

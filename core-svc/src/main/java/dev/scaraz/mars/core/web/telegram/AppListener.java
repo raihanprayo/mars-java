@@ -193,7 +193,7 @@ public class AppListener {
         int messageId = message.getMessageId();
         if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.CLOSED)) {
             log.info("TICKET CLOSE CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", messageId, agree);
-            ticketBotService.confirmedClose(message.getMessageId(), agree, "");
+            ticketBotService.confirmedClose(message.getMessageId(), agree, null, null);
         }
         else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.PENDING)) {
             log.info("TICKET PENDING CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", messageId, agree);

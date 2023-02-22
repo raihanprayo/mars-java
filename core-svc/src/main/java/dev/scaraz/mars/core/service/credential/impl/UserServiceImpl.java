@@ -328,7 +328,7 @@ public class UserServiceImpl implements UserService {
 
             rolesRepo.deleteByUserIdAndRoleIdIn(userId, removedIds);
 
-            Set<Role> roles = new HashSet<>();
+            List<Role> roles = new ArrayList<>();
             for (String roleId : selectedIds) {
                 Role role = roleQueryService.findByIdOrName(roleId);
                 if (rolesRepo.existsByUserIdAndRoleName(userId, role.getName())) {

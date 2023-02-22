@@ -50,7 +50,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     throw new UnauthorizedException("Invalid access token");
 
                 User user = userQueryService.findById(jwt.getUserId());
-                authenticate(user);
+                authenticate(user, token);
             }
             catch (SignatureException |
                    ExpiredJwtException |
@@ -63,12 +63,12 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private void authenticate(User user) {
+    private void authenticate(User user, String token) {
         if (!user.isActive())
             throw new UnauthorizedException("Please contact your administrator to activate your account");
 
         SecurityContextHolder.getContext()
-                .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user));
+                .setAuthentication(new CoreAuthenticationToken(AuthSource.JWT, user, token));
 
         LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
     }

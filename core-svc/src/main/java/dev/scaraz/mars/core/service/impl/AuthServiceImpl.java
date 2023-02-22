@@ -120,9 +120,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new TgUnauthorizedError("Your account is not active, try to contact your administrator");
 
             SecurityContextHolder.getContext().setAuthentication(
-                    new CoreAuthenticationToken(AuthSource.TELEGRAM, user)
-            );
-            LocaleContextHolder.setLocale(user.getSetting().getLang(), true);
+                    new CoreAuthenticationToken(AuthSource.TELEGRAM, user, null));
             return user;
         }
         catch (NotFoundException ex) {

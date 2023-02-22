@@ -211,11 +211,13 @@ public class TicketBotServiceImpl implements TicketBotService {
     public void confirmedClose(
             long messageId,
             boolean closeTicket,
-            @Nullable String note) {
+            @Nullable String note,
+            List<PhotoSize> photos) {
         TicketConfirm confirmData = ticketConfirmService.findById(messageId);
 
         closeFlowService.confirmClose(confirmData.getValue(), !closeTicket, TicketStatusFormDTO.builder()
                 .note(note)
+                .photos(photos)
                 .build());
 
         ticketConfirmService.deleteById(messageId);
@@ -242,8 +244,9 @@ public class TicketBotServiceImpl implements TicketBotService {
     }
 
     @Override
-    public void endPendingEarly(String ticketNo) {
+    public void endPendingEarly(long messageId, String ticketNo) {
         pendingFlowService.askPostPending(ticketNo);
+        ticketConfirmService.deleteById(messageId);
     }
 
     @Override

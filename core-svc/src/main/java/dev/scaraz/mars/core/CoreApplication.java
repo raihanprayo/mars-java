@@ -29,13 +29,15 @@ public class CoreApplication implements CommandLineRunner {
         ConfigurableApplicationContext context = SpringApplication.run(CoreApplication.class, args);
         ConfigurableEnvironment environment = context.getEnvironment();
         String port = environment.getProperty("server.port");
-        log.info("\n--------------------------------\n" +
-                        "   Application:    {}\n" +
-                        "   Active Profile:    {}\n" +
-                        "   Host Local:   http://localhost:{}\n" +
-                        "   Host External:   http://{}:{}\n" +
-                        "--------------------------------",
+        log.info("\n--------------------------------------------------------------\n" +
+                        "   Application\t\t: {}\n" +
+                        "   Witel\t\t\t: {}\n" +
+                        "   Profiles\t\t\t: {}\n" +
+                        "   Host Local\t\t: http://localhost:{}\n" +
+                        "   Host External\t: http://{}:{}\n" +
+                        "--------------------------------------------------------------",
                 environment.getProperty("spring.application.name"),
+                environment.getProperty("mars.witel").toUpperCase(),
                 environment.getActiveProfiles(),
                 port,
                 InetAddress.getLocalHost().getHostAddress(),

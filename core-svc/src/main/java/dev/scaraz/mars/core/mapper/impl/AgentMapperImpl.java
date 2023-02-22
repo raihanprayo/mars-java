@@ -41,6 +41,8 @@ public class AgentMapperImpl implements AgentMapper {
                 .id(o.getId())
                 .status(o.getStatus())
                 .agent(toDTO(o.getAgent()))
+                .createdAt(o.getCreatedAt())
+                .updatedAt(o.getUpdatedAt())
                 .build();
     }
 
