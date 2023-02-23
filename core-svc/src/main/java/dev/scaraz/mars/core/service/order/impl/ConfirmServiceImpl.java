@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -78,11 +79,14 @@ public class ConfirmServiceImpl implements ConfirmService {
         deleteById(messageId);
     }
 
+    @Async
     @EventListener(ApplicationReadyEvent.class)
-    public void onInit() {
+    public void onInit() throws InterruptedException {
         List<TicketConfirm> confirms = repo.findAll();
 
         if (confirms.isEmpty()) return;
+
+        Thread.sleep(5000);
 
         log.info("Found {} expired confirmation(s)", confirms.size());
         for (TicketConfirm confirm : confirms) {
