@@ -19,6 +19,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -80,7 +81,7 @@ public class ConfirmServiceImpl implements ConfirmService {
     }
 
     @Async
-    @EventListener(ApplicationReadyEvent.class)
+    @PostConstruct
     public void onInit() throws InterruptedException {
         List<TicketConfirm> confirms = repo.findAll();
 
