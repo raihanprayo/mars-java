@@ -78,7 +78,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     private final PendingFlowService pendingFlowService;
     private final DispatchFlowService dispatchFlowService;
 
-    private final TicketConfirmService ticketConfirmService;
+    private final ConfirmService confirmService;
 
     private final StorageService storageService;
     private final LogTicketService logTicketService;
@@ -213,26 +213,26 @@ public class TicketBotServiceImpl implements TicketBotService {
             boolean closeTicket,
             @Nullable String note,
             List<PhotoSize> photos) {
-        TicketConfirm confirmData = ticketConfirmService.findById(messageId);
+        TicketConfirm confirmData = confirmService.findById(messageId);
 
         closeFlowService.confirmClose(confirmData.getValue(), !closeTicket, TicketStatusFormDTO.builder()
                 .note(note)
                 .photos(photos)
                 .build());
 
-        ticketConfirmService.deleteById(messageId);
+        confirmService.deleteById(messageId);
     }
 
     @Override
     public void confirmedPending(long messageId, boolean pendingTicket) {
-        TicketConfirm confirmData = ticketConfirmService.findById(messageId);
+        TicketConfirm confirmData = confirmService.findById(messageId);
         pendingFlowService.confirmPending(confirmData.getValue(), pendingTicket, new TicketStatusFormDTO());
-        ticketConfirmService.deleteById(messageId);
+        confirmService.deleteById(messageId);
     }
 
     @Override
     public void confirmedPostPending(long messageId, @Nullable String text, @Nullable Collection<PhotoSize> photos) {
-        TicketConfirm confirmData = ticketConfirmService.findById(messageId);
+        TicketConfirm confirmData = confirmService.findById(messageId);
         TicketStatusFormDTO form = TicketStatusFormDTO.builder()
                 .status(text == null ? TcStatus.CLOSED : TcStatus.REOPEN)
                 .note(text)
@@ -240,13 +240,13 @@ public class TicketBotServiceImpl implements TicketBotService {
 
         if (photos != null && !photos.isEmpty()) form.setPhotos(new ArrayList<>(photos));
         pendingFlowService.confirmPostPending(confirmData.getValue(), form);
-        ticketConfirmService.deleteById(messageId);
+        confirmService.deleteById(messageId);
     }
 
     @Override
     public void endPendingEarly(long messageId, String ticketNo) {
         pendingFlowService.askPostPending(ticketNo);
-        ticketConfirmService.deleteById(messageId);
+        confirmService.deleteById(messageId);
     }
 
     @Override
@@ -329,7 +329,7 @@ public class TicketBotServiceImpl implements TicketBotService {
 
             markUp.setKeyboard(buttons);
             int messageId = botService.getClient().execute(toSend).getMessageId();
-            ticketConfirmService.save(TicketConfirm.builder()
+            confirmService.save(TicketConfirm.builder()
                     .id(messageId)
                     .status(TicketConfirm.INSTANT_START)
                     .ttl(5)
@@ -352,14 +352,14 @@ public class TicketBotServiceImpl implements TicketBotService {
                         .build())
                 .build());
 
-        ticketConfirmService.save(TicketConfirm.builder()
+        confirmService.save(TicketConfirm.builder()
                 .id(message.getMessageId())
                 .issueId(issueId)
                 .status(TicketConfirm.INSTANT_NETWORK)
                 .ttl(10)
                 .build());
 
-        ticketConfirmService.deleteById(messageId);
+        confirmService.deleteById(messageId);
     }
 
     @Override
@@ -376,7 +376,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                     .build();
         }
 
-        TicketConfirm confirm = ticketConfirmService.findById(messageId);
+        TicketConfirm confirm = confirmService.findById(messageId);
         Issue issue = issueQueryService.findById(confirm.getIssueId())
                 .orElseThrow();
 
@@ -400,13 +400,13 @@ public class TicketBotServiceImpl implements TicketBotService {
                         .build())
                 .getMessageId();
 
-        ticketConfirmService.save(TicketConfirm.builder()
+        confirmService.save(TicketConfirm.builder()
                 .id(paramMessageId)
                 .issueId(issue.getId())
                 .status(TicketConfirm.INSTANT_PARAM)
                 .ttl(10)
                 .build());
-        ticketConfirmService.deleteById(messageId);
+        confirmService.deleteById(messageId);
         return null;
     }
 
@@ -424,7 +424,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                     .build();
         }
 
-        TicketConfirm confirm = ticketConfirmService.findById(messageId);
+        TicketConfirm confirm = confirmService.findById(messageId);
         Issue issue = issueQueryService.findById(confirm.getIssueId())
                 .orElseThrow();
 
@@ -453,13 +453,13 @@ public class TicketBotServiceImpl implements TicketBotService {
 
         confirm.setId(paramMessageId);
 
-        ticketConfirmService.save(TicketConfirm.builder()
+        confirmService.save(TicketConfirm.builder()
                 .id(paramMessageId)
                 .issueId(issue.getId())
                 .status(TicketConfirm.INSTANT_FORM)
                 .ttl(30)
                 .build());
-        ticketConfirmService.deleteById(messageId);
+        confirmService.deleteById(messageId);
         return null;
     }
 
@@ -468,7 +468,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     public SendMessage instantForm_end(long messageId, String text, @Nullable Collection<PhotoSize> captures) {
         User user = Objects.requireNonNull(SecurityUtil.getCurrentUser());
 
-        TicketConfirm confirm = ticketConfirmService.findById(messageId);
+        TicketConfirm confirm = confirmService.findById(messageId);
         Issue issue = issueQueryService.findById(confirm.getIssueId())
                 .orElseThrow();
 
@@ -508,7 +508,7 @@ public class TicketBotServiceImpl implements TicketBotService {
         }
 
         Ticket ticket = registerForm(ticketFormService.checkInstantForm(form), captures);
-        ticketConfirmService.deleteById(messageId);
+        confirmService.deleteById(messageId);
 
         return SendMessage.builder()
                 .chatId(user.getTg().getId())

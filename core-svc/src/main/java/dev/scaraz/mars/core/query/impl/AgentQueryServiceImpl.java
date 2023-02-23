@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -92,9 +93,17 @@ public class AgentQueryServiceImpl implements AgentQueryService {
 
     @Override
     public boolean isWorkInProgress(String ticketId) {
-        return workspaceRepo.existsByTicketIdOrTicketNoAndStatus(
-                ticketId, ticketId,
-                AgStatus.PROGRESS);
+        try {
+            UUID.fromString(ticketId);
+            return workspaceRepo.existsByTicketIdAndStatus(
+                    ticketId,
+                    AgStatus.PROGRESS);
+        }
+        catch (IllegalArgumentException ex) {
+            return workspaceRepo.existsByTicketNoAndStatus(
+                    ticketId,
+                    AgStatus.PROGRESS);
+        }
     }
 
 }

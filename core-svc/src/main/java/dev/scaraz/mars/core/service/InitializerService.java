@@ -48,9 +48,6 @@ public class InitializerService {
     private final UserService userService;
     private final UserQueryService userQueryService;
 
-    private final GroupRepo groupRepo;
-    private final GroupService groupService;
-
     private final RoleRepo roleRepo;
     private final RoleService roleService;
 
@@ -59,8 +56,6 @@ public class InitializerService {
     private final IssueQueryService issueQueryService;
 
     private final AppConfigService appConfigService;
-
-    private final StoRepo stoRepo;
 
 
     public void checkWitel() {

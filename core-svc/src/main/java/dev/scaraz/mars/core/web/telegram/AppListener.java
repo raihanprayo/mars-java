@@ -11,7 +11,7 @@ import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
-import dev.scaraz.mars.core.service.order.TicketConfirmService;
+import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.*;
 import dev.scaraz.mars.telegram.annotation.context.CallbackData;
@@ -53,7 +53,7 @@ public class AppListener {
     private final UserRegistrationBotService userRegistrationBotService;
     private final TicketBotService ticketBotService;
 
-    private final TicketConfirmService ticketConfirmService;
+    private final ConfirmService confirmService;
     private final BotRegistrationRepo registrationRepo;
 
     @Lazy
@@ -116,10 +116,10 @@ public class AppListener {
                 log.info("REPLY TO MESSAGE STATE -- MESSAGE ID {}", message.getReplyToMessage().getMessageId());
 
                 Message reply = message.getReplyToMessage();
-                if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.POST_PENDING_CONFIRMATION)) {
+                if (confirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.POST_PENDING_CONFIRMATION)) {
                     ticketBotService.confirmedPostPending(reply.getMessageId(), text, message.getPhoto());
                 }
-                else if (ticketConfirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.INSTANT_FORM)) {
+                else if (confirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.INSTANT_FORM)) {
                     return ticketBotService.instantForm_end(reply.getMessageId(), text, message.getPhoto());
                 }
             }
@@ -139,7 +139,7 @@ public class AppListener {
         log.info("{}", gson.toJson(cq));
 
         int messageId = message.getMessageId();
-        if (data.startsWith(REPORT_ISSUE) && ticketConfirmService.existsById(messageId)) {
+        if (data.startsWith(REPORT_ISSUE) && confirmService.existsById(messageId)) {
             long issueId = Long.parseLong(data.substring(data.lastIndexOf(":") + 1));
             ticketBotService.instantForm_answerIssue(messageId, issueId);
         }
@@ -191,23 +191,23 @@ public class AppListener {
         boolean agree = AppConstants.Telegram.CONFIRM_AGREE.equals(data);
 
         int messageId = message.getMessageId();
-        if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.CLOSED)) {
+        if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.CLOSED)) {
             log.info("TICKET CLOSE CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", messageId, agree);
             ticketBotService.confirmedClose(message.getMessageId(), agree, null, null);
         }
-        else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.PENDING)) {
+        else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.PENDING)) {
             log.info("TICKET PENDING CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", messageId, agree);
             ticketBotService.confirmedPending(message.getMessageId(), agree);
         }
-        else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING)) {
+        else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING)) {
             log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", TicketConfirm.POST_PENDING, messageId, agree);
             ticketBotService.confirmedPostPending(messageId, null, null);
         }
-        else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_NETWORK)) {
+        else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_NETWORK)) {
             log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
             return ticketBotService.instantForm_answerNetwork(messageId, agree);
         }
-        else if (ticketConfirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_PARAM)) {
+        else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_PARAM)) {
             log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
             return ticketBotService.instantForm_answerParamRequirement(messageId, agree);
         }

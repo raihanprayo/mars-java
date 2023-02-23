@@ -24,6 +24,7 @@ public interface AgentWorkspaceRepo extends
 
     Optional<AgentWorkspace> findFirstByTicketIdAndAgentIdOrderByCreatedAtDesc(String ticketId, String agentId);
 
-    boolean existsByTicketIdOrTicketNoAndStatus(String tid, String tno, AgStatus status);
+    boolean existsByTicketIdAndStatus(String tid, AgStatus status);
+    boolean existsByTicketNoAndStatus(String tno, AgStatus status);
 
 }

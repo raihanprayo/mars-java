@@ -2,12 +2,9 @@ package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
-import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.repository.order.TicketConfirmRepo;
-import dev.scaraz.mars.core.service.order.TicketConfirmService;
-import dev.scaraz.mars.core.service.order.TicketFlowService;
+import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
-import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
 import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +26,7 @@ public class SchedulerService {
 
     private final StringRedisTemplate stringRedisTemplate;
     private final TicketConfirmRepo ticketConfirmRepo;
-    private final TicketConfirmService ticketConfirmService;
+    private final ConfirmService confirmService;
 
     private final CloseFlowService closeFlowService;
     private final PendingFlowService pendingFlowService;
@@ -63,7 +60,7 @@ public class SchedulerService {
                     break;
             }
 
-            ticketConfirmService.deleteById(confirm.getId());
+            confirmService.deleteById(confirm.getId());
         }
     }
 

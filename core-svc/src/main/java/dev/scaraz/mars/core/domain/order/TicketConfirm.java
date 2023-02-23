@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.order;
 
+import dev.scaraz.mars.common.utils.AppConstants;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -61,6 +62,10 @@ public class TicketConfirm {
 
     public void setValue(boolean value) {
         this.value = String.valueOf(value);
+    }
+
+    public String getCacheKey() {
+        return AppConstants.Cache.j(AppConstants.Cache.TC_CONFIRM_NS, String.valueOf(this.id));
     }
 
     public static final String

@@ -83,6 +83,10 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
             inverseJoinColumns = @JoinColumn(name = "ref_role_id"))
     private Set<Role> roles = new HashSet<>();
 
+    public void setRoles(Collection<Role> roles) {
+        this.roles = new HashSet<>(roles);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

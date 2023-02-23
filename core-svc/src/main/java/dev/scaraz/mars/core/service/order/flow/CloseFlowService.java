@@ -16,7 +16,7 @@ import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.AgentService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
-import dev.scaraz.mars.core.service.order.TicketConfirmService;
+import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
@@ -40,7 +40,7 @@ public class CloseFlowService {
     private final TicketService service;
     private final TicketQueryService queryService;
     private final TicketSummaryQueryService summaryQueryService;
-    private final TicketConfirmService ticketConfirmService;
+    private final ConfirmService confirmService;
     private final LogTicketService logTicketService;
 
     private final AgentRepo agentRepo;
@@ -82,7 +82,7 @@ public class CloseFlowService {
         ticket.setStatus(TcStatus.CONFIRMATION);
         ticket.setConfirmMessageId((long) messageId);
 
-        ticketConfirmService.save(TicketConfirm.builder()
+        confirmService.save(TicketConfirm.builder()
                 .id(messageId)
                 .value(ticket.getNo())
                 .status(TicketConfirm.CLOSED)

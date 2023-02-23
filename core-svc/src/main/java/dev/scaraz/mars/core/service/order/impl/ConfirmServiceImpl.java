@@ -4,17 +4,21 @@ import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.repository.order.TicketConfirmRepo;
-import dev.scaraz.mars.core.service.order.TicketConfirmService;
+import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
 import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
 import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.BoundValueOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Cache;
@@ -24,7 +28,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.Cache.TC_CONFIRM_NS;
 @RequiredArgsConstructor
 
 @Service
-public class TicketConfirmServiceImpl implements TicketConfirmService {
+public class ConfirmServiceImpl implements ConfirmService {
 
     private final TicketConfirmRepo repo;
     private final StringRedisTemplate stringRedisTemplate;
@@ -72,6 +76,41 @@ public class TicketConfirmServiceImpl implements TicketConfirmService {
         }
 
         deleteById(messageId);
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onInit() {
+        List<TicketConfirm> confirms = repo.findAll();
+
+        if (confirms.isEmpty()) return;
+
+        log.info("Found {} expired confirmation(s)", confirms.size());
+        for (TicketConfirm confirm : confirms) {
+            BoundValueOperations<String, String> bounded = stringRedisTemplate.boundValueOps(confirm.getCacheKey());
+            boolean hasKey = bounded.size() != null;
+
+            if (hasKey) continue;
+            log.info("REMOVING EXPIRED CONFIRMATION STATE -- ID {}", confirm.getId());
+
+            switch (confirm.getStatus()) {
+                case TicketConfirm.CLOSED:
+                    closeFlowService.confirmClose(confirm.getValue(), false, new TicketStatusFormDTO());
+                    deleteById(confirm.getId());
+                    break;
+                case TicketConfirm.PENDING:
+                    pendingFlowService.confirmPending(confirm.getValue(), false, new TicketStatusFormDTO());
+                    deleteById(confirm.getId());
+                    break;
+                case TicketConfirm.POST_PENDING:
+                    pendingFlowService.askPostPending(confirm.getValue());
+                    deleteById(confirm.getId());
+                    break;
+                case TicketConfirm.POST_PENDING_CONFIRMATION:
+                    pendingFlowService.confirmPostPending(confirm.getValue(), new TicketStatusFormDTO());
+                    deleteById(confirm.getId());
+                    break;
+            }
+        }
     }
 
 

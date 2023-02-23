@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service.order;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.tools.CacheExpireListener;
 
-public interface TicketConfirmService extends CacheExpireListener {
+public interface ConfirmService extends CacheExpireListener {
     TicketConfirm save(TicketConfirm o);
 
     void deleteById(long id);

@@ -88,7 +88,7 @@ public class StorageService {
                     .map(t -> t.startsWith("/") ? t.substring(1) : t)
                     .collect(Collectors.joining("/"));
 
-            log.info("ADDING SHARED ASSET TO -- {}", dirPath);
+            log.info("ADDING SHARED ASSET TO -- {}/{}", dirPath, filename);
 
             Path dir;
             if (StringUtils.isBlank(dirPath)) dir = getSharedDirectory();
@@ -175,7 +175,7 @@ public class StorageService {
             if (asset.isEmpty()) continue;
 
             try (InputStream is = asset.getInputStream()) {
-                addSharedAsset(is, asset.getName(), dirPaths);
+                addSharedAsset(is, asset.getOriginalFilename(), dirPaths);
             }
             catch (IOException ex) {
                 log.error("Fail to add DASHBOARD asset", ex);
