@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import static dev.scaraz.mars.core.service.order.LogTicketService.*;
@@ -50,7 +51,7 @@ public class CloseFlowService {
     private final NotifierService notifierService;
     private final StorageService storageService;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Ticket close(String ticketIdOrNo, TicketStatusFormDTO form) {
         log.info("CLOSE FORM {}", form);
 

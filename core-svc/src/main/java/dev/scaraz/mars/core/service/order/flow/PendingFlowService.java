@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -52,7 +53,7 @@ public class PendingFlowService {
     private final StorageService storageService;
 
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Ticket pending(String ticketIdOrNo, TicketStatusFormDTO form) {
         log.info("PENDING FORM {}", form);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);

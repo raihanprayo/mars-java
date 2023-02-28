@@ -1,12 +1,15 @@
 package dev.scaraz.mars.telegram;
 
+import dev.scaraz.mars.telegram.config.form.TelegramFormAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportAware;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.lang.NonNull;
@@ -39,6 +42,12 @@ public class TelegramConfiguration implements ImportAware {
     public TelegramBotsApi telegramBotsApi(ObjectProvider<Class<? extends BotSession>> botSessionCtor) throws TelegramApiException {
         Class<? extends BotSession> type = botSessionCtor.getIfAvailable(() -> DefaultBotSession.class);
         return new TelegramBotsApi(type);
+    }
+
+    @Configuration
+    @ConditionalOnClass(TelegramFormAdapter.class)
+    public static class TelegramFormConfig {
+
     }
 
 }

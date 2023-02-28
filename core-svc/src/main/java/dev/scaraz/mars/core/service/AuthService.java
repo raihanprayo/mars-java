@@ -16,6 +16,8 @@ public interface AuthService {
 
     AuthResDTO refresh(String refreshToken);
 
+    void logout(User user, boolean confirmed);
+
     boolean isUserRegistered(long telegramId);
 
     boolean isUserInApproval(long telegramId);

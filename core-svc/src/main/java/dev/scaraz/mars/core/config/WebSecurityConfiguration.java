@@ -4,31 +4,26 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.core.config.interceptor.JwtRequestFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractAuthenticationFilterConfigurer;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,11 +34,25 @@ import java.io.IOException;
 public class WebSecurityConfiguration {
 
     private static final int SALT = 14;
+
     private final SecurityProblemSupport problemSupport;
 
     private final JwtRequestFilter jwtRequestFilter;
 
     private final MarsProperties marsProperties;
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder builder) {
+    }
+
+    @Bean
+    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
+        MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
+        methodInvokingFactoryBean.setTargetClass(SecurityContextHolder.class);
+        methodInvokingFactoryBean.setTargetMethod("setStrategyName");
+        methodInvokingFactoryBean.setArguments(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+        return methodInvokingFactoryBean;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -67,20 +76,9 @@ public class WebSecurityConfiguration {
                         .accessDeniedHandler(problemSupport)
                         .authenticationEntryPoint(problemSupport)
                 )
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-//                .formLogin(f -> f
-//                        .loginProcessingUrl("/auth/login")
-//                        .successHandler((request, response, authentication) -> {
-//                        })
-//                )
-//                .logout().and()
-                .formLogin(l -> l
-                        .loginProcessingUrl("/auth/login")
-                        .permitAll()
-                )
-                .logout(l -> l
-                        .logoutUrl("/auth/logout")
-                )
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .authorizeRequests(r -> r
                         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .antMatchers(HttpMethod.GET, "/app/test").permitAll()
@@ -92,15 +90,6 @@ public class WebSecurityConfiguration {
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
-    }
-
-    @Bean
-    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
-        methodInvokingFactoryBean.setTargetClass(SecurityContextHolder.class);
-        methodInvokingFactoryBean.setTargetMethod("setStrategyName");
-        methodInvokingFactoryBean.setArguments(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-        return methodInvokingFactoryBean;
     }
 
 }

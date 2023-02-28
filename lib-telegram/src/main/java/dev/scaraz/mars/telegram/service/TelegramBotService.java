@@ -7,7 +7,9 @@ import dev.scaraz.mars.telegram.config.TelegramArgumentMapper;
 import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
 import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
+import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
+import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -131,6 +133,13 @@ public abstract class TelegramBotService implements AutoCloseable {
         sendMessage.setChatId(update.getMessage().getChatId());
         sendMessage.setText(TelegramUtil.esc(buildHelpMessage(userKey)));
         return Optional.of(sendMessage);
+    }
+
+    public void registerStructuredReply(String name) {
+        TelegramProcessContext context = TelegramContextHolder.get();
+        HandlerType type = context.getType();
+        Update update = context.getUpdate();
+
     }
 
     @Autowired

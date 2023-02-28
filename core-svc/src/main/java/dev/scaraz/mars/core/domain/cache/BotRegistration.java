@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class BotRegistration {
     @Id
     private long id;
+
     private String username;
 
     private RegisterState state;
@@ -34,6 +35,8 @@ public class BotRegistration {
     private String subregion;
 
     private Witel witel;
+
+    private String email;
 
     @Builder.Default
     @TimeToLive(unit = TimeUnit.MINUTES)

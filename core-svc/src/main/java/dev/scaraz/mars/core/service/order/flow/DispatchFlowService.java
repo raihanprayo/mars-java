@@ -21,6 +21,7 @@ import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class DispatchFlowService {
     private final NotifierService notifierService;
     private final StorageService storageService;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Ticket dispatch(String ticketIdOrNo, TicketStatusFormDTO form) {
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 

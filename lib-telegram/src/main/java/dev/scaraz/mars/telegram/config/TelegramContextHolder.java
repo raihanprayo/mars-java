@@ -37,6 +37,10 @@ public class TelegramContextHolder {
         return CONTEXT_ATTRIBUTE.get() != null;
     }
 
+    public static Update getUpdate() {
+        return get().getUpdate();
+    }
+
     @Nullable
     public static Long getUserId() {
         TelegramProcessContext context = CONTEXT_ATTRIBUTE.get();

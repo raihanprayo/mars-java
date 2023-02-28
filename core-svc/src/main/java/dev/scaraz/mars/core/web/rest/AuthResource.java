@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
@@ -38,6 +39,7 @@ public class AuthResource {
 
     private final MarsProperties marsProperties;
     private final AuthService authService;
+    private final AuthenticationManager authManager;
     private final CredentialMapper credentialMapper;
 
     @GetMapping("/whoami")
@@ -98,13 +100,21 @@ public class AuthResource {
                 .build();
     }
 
-    @PostMapping(path = "/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<?> refresh(
             HttpServletRequest request,
             @RequestBody(required = false) RefreshTokenReqDTO req
     ) {
         AuthResDTO authResult = authService.refresh(req.getRefreshToken());
         return ResponseEntity.ok(authResult);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(
+            @RequestParam(defaultValue = "false") boolean confirmeLogout
+    ) {
+        authService.logout(SecurityUtil.getCurrentUser(), confirmeLogout);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     private ResponseEntity<?> attachJwtCookie(AuthResDTO authResult) {

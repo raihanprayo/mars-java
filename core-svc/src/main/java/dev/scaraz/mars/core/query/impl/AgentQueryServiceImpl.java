@@ -8,7 +8,9 @@ import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentCriteria;
+import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 import dev.scaraz.mars.core.query.spec.AgentSpecBuilder;
+import dev.scaraz.mars.core.query.spec.AgentWorklogSpecBuilder;
 import dev.scaraz.mars.core.repository.order.AgentRepo;
 import dev.scaraz.mars.core.repository.order.AgentWorklogRepo;
 import dev.scaraz.mars.core.repository.order.AgentWorkspaceRepo;
@@ -34,10 +36,15 @@ public class AgentQueryServiceImpl implements AgentQueryService {
     private final AgentWorklogRepo worklogRepo;
 
     private final AgentSpecBuilder specBuilder;
+    private final AgentWorklogSpecBuilder worklogSpecBuilder;
 
     @Override
     public List<Agent> findAll() {
         return repo.findAll();
+    }
+    @Override
+    public List<AgentWorklog> findAllWorklogs() {
+        return worklogRepo.findAll();
     }
 
     @Override
@@ -48,6 +55,10 @@ public class AgentQueryServiceImpl implements AgentQueryService {
     @Override
     public List<Agent> findAll(AgentCriteria criteria) {
         return repo.findAll(specBuilder.createSpec(criteria));
+    }
+    @Override
+    public List<AgentWorklog> findAllWorklogs(AgentWorklogCriteria criteria) {
+        return worklogRepo.findAll(worklogSpecBuilder.createSpec(criteria));
     }
 
     @Override

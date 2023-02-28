@@ -2,38 +2,41 @@ package dev.scaraz.mars.core.service.impl;
 
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
+import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.domain.response.JwtToken;
 import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
-import dev.scaraz.mars.common.exception.web.AccessDeniedException;
-import dev.scaraz.mars.common.exception.web.BadRequestException;
-import dev.scaraz.mars.common.exception.web.NotFoundException;
-import dev.scaraz.mars.common.exception.web.UnauthorizedException;
+import dev.scaraz.mars.common.exception.web.*;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.config.security.JwtUtil;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.AgentWorklog;
+import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
+import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 import dev.scaraz.mars.core.repository.credential.UserRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
 import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
 import dev.scaraz.mars.core.util.AuthSource;
-import dev.scaraz.mars.core.util.DelegateUser;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Optional;
+import java.util.List;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Auth.*;
 
@@ -51,6 +54,9 @@ public class AuthServiceImpl implements AuthService {
     private final UserService userService;
     private final UserQueryService userQueryService;
     private final UserApprovalService userApprovalService;
+
+    private final AgentQueryService agentQueryService;
+    private final DispatchFlowService dispatchFlowService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -154,6 +160,33 @@ public class AuthServiceImpl implements AuthService {
             return AuthResDTO.builder()
                     .code(RELOGIN_REQUIRED)
                     .build();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void logout(User user, boolean confirmed) {
+        List<AgentWorklog> worklogs = agentQueryService.findAllWorklogs(AgentWorklogCriteria.builder()
+                .workspace(AgentWorkspaceCriteria.builder()
+                        .userId(new StringFilter().setEq(user.getId()))
+                        .build())
+                .closeStatus(new TcStatusFilter()
+                        .setSpecified(false))
+                .build());
+
+        int size = worklogs.size();
+        if (size == 0) return;
+
+        if (!confirmed)
+            throw new LogoutException("wip", String.format("Found %s unsaved process", size));
+
+        for (AgentWorklog worklog : worklogs) {
+            dispatchFlowService.dispatch(
+                    worklog.getWorkspace().getTicket().getNo(),
+                    TicketStatusFormDTO.builder()
+                            .status(TcStatus.DISPATCH)
+                            .note("(confirmed) agent logout")
+                            .build());
         }
     }
 
