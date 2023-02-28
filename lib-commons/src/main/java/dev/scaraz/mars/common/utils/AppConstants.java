@@ -60,18 +60,23 @@ public abstract class AppConstants {
     }
 
     public interface Config {
-        long CLOSE_CONFIRM_ID_INT = 1;
+        // DRT = Duration
+        // INT = Integer
+        // BOOL = Boolean
+        // ARR = Array/List
+
+        long CLOSE_CONFIRM_ID_DRT = 1;
         long ALLOW_OTHER_WITEL_ID_BOOL = 2;
         long USER_REG_APPROVAL_ID_BOOL = 3;
         long SEND_REG_APPROVAL_TO_ADMINS_ID_BOOL = 4;
-        long POST_PENDING_CONFIRM_ID_INT = 5;
-        long USER_REG_APPROVAL_DURATION_ID_INT = 6;
+        long POST_PENDING_CONFIRM_ID_DRT = 5;
+        long USER_REG_APPROVAL_DURATION_ID_DRT = 6;
         long APPROVAL_ADMIN_EMAILS_ID_ARR = 7;
         long ALLOW_AGENT_CREATE_TICKET_BOOL = 8;
 
         static String title(long id) {
             switch ((int) id) {
-                case (int) CLOSE_CONFIRM_ID_INT:
+                case (int) CLOSE_CONFIRM_ID_DRT:
                     return "Lama Durasi Konfirmasi";
                 case (int) ALLOW_OTHER_WITEL_ID_BOOL:
                     return "Witel lain diperbolehkan login";
@@ -79,9 +84,9 @@ public abstract class AppConstants {
                     return "Registrasi Diperlukan Approval";
                 case (int) SEND_REG_APPROVAL_TO_ADMINS_ID_BOOL:
                     return "null";
-                case (int) POST_PENDING_CONFIRM_ID_INT:
+                case (int) POST_PENDING_CONFIRM_ID_DRT:
                     return "Lama Waktu Status Pending";
-                case (int) USER_REG_APPROVAL_DURATION_ID_INT:
+                case (int) USER_REG_APPROVAL_DURATION_ID_DRT:
                     return "Lama Waktu Approval";
                 case (int) APPROVAL_ADMIN_EMAILS_ID_ARR:
                     return "Email admin untuk Approval";

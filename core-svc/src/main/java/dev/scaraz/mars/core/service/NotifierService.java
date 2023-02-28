@@ -57,7 +57,7 @@ public class NotifierService {
                 user.getName());
     }
 
-    public int sendCloseConfirmation(Ticket ticket, int minute, TicketStatusFormDTO form) {
+    public int sendCloseConfirmation(Ticket ticket, long minute, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(List.of(BTN_AGREE))
@@ -97,7 +97,7 @@ public class NotifierService {
         }
     }
 
-    public int sendPendingConfirmation(Ticket ticket, int minute, TicketStatusFormDTO form) {
+    public int sendPendingConfirmation(Ticket ticket, long minute, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(List.of(BTN_PENDING, BTN_PENDING_CLOSE))
@@ -140,7 +140,7 @@ public class NotifierService {
         }
     }
 
-    public int sendPostPendingConfirmation(Ticket ticket, int minute) {
+    public int sendPostPendingConfirmation(Ticket ticket, long minute) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(CONFIRMATION_POST_PENDING)

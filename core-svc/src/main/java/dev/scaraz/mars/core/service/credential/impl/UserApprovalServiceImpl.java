@@ -39,7 +39,7 @@ public class UserApprovalServiceImpl implements UserApprovalService {
     @Override
     public UserApproval save(UserApproval o) {
         UserApproval save = repo.save(o);
-        int duration = appConfigService.getApprovalDurationHour_int()
+        int duration = appConfigService.getApprovalDurationHour_drt()
                 .getAsNumber()
                 .intValue();
         cacheRepo.save(new RegistrationApproval(save.getId(), duration));

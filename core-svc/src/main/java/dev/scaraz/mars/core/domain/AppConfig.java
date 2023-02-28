@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -119,15 +120,21 @@ public class AppConfig extends AuditableEntity {
     @JsonIgnore
     public Number getAsNumber() {
         try {
-            Class<?> aClass = getClass().getClassLoader().loadClass(classType);
-            if (aClass != null && ClassUtils.isAssignable(Number.class, aClass)) {
-                if (aClass == Integer.class) return Integer.parseInt(value);
-                if (aClass == Double.class) return Double.parseDouble(value);
-                if (aClass == Float.class) return Float.parseFloat(value);
-                if (aClass == Short.class) return Short.parseShort(value);
-                if (aClass == Long.class) return Long.parseLong(value);
-                if (aClass == BigInteger.class) return new BigInteger(value);
-                if (aClass == BigDecimal.class) return new BigDecimal(value);
+            switch (type) {
+                case NUMBER:
+                    Class<?> aClass = getClass().getClassLoader().loadClass(classType);
+                    if (aClass != null && ClassUtils.isAssignable(Number.class, aClass)) {
+                        if (aClass == Integer.class) return Integer.parseInt(value);
+                        if (aClass == Double.class) return Double.parseDouble(value);
+                        if (aClass == Float.class) return Float.parseFloat(value);
+                        if (aClass == Short.class) return Short.parseShort(value);
+                        if (aClass == Long.class) return Long.parseLong(value);
+                        if (aClass == BigInteger.class) return new BigInteger(value);
+                        if (aClass == BigDecimal.class) return new BigDecimal(value);
+                    }
+                    break;
+                case DURATION:
+                    return Duration.parse(value).toMillis();
             }
 
             throw new IllegalStateException("Unable to convert to number type");
@@ -162,6 +169,17 @@ public class AppConfig extends AuditableEntity {
         return Stream.of(value.split("\\|"))
                 .filter(StringUtils::isNoneBlank)
                 .collect(Collectors.toList());
+    }
+
+    @JsonIgnore
+    public void getAsArray(Consumer<List<String>> consumeValues) {
+        if (isArray()) {
+            List<String> list = new ArrayList<>();
+            if (isNull()) consumeValues.accept(list);
+            else consumeValues.accept(Stream.of(value.split("\\|"))
+                    .filter(StringUtils::isNoneBlank)
+                    .collect(Collectors.toList()));
+        }
     }
 
     @JsonIgnore

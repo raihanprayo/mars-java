@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Slf4j
@@ -81,11 +82,10 @@ public class PendingFlowService {
             throw BadRequestException.args("Pending worklog cannot be empty");
 
 
-        int minute = appConfigService.getCloseConfirm_int()
-                .getAsNumber()
-                .intValue();
+        Duration duration = appConfigService.getCloseConfirm_drt()
+                .getAsDuration();
 
-        int messageId = notifierService.sendPendingConfirmation(ticket, minute, form);
+        int messageId = notifierService.sendPendingConfirmation(ticket, duration.toMinutes(), form);
         ticket.setStatus(TcStatus.CONFIRMATION);
         ticket.setConfirmMessageId((long) messageId);
 
@@ -93,7 +93,7 @@ public class PendingFlowService {
                 .id(messageId)
                 .value(ticket.getNo())
                 .status(TicketConfirm.PENDING)
-                .ttl(minute)
+                .ttl(duration.toMinutes())
                 .build());
 
         log.info("NOTIF PENDING SENDED TO USER -- MESSAGE ID {}", messageId);
@@ -194,15 +194,14 @@ public class PendingFlowService {
         Ticket ticket = queryService.findByIdOrNo(ticketNo);
         ticket.setConfirmPendingMessageId(null);
 
-        int minute = appConfigService.getCloseConfirm_int()
-                .getAsNumber()
-                .intValue();
+        Duration duration = appConfigService.getCloseConfirm_drt()
+                .getAsDuration();
 
-        int messageId = notifierService.sendPostPendingConfirmation(ticket, minute);
+        int messageId = notifierService.sendPostPendingConfirmation(ticket, duration.toMinutes());
         confirmService.save(TicketConfirm.builder()
                 .id(messageId)
                 .value(ticketNo)
-                .ttl(minute)
+                .ttl(duration.toMinutes())
                 .status(TicketConfirm.POST_PENDING_CONFIRMATION)
                 .build());
 

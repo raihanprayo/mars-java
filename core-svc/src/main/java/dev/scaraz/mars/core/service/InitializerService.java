@@ -11,11 +11,8 @@ import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
-import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.order.IssueRepo;
-import dev.scaraz.mars.core.repository.order.StoRepo;
-import dev.scaraz.mars.core.service.credential.GroupService;
 import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.service.order.IssueService;
@@ -65,12 +62,12 @@ public class InitializerService {
     }
 
     public void preInitAppConfigs() {
-        appConfigService.getCloseConfirm_int();
+        appConfigService.getCloseConfirm_drt();
         appConfigService.getAllowLogin_bool();
         appConfigService.getRegistrationRequireApproval_bool();
         appConfigService.getSendRegistrationApproval_bool();
         appConfigService.getPostPending_int();
-        appConfigService.getApprovalDurationHour_int();
+        appConfigService.getApprovalDurationHour_drt();
         appConfigService.getApprovalAdminEmails_arr();
         appConfigService.getAllowAgentCreateTicket_bool();
     }

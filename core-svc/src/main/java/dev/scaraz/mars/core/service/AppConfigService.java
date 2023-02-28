@@ -22,7 +22,7 @@ public interface AppConfigService {
 
     AppConfig getById(long id);
 
-    AppConfig getCloseConfirm_int();
+    AppConfig getCloseConfirm_drt();
 
     AppConfig getAllowLogin_bool();
 
@@ -32,7 +32,7 @@ public interface AppConfigService {
 
     AppConfig getPostPending_int();
 
-    AppConfig getApprovalDurationHour_int();
+    AppConfig getApprovalDurationHour_drt();
 
     AppConfig getApprovalAdminEmails_arr();
 

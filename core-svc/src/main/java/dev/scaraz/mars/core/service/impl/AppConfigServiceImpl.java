@@ -89,11 +89,11 @@ public class AppConfigServiceImpl implements AppConfigService {
 
 
     @Override
-    public AppConfig getCloseConfirm_int() {
-        return repo.findById(CLOSE_CONFIRM_ID_INT)
-                .orElseGet(() -> create(CLOSE_CONFIRM_ID_INT,
+    public AppConfig getCloseConfirm_drt() {
+        return repo.findById(CLOSE_CONFIRM_ID_DRT)
+                .orElseGet(() -> create(CLOSE_CONFIRM_ID_DRT,
                         "close-confirm-duration",
-                        30,
+                        Duration.ofMinutes(30),
                         "Lama waktu yang diperlukan untuk menunggu requestor menjawab konfirmasi sebelum tiket close"
                 ));
     }
@@ -130,20 +130,20 @@ public class AppConfigServiceImpl implements AppConfigService {
 
     @Override
     public AppConfig getPostPending_int() {
-        return repo.findById(AppConstants.Config.POST_PENDING_CONFIRM_ID_INT)
-                .orElseGet(() -> create(POST_PENDING_CONFIRM_ID_INT,
+        return repo.findById(AppConstants.Config.POST_PENDING_CONFIRM_ID_DRT)
+                .orElseGet(() -> create(POST_PENDING_CONFIRM_ID_DRT,
                         "post-pending-confirm-duration",
-                        60,
+                        Duration.ofMinutes(60),
                         "Lama waktu yang diperlukan untuk menunggu tiket dengan status pending"
                 ));
     }
 
     @Override
-    public AppConfig getApprovalDurationHour_int() {
-        return repo.findById(AppConstants.Config.USER_REG_APPROVAL_DURATION_ID_INT)
-                .orElseGet(() -> create(USER_REG_APPROVAL_DURATION_ID_INT,
+    public AppConfig getApprovalDurationHour_drt() {
+        return repo.findById(AppConstants.Config.USER_REG_APPROVAL_DURATION_ID_DRT)
+                .orElseGet(() -> create(USER_REG_APPROVAL_DURATION_ID_DRT,
                         "reg-approval-duration",
-                        24,
+                        Duration.ofHours(1),
                         "Lama waktu yang diperlukan untuk menunggu approval registrasi"
                 ));
     }

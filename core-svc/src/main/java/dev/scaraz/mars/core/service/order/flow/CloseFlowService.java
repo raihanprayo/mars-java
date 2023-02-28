@@ -28,6 +28,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 import static dev.scaraz.mars.core.service.order.LogTicketService.*;
 
 @Slf4j
@@ -75,11 +78,10 @@ public class CloseFlowService {
             storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());
         });
 
-        int minute = appConfigService.getCloseConfirm_int()
-                .getAsNumber()
-                .intValue();
+        Duration duration = appConfigService.getCloseConfirm_drt()
+                .getAsDuration();
 
-        int messageId = notifierService.sendCloseConfirmation(ticket, minute, form);
+        int messageId = notifierService.sendCloseConfirmation(ticket, duration.toMinutes(), form);
         ticket.setStatus(TcStatus.CONFIRMATION);
         ticket.setConfirmMessageId((long) messageId);
 
@@ -87,7 +89,7 @@ public class CloseFlowService {
                 .id(messageId)
                 .value(ticket.getNo())
                 .status(TicketConfirm.CLOSED)
-                .ttl(minute)
+                .ttl(duration.toMinutes())
                 .build());
 
         log.info("NOTIF SENDED TO USER -- MESSAGE ID {}", messageId);

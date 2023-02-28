@@ -254,7 +254,7 @@ public class UserServiceImpl implements UserService {
 
                 registrationApprovalRepo.save(new RegistrationApproval(approval.getId(), 24));
 
-                int hourDuration = appConfigService.getApprovalDurationHour_int()
+                int hourDuration = appConfigService.getApprovalDurationHour_drt()
                         .getAsNumber()
                         .intValue();
 
