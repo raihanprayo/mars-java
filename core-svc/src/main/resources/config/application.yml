@@ -94,7 +94,7 @@ mars:
     allowed-headers: "*"
     allowed-methods: GET, POST, PUT, DELETE, OPTIONS
     allow-credentials: on
-    exposed-headers: Tc-Count, X-Total-Count, X-Sort
+    exposed-headers: Tc-Count, X-Total-Count, X-Sort, filename
   directory:
     tmp: ${MARS_TMP_DIRECTORY:D:/TMP/mars}
     shared: ${MARS_SHARED_DIRECTORY:D:/TMP/mars}

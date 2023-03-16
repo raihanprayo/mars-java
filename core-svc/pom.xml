@@ -9,7 +9,7 @@
     </parent>
 
     <artifactId>core-svc</artifactId>
-    <version>0.0.1</version>
+    <version>0.1.0</version>
     <name>core-svc</name>
     <packaging>war</packaging>
 
