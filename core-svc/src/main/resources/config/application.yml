@@ -103,4 +103,7 @@ telegram:
   type: long_polling
   name: "mars-roc"
   token: ${TELEGRAM_BOT_TOKEN:709411539:AAHGXOA0nIOYtcpzIQegY7O0NO7Vzu1Uug0}
-  max-threads: ${TELEGRAM_MAX_THREADS:10}
+  async:
+    core-pool-size: ${TELEGRAM_CORE_POOL:2}
+    max-pool-size: ${TELEGRAM_MAX_POOL:30}
+    queue-capacity: ${TELEGRAM_QUEUE_CAPACITY:1000}

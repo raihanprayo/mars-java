@@ -18,7 +18,7 @@ public class TgInvalidFormError extends TgError {
             String message,
             Object... args
     ) {
-        this(field, Translator.tr(message, args), null, args);
+        this(field, message, null, args);
     }
 
     public TgInvalidFormError(String field,
@@ -27,7 +27,7 @@ public class TgInvalidFormError extends TgError {
                               Object... args) {
         super("Invalid Form", Translator.tr(message, args));
         this.field = field;
-        this.aliases = Objects.requireNonNullElse(aliases, new ArrayList<>());
+        this.aliases = aliases != null ? aliases : new ArrayList<>();
     }
 
     @Override

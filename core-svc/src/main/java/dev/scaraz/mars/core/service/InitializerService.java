@@ -9,15 +9,18 @@ import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
 import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.order.IssueRepo;
+import dev.scaraz.mars.core.repository.order.StoRepo;
 import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.service.order.IssueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -26,6 +29,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +58,8 @@ public class InitializerService {
     private final IssueService issueService;
     private final IssueQueryService issueQueryService;
 
+    private final StoRepo stoRepo;
+
     private final AppConfigService appConfigService;
 
 
@@ -61,19 +69,19 @@ public class InitializerService {
             throw new IllegalStateException("Unknown Witel region, please set first from environtment 'MARS_WITEL'");
     }
 
-    public void preInitAppConfigs() {
+    public void initAppConfigs() {
         appConfigService.getCloseConfirm_drt();
         appConfigService.getAllowLogin_bool();
         appConfigService.getRegistrationRequireApproval_bool();
         appConfigService.getSendRegistrationApproval_bool();
-        appConfigService.getPostPending_int();
+        appConfigService.getPostPending_drt();
         appConfigService.getApprovalDurationHour_drt();
         appConfigService.getApprovalAdminEmails_arr();
         appConfigService.getAllowAgentCreateTicket_bool();
     }
 
     @Transactional
-    public void preInitRolesAndCreateAdmin() {
+    public void initRolesAndCreateAdmin() {
         Role adminRole;
         if (roleRepo.existsByName(ADMIN_ROLE)) {
             adminRole = roleRepo.findByName(ADMIN_ROLE)
@@ -105,7 +113,7 @@ public class InitializerService {
 
     @Async
     @Transactional
-    public void preInitIssue() {
+    public void initIssue() {
         Map<String, Product> names = Map.of("lambat", Product.INTERNET,
                 "intermittent", Product.INTERNET,
                 "tbb", Product.INTERNET,
@@ -124,6 +132,42 @@ public class InitializerService {
         createIssueInlineButton();
     }
 
+    @Async
+    public void initSto() {
+        try (InputStream is = getClass().getResourceAsStream("/list-sto.csv")) {
+            String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            String[] lines = content.split("\n");
+
+            for (String line : lines) {
+                if (StringUtils.isBlank(line)) continue;
+                String[] splited = line.split(";");
+
+                String witel = splited[0],
+                        datel = splited[1],
+                        alias = splited[2],
+                        name = splited[3];
+
+                Witel w;
+                try {
+                    w = Witel.valueOf(witel.toUpperCase());
+                }
+                catch (IllegalArgumentException ex) {
+                    continue;
+                }
+
+                if (stoRepo.existsByWitelAndAlias(w, alias)) continue;
+                stoRepo.save(Sto.builder()
+                        .witel(w)
+                        .datel(datel)
+                        .alias(alias)
+                        .name(name)
+                        .build());
+            }
+        }
+        catch (Exception e) {
+        }
+    }
+
     private void createIssueInlineButton() {
         log.info("(RE)CREATE ISSUE INLINE BUTTONS");
 
@@ -134,7 +178,6 @@ public class InitializerService {
                 issuesMap.get(issue.getProduct()).add(issue);
             }
 
-            log.info("Iterate Product");
             for (Product product : issuesMap.keySet()) {
 
                 List<InlineKeyboardButton> buttons = new ArrayList<>();
@@ -152,8 +195,6 @@ public class InitializerService {
 
                 ISSUES_BUTTON_LIST.put(product, buttons);
             }
-
-            log.debug("ISSUE BUTTONS CACHE {}", ISSUES_BUTTON_LIST);
         }
     }
 

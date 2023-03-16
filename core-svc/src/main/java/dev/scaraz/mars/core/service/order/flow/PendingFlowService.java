@@ -126,7 +126,7 @@ public class PendingFlowService {
             ticket.setStatus(TcStatus.PENDING);
             ticket.setConfirmMessageId(null);
 
-            int minute = appConfigService.getPostPending_int()
+            int minute = appConfigService.getPostPending_drt()
                     .getAsNumber()
                     .intValue();
 

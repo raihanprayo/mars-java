@@ -40,7 +40,6 @@ public class WebhookTelegramBotService extends TelegramBotService {
     }
 
     private TelegramWebhookBot createBot(TelegramBotProperties botProperties) {
-        WebhookTelegramBotService self = this;
         return new TelegramWebhookBot() {
             @Override
             public String getBotToken() {
@@ -49,7 +48,7 @@ public class WebhookTelegramBotService extends TelegramBotService {
 
             @Override
             public BotApiMethod<?> onWebhookUpdateReceived(Update update) {
-                self.onUpdateReceived(update);
+                WebhookTelegramBotService.this.onUpdateReceived(update);
                 try {
                     TelegramProcessContext ctx = TelegramContextHolder.get();
                     return ctx.getResult();

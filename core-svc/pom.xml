@@ -11,7 +11,7 @@
     <artifactId>core-svc</artifactId>
     <version>0.0.1</version>
     <name>core-svc</name>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <properties>
         <akka.sbt.version>2.13</akka.sbt.version>
@@ -143,7 +143,7 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
+        <finalName>mars-core</finalName>
         <plugins>
             <plugin>
                 <groupId>org.bsc.maven</groupId>

@@ -112,10 +112,12 @@ public class CloseFlowService {
         if (ticket.getStatus() != TcStatus.CONFIRMATION)
             throw BadRequestException.args("error.ticket.illegal.confirm.state");
 
-        boolean isRequestor = SecurityUtil.getCurrentUser()
-                .getTg().getId() == ticket.getSenderId();
-        if (!isRequestor)
-            throw BadRequestException.args("Invalid requestor owner");
+        if (SecurityUtil.isUserPresent()) {
+            boolean isRequestor = SecurityUtil.getCurrentUser()
+                    .getTg().getId() == ticket.getSenderId();
+            if (!isRequestor)
+                throw BadRequestException.args("Invalid requestor owner");
+        }
 
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
         Agent agent = workspace.getAgent();

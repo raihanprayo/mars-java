@@ -129,7 +129,7 @@ public class AppConfigServiceImpl implements AppConfigService {
     }
 
     @Override
-    public AppConfig getPostPending_int() {
+    public AppConfig getPostPending_drt() {
         return repo.findById(AppConstants.Config.POST_PENDING_CONFIRM_ID_DRT)
                 .orElseGet(() -> create(POST_PENDING_CONFIRM_ID_DRT,
                         "post-pending-confirm-duration",

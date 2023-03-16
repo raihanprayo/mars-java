@@ -2,7 +2,6 @@ package dev.scaraz.mars.telegram.config;
 
 import dev.scaraz.mars.telegram.TelegramBotProperties;
 import dev.scaraz.mars.telegram.TelegramProperties;
-import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import dev.scaraz.mars.telegram.service.LongPollingTelegramBotService;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.service.WebhookTelegramBotService;
@@ -19,8 +18,6 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
-
-import java.util.List;
 
 import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_EXECUTOR;
 
@@ -58,12 +55,12 @@ public class TelegramBotConfiguration {
 
     @Bean(TELEGRAM_EXECUTOR)
     @ConditionalOnProperty(prefix = "telegram", name = "type", havingValue = "long_polling")
-    public TaskExecutor updateExecutor() {
+    public TaskExecutor telegramExecutor() {
         ThreadPoolTaskExecutor exc = new ThreadPoolTaskExecutor();
-        exc.setCorePoolSize(2);
-        exc.setMaxPoolSize(telegramProperties.getMaxThreads());
-        exc.setQueueCapacity(1000);
-        exc.setThreadNamePrefix("TG-UPDATE-");
+        exc.setCorePoolSize(telegramProperties.getAsync().getCorePoolSize());
+        exc.setMaxPoolSize(telegramProperties.getAsync().getMaxPoolSize());
+        exc.setQueueCapacity(telegramProperties.getAsync().getQueueCapacity());
+        exc.setThreadNamePrefix("Telegram");
         return exc;
     }
 

@@ -30,7 +30,7 @@ public interface AppConfigService {
 
     AppConfig getSendRegistrationApproval_bool();
 
-    AppConfig getPostPending_int();
+    AppConfig getPostPending_drt();
 
     AppConfig getApprovalDurationHour_drt();
 

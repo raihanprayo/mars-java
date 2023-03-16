@@ -42,6 +42,14 @@ public class ChartResource {
         return ResourceUtil.pagination(page, "/chart/leaderboard");
     }
 
+    @GetMapping("/leaderboard/closed")
+    public ResponseEntity<?> getClosedTicketLeaderboard(
+            LeaderBoardCriteria criteria,
+            Pageable pageable
+    ) {
+        return null;
+    }
+
     @GetMapping("/ticket/report")
     public ResponseEntity<?> getTicketReports(
             TicketSummaryCriteria criteria

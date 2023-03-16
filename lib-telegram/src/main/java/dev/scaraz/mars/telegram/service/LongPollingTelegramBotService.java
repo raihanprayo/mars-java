@@ -75,7 +75,6 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
     }
 
     private TelegramLongPollingBot createBot(TelegramBotProperties botProperties) {
-        LongPollingTelegramBotService self = this;
         return new TelegramLongPollingBot() {
             @Override
             public String getBotToken() {
@@ -90,21 +89,21 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
             @Override
             public void onUpdateReceived(Update update) {
                 CompletableFuture.runAsync(() -> {
-
-                    self.onUpdateReceived(update);
-                    try {
-                        TelegramProcessContext ctx = TelegramContextHolder.get();
-                        if (ctx.hasResult()) this.execute(ctx.getResult());
+                    LongPollingTelegramBotService.this.onUpdateReceived(update);
+                    if (springApplicationReady) {
+                        try {
+                            TelegramProcessContext ctx = TelegramContextHolder.get();
+                            if (ctx.hasResult()) this.execute(ctx.getResult());
+                        }
+                        catch (TelegramApiException | IllegalStateException ex) {
+                            InternalTelegram.update(c -> c.cycle(ProcessCycle.SEND));
+                            TelegramContextHolder.getIfAvailable(ctx ->
+                                    ctx.getProcessor().handleExceptions(LongPollingTelegramBotService.this, update, ex)
+                            );
+                        }
+                        TelegramContextHolder.clear();
                     }
-                    catch (TelegramApiException | IllegalStateException ex) {
-                        InternalTelegram.update(c -> c.cycle(ProcessCycle.SEND));
-                        TelegramContextHolder.getIfAvailable(ctx ->
-                                ctx.getProcessor().handleExceptions(self, update, ex)
-                        );
-                    }
-
-                    TelegramContextHolder.clear();
-                }, self.executor);
+                }, LongPollingTelegramBotService.this.executor);
             }
         };
     }

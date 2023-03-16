@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -13,7 +12,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import javax.annotation.PostConstruct;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -52,10 +50,11 @@ public class CoreApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        initializer.preInitIssue();
+        initializer.initIssue();
 
-        initializer.preInitRolesAndCreateAdmin();
+        initializer.initRolesAndCreateAdmin();
 //        initializer.preInitGroups();
-        initializer.preInitAppConfigs();
+        initializer.initAppConfigs();
+        initializer.initSto();
     }
 }

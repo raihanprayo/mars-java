@@ -8,6 +8,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import static dev.scaraz.mars.common.tools.Translator.LANG_EN;
 
@@ -37,6 +38,10 @@ public class SecurityUtil {
         User user = getCurrentUser();
         if (user == null) return LANG_EN;
         return user.getSetting().getLang();
+    }
+
+    public static boolean isUserPresent() {
+        return Optional.ofNullable(getCurrentUser()).isPresent();
     }
 
 }

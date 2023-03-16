@@ -8,15 +8,20 @@ import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
+import dev.scaraz.mars.core.repository.order.StoRepo;
+import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.core.util.Util;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,6 +32,7 @@ import java.util.stream.Stream;
 public class TicketFormService {
 
     private final IssueQueryService issueQueryService;
+    private final StoRepo stoRepo;
 
     public TicketBotForm parseTicketRegistration(String text) {
         TicketBotForm form = new TicketBotForm();
@@ -200,6 +206,36 @@ public class TicketFormService {
                     "error.ticket.form.problem",
                     List.of(formDescriptor.alias())
             );
+        }
+    }
+
+    public void checkFieldSto(TicketBotForm form) {
+        final String FIELD_NAME = "sto";
+        FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
+
+        Witel witel = Objects.requireNonNullElseGet(form.getWitel(), () -> SecurityUtil.getCurrentUser().getWitel());
+        String stoAlias = Objects.requireNonNullElseGet(form.getSto(), () -> SecurityUtil.getCurrentUser().getSto());
+
+        Optional<Sto> stoOpt = stoRepo.findByWitelAndAliasIgnoreCase(witel, stoAlias);
+        if (stoOpt.isEmpty()) {
+            List<Sto> stos = stoRepo.findAllByWitel(witel);
+            String rundownList;
+
+            if (stos.isEmpty()) {
+                rundownList = "*_Empty list_*";
+            }
+            else {
+                rundownList = stos.stream()
+                        .map(Sto::getAlias)
+                        .map(alias -> "- *" + alias + "*")
+                        .collect(Collectors.joining("\n"));
+            }
+
+            throw new TgInvalidFormError(
+                    FIELD_NAME,
+                    "error.ticket.form.sto",
+                    witel,
+                    rundownList);
         }
     }
 

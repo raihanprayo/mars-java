@@ -23,7 +23,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -57,13 +56,13 @@ public class NotifierService {
                 user.getName());
     }
 
-    public int sendCloseConfirmation(Ticket ticket, long minute, TicketStatusFormDTO form) {
+    public int sendCloseConfirmation(Ticket ticket, long closeDurationMinute, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(List.of(BTN_AGREE))
                     .build();
 
-            String expireMinute = minute + " " + Translator.tr("date.minute");
+            String expireMinute = closeDurationMinute + " " + Translator.tr("date.minute");
             Optional<TicketStatusFormDTO> optForm = Optional.ofNullable(form);
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
@@ -97,17 +96,18 @@ public class NotifierService {
         }
     }
 
-    public int sendPendingConfirmation(Ticket ticket, long minute, TicketStatusFormDTO form) {
+    public int sendPendingConfirmation(Ticket ticket, long pendingDurationMinute, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(List.of(BTN_PENDING, BTN_PENDING_CLOSE))
                     .build();
 
-            String replyDuration = minute + " " + Translator.tr("date.minute");
+            String replyDuration = pendingDurationMinute + " " + Translator.tr("date.minute");
 
-            int pendingMinute = appConfigService.getPostPending_int()
-                    .getAsNumber()
-                    .intValue();
+            long pendingMinute = appConfigService.getPostPending_drt()
+                    .getAsDuration()
+                    .toMinutes();
+
             String pendingDuration = String.format("%s %s",
                     pendingMinute,
                     Translator.tr("date.minute")

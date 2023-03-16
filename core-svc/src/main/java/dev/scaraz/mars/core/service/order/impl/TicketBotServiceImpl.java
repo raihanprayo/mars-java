@@ -272,8 +272,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                             List.of(formDescriptor.alias()));
                 }
                 field.setAccessible(false);
-            }
-            catch (NoSuchFieldException | IllegalAccessException e) {
+            } catch (NoSuchFieldException | IllegalAccessException e) {
                 throw new TgError(e);
             }
         }
@@ -282,6 +281,7 @@ public class TicketBotServiceImpl implements TicketBotService {
         ticketFormService.checkFieldIncidentNo(form);
         ticketFormService.checkFieldServiceNo(form);
         ticketFormService.checkFieldIssue(form);
+        ticketFormService.checkFieldSto(form);
     }
 
 

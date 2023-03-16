@@ -14,6 +14,9 @@ import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.ClassUtils;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -22,10 +25,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalLong;
+import java.util.*;
 
 import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_COMPARATOR;
 
@@ -38,6 +38,9 @@ import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_CO
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public abstract class TelegramBotService implements AutoCloseable {
     protected final LinkedList<TelegramProcessor> telegramProcessors = new LinkedList<>();
+
+    protected boolean springApplicationReady = false;
+    private final Set<Update> incomingUpdatePreAppReady = new HashSet<>();
 
     @Autowired
     protected ConfigurableBeanFactory beanFactory;
@@ -79,26 +82,29 @@ public abstract class TelegramBotService implements AutoCloseable {
 //    }
 
     protected void onUpdateReceived(Update update) {
-        TelegramProcessor processor = getProcessor(update);
+        if (!springApplicationReady) incomingUpdatePreAppReady.add(update);
+        else {
+            TelegramProcessor processor = getProcessor(update);
 
-        try {
-            if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
-            else {
-                InternalTelegram.update(b -> b.update(update).processor(processor).cycle(ProcessCycle.PROCESS));
-                try {
-                    processor.process(this, update)
-                            .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
-                }
-                catch (Exception e) {
-                    log.warn("Fail to process update {}", update.getUpdateId(), e);
-                    processor.handleExceptions(this, update, e)
-                            .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
+            try {
+                if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
+                else {
+                    InternalTelegram.update(b -> b.update(update).processor(processor).cycle(ProcessCycle.PROCESS));
+                    try {
+                        processor.process(this, update)
+                                .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
+                    }
+                    catch (Exception e) {
+                        log.warn("Fail to process update {}", update.getUpdateId(), e);
+                        processor.handleExceptions(this, update, e)
+                                .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
+                    }
                 }
             }
-        }
-        catch (Exception ex) {
-            log.error("Error On Update Received", ex);
-            TelegramContextHolder.clear();
+            catch (Exception ex) {
+                log.error("Error On Update Received", ex);
+                TelegramContextHolder.clear();
+            }
         }
     }
 
@@ -145,6 +151,18 @@ public abstract class TelegramBotService implements AutoCloseable {
     @Autowired
     private void initialize(List<TelegramProcessor> telegramProcessors) {
         telegramProcessors.forEach(this::addProcessor);
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        if (springApplicationReady) return;
+        springApplicationReady = true;
+
+        for (Update update : incomingUpdatePreAppReady) {
+
+        }
+
+        incomingUpdatePreAppReady.clear();
     }
 
     private String buildHelpMessage(OptionalLong userKey) {
