@@ -35,6 +35,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
+import java.time.Duration;
 import java.util.*;
 
 @Slf4j
@@ -254,9 +255,8 @@ public class UserServiceImpl implements UserService {
 
                 registrationApprovalRepo.save(new RegistrationApproval(approval.getId(), 24));
 
-                int hourDuration = appConfigService.getApprovalDurationHour_drt()
-                        .getAsNumber()
-                        .intValue();
+                Duration hourDuration = appConfigService.getApprovalDurationHour_drt()
+                        .getAsDuration();
 
                 botService.getClient().execute(SendMessage.builder()
                         .chatId(req.getTgId())
@@ -265,7 +265,7 @@ public class UserServiceImpl implements UserService {
                                 "Registrasi *" + regNo + "*",
                                 "Terima kasih, permintaan anda kami terima. Menunggu konfirmasi admin *MARS*",
                                 "",
-                                "_Jika dalam 1x" + hourDuration + " jam belum terkonfirmasi, silahkan mengirim kembali registrasimu_"
+                                "_Jika dalam 1x" + hourDuration.toHours() + " jam belum terkonfirmasi, silahkan mengirim kembali registrasimu_"
                         ))
                         .build());
             }

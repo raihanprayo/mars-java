@@ -1,0 +1,49 @@
+server:
+  port: ${MARS_BOT_PORT:10921}
+
+spring:
+  application:
+    name: bot-svc
+
+telegram:
+  type: long_polling
+  name: "mars-roc"
+  token: ${TELEGRAM_BOT_TOKEN:709411539:AAHGXOA0nIOYtcpzIQegY7O0NO7Vzu1Uug0}
+  async:
+    core-pool-size: ${TELEGRAM_CORE_POOL:2}
+    max-pool-size: ${TELEGRAM_MAX_POOL:30}
+    queue-capacity: ${TELEGRAM_QUEUE_CAPACITY:1000}
+
+
+logging:
+  file:
+    name: ${LOG_DIRECTORY:D:/webs/mars-java/logs}/${LOG_NAME:mars-bot}.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      file-name-pattern: ${LOG_ARCHIVE:${LOG_DIRECTORY:D:/webs/mars-java/logs}/archive}/${LOG_NAME:mars-bot}-%d{yyyy-MM-dd}.%i.log
+  group:
+    spring: org.springframework,com.netflix,io.micrometer,feign,_org.springframework.web,io.undertow,org.xnio,Validator
+    http: okhttp3,org.apache
+    database: com.zaxxer.hikari,io.lettuce,io.netty,org.hibernate,org.postgresql,org.redisson
+    java: sun.net,javax.management,javax.activation,unknown.jul.logger,sun.rmi,sun.rmi.transport,jdk.event,reactor,io.github.resilience4j,sun.awt,com.sun,org.jboss
+    swagger: io.swagger,springfox,org.springdoc
+    keycloak: org.keycloak
+    flyway: org.flywaydb.core
+    mars: dev.scaraz.mars.telegram,dev.scaraz.mars.common
+  level:
+    root: ${LOG_LEVEL:debug}
+    spring: warn
+    database: warn
+    http: warn
+    keycloak: warn
+    java: off
+    swagger: off
+    flyway: warn
+    mars: ${LOG_MARS_LIB_LEVEL:info}
+  pattern:
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name:mars-roc},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [PPH-21,%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
+  charset:
+    console: utf-8
+    file: utf-8

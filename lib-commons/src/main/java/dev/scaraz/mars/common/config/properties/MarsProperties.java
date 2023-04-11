@@ -66,5 +66,4 @@ public class MarsProperties {
         private List<String> externals = new ArrayList<>();
     }
 
-
 }

@@ -26,7 +26,6 @@ public class TicketBotForm {
     private String sto;
 
     @FormDescriptor(
-            required = false,
             alias = {"no incident", "incidentno", "Tiket NOSSA"})
     private String incident;
 

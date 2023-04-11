@@ -227,10 +227,11 @@ public class AppListener {
             else return ticketBotService.instantForm_start(tgUserId);
         }
 
-        return SendMessage.builder()
-                .chatId(chatId)
-                .text("Maaf, command ini hanya bisa ditampilkan melalui private chat")
-                .build();
+        return null;
+//        return SendMessage.builder()
+//                .chatId(chatId)
+//                .text("Maaf, command ini hanya bisa ditampilkan melalui private chat")
+//                .build();
     }
 
     @TelegramCommand(commands = "/help", isHelp = true)
@@ -266,7 +267,12 @@ public class AppListener {
                         "Untuk melihat info/summary tiket",
                         "",
                         "*/help* _[cmd]_",
-                        "List command yang tersedia, Dimana argument _[cmd]_ nama command yang tersedia untuk detail penjelasan (tanpa forward slash)."
+                        "List command yang tersedia, Dimana argument _[cmd]_ (optional) nama command yang tersedia untuk detail penjelasan (tanpa forward slash).",
+                        "",
+                        "",
+                        "*Note*:",
+                        "_<text>_ - required argument",
+                        "_[text]_ - optional argument"
                 ))
                 .build();
     }

@@ -167,7 +167,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     @Transactional
     public Ticket registerForm(TicketBotForm form, @Nullable Collection<PhotoSize> photos) {
         Issue issue = issueQueryService.findById(form.getIssueId())
-                .orElseThrow();
+                .orElseThrow(() -> NotFoundException.entity(Issue.class, "id", form.getIssueId()));
 
         int totalGaul = queryService.countGaul(form.getIssueId(), form.getService());
 
@@ -185,10 +185,10 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .gaul(totalGaul)
                 .build());
 
-        log.debug("REGISTERED NEW TICKET -- TICKET NO={} GAUL={} TYPE={}/{}",
-                ticket.getNo(), totalGaul != 0,
-                issue.getProduct(),
-                issue.getName());
+        log.info("REGISTERED NEW TICKET -- TICKET NO={} GAUL={} TYPE={}/{}",
+                ticket.getNo(),
+                totalGaul != 0,
+                issue.getProduct(), issue.getName());
 
         storageService.addTelegramAssets(ticket, photos);
 
@@ -444,9 +444,12 @@ public class TicketBotServiceImpl implements TicketBotService {
                                 "",
                                 "Tiket NOSSA: _(opt)_",
                                 "No Service: _(required)_",
+                                "Witel: _(opt)_",
+                                "STO: _(opt)_",
                                 additionalField,
                                 "",
-                                "_Balas pesan, dengan mengreply balon chat ini_"
+                                "_Untuk *Witel/STO* jika tidak diisi, akan menyesuaikan dengan *Witel/STO* user yg menginput.",
+                                "Balas pesan, dengan mengreply balon chat ini._"
                         ))
                         .build())
                 .getMessageId();
