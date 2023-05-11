@@ -12,8 +12,8 @@ public abstract class TimestampSpec<E extends TimestampEntity, C extends Timesta
 
     protected Specification<E> timestampSpec(Specification<E> spec, C criteria) {
         if (criteria != null) {
-            spec = nonNull(spec, criteria.getCreatedAt(), TimestampEntity_.createdAt);
-            spec = nonNull(spec, criteria.getUpdatedAt(), TimestampEntity_.updatedAt);
+            spec = andNonNull(spec, criteria.getCreatedAt(), path(TimestampEntity_.createdAt));
+            spec = andNonNull(spec, criteria.getUpdatedAt(), path(TimestampEntity_.updatedAt));
         }
 
         return spec;
@@ -25,8 +25,8 @@ public abstract class TimestampSpec<E extends TimestampEntity, C extends Timesta
             S subCriteria
     ) {
         if (subCriteria != null) {
-            spec = nonNull(spec, subCriteria.getCreatedAt(), join, TimestampEntity_.createdAt);
-            spec = nonNull(spec, subCriteria.getUpdatedAt(), join, TimestampEntity_.updatedAt);
+            spec = andNonNull(spec, subCriteria.getCreatedAt(), path(join, TimestampEntity_.createdAt));
+            spec = andNonNull(spec, subCriteria.getUpdatedAt(), path(join, TimestampEntity_.updatedAt));
         }
         return spec;
     }

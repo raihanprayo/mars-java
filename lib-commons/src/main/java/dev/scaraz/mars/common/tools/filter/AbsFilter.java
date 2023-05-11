@@ -13,10 +13,16 @@ import java.util.Collection;
 @AllArgsConstructor
 public abstract class AbsFilter<T> implements Filter<T> {
 
+    protected Opt opt = Opt.AND;
     protected T eq;
     protected Collection<T> in;
     protected Boolean specified;
     protected boolean negated = false;
+
+    @Override
+    public void setOpt(Opt opt) {
+        this.opt = opt;
+    }
 
     public AbsFilter<T> setEq(T value) {
         this.eq = value;

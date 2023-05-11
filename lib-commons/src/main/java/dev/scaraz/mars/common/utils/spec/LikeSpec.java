@@ -2,10 +2,9 @@ package dev.scaraz.mars.common.utils.spec;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
 import javax.persistence.metamodel.SingularAttribute;
+import java.util.function.Function;
 
 public class LikeSpec {
     private static Predicate like(CriteriaBuilder b, Path<String> path, boolean negate, String wrappedLike) {
@@ -13,22 +12,19 @@ public class LikeSpec {
                 b.notLike(b.lower(path), wrappedLike) :
                 b.like(b.lower(path), wrappedLike);
     }
+    private static Predicate like(CriteriaBuilder b, Expression<String> path, boolean negate, String wrappedLike) {
+        return negate ?
+                b.notLike(b.lower(path), wrappedLike) :
+                b.like(b.lower(path), wrappedLike);
+    }
 
-    public static <E, A1, A2, A3, A4> Specification<E> spec(
+    public static <E> Specification<E> spec(
             String value,
             boolean negate,
-            SingularAttribute<? super E, A1> attr1,
-            SingularAttribute<? super A1, A2> attr2,
-            SingularAttribute<? super A2, A3> attr3,
-            SingularAttribute<? super A3, A4> attr4,
-            SingularAttribute<? super A4, String> valAttr
+            Function<Root<E>, Expression<String>> targetPath
     ) {
         String wrappedLike = ("%" + value + "%").toLowerCase();
-        return (r, q, b) -> {
-            Path<String> tPath = r.get(attr1).get(attr2).get(attr3).get(attr4)
-                    .get(valAttr);
-            return like(b, tPath, negate, wrappedLike);
-        };
+        return (r, q, b) -> like(b, targetPath.apply(r), negate, wrappedLike);
     }
 
     public static <E, A1, A2, A3> Specification<E> spec(

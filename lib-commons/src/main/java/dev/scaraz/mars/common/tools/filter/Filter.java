@@ -4,6 +4,15 @@ import java.io.Serializable;
 import java.util.Collection;
 
 public interface Filter<T> extends Serializable {
+
+    enum Opt {
+        AND,
+        OR
+    }
+
+    Opt getOpt();
+    void setOpt(Opt opt);
+
     Filter<T> setEq(T value);
 
     Filter<T> setIn(Collection<T> value);

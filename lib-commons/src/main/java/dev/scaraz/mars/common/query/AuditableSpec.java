@@ -11,8 +11,8 @@ public abstract class AuditableSpec<E extends AuditableEntity, C extends Auditab
 
     protected Specification<E> auditSpec(Specification<E> spec, C criteria) {
         if (criteria != null) {
-            spec = nonNull(spec, criteria.getCreatedBy(), AuditableEntity_.createdBy);
-            spec = nonNull(spec, criteria.getCreatedBy(), AuditableEntity_.updatedBy);
+            spec = andNonNull(spec, criteria.getCreatedBy(), path(AuditableEntity_.updatedBy));
+            spec = andNonNull(spec, criteria.getCreatedBy(), path(AuditableEntity_.createdBy));
         }
 
         return timestampSpec(spec, criteria);
@@ -24,8 +24,8 @@ public abstract class AuditableSpec<E extends AuditableEntity, C extends Auditab
             S subCriteria
     ) {
         if (subCriteria != null) {
-            spec = nonNull(spec, subCriteria.getCreatedAt(), join, AuditableEntity_.createdAt);
-            spec = nonNull(spec, subCriteria.getUpdatedAt(), join, AuditableEntity_.updatedAt);
+            spec = andNonNull(spec, subCriteria.getCreatedAt(), path(join, AuditableEntity_.createdAt));
+            spec = andNonNull(spec, subCriteria.getUpdatedAt(), path(join, AuditableEntity_.updatedAt));
         }
         return timestampSpec(spec, join, subCriteria);
     }

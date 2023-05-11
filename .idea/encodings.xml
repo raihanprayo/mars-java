@@ -4,10 +4,13 @@
     <file url="file://$PROJECT_DIR$/bot-svc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/bot-svc/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/core-svc/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/core-v2-svc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib-commons/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib-telegram/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib-telegram/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/svc-discovery/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/svc-discovery/src/main/resources" charset="UTF-8" />
   </component>
 </project>

@@ -2,10 +2,9 @@ package dev.scaraz.mars.common.utils.spec;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.*;
 import javax.persistence.metamodel.SingularAttribute;
+import java.util.function.Function;
 
 public class LessThanSpec {
 
@@ -13,6 +12,20 @@ public class LessThanSpec {
         return equality ?
                 b.lessThanOrEqualTo(path, value) :
                 b.lessThan(path, value);
+    }
+
+    private static <T extends Comparable<? super T>> Predicate lessThan(CriteriaBuilder b, Expression<T> path, boolean equality, T value) {
+        return equality ?
+                b.lessThanOrEqualTo(path, value) :
+                b.lessThan(path, value);
+    }
+
+    public static <T extends Comparable<? super T>, E> Specification<E> spec(
+            T value,
+            boolean equality,
+            Function<Root<E>, Expression<T>> targetPath
+    ) {
+        return (r, q, b) -> lessThan(b, targetPath.apply(r), equality, value);
     }
 
     public static <T extends Comparable<? super T>, E, A1, A2, A3, A4> Specification<E> spec(
