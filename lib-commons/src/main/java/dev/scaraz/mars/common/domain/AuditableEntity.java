@@ -21,12 +21,10 @@ public class AuditableEntity extends TimestampEntity {
 
     @CreatedBy
     @Column(name = "created_by")
-    @JsonProperty(index = Integer.MAX_VALUE - 3)
     private String createdBy;
 
     @LastModifiedBy
     @Column(name = "updated_by")
-    @JsonProperty(index = Integer.MAX_VALUE - 1)
     private String updatedBy;
 
     @Override

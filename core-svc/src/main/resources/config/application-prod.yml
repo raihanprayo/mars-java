@@ -1,4 +1,6 @@
 spring:
+  sleuth:
+    enabled: true
   redis:
     client-type: jedis
     client-name: "mars-roc"

@@ -31,14 +31,12 @@ public class TimestampEntity implements Serializable {
     @Column(name = "created_at")
     @JsonDeserialize(using = InstantDeserializer.class)
     @JsonSerialize(using = InstantSerializer.class)
-    @JsonProperty(index = Integer.MAX_VALUE - 2)
     private Instant createdAt;
 
     @LastModifiedDate
     @Column(name = "updated_at")
     @JsonDeserialize(using = InstantDeserializer.class)
     @JsonSerialize(using = InstantSerializer.class)
-    @JsonProperty(index = Integer.MAX_VALUE)
     private Instant updatedAt;
 
     @Override

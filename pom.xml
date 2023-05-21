@@ -18,7 +18,11 @@
         <module>lib-commons</module>
         <module>lib-telegram</module>
         <module>core-svc</module>
-        <module>core-v2-svc</module>
+        <module>svc-core-v2</module>
+        <module>svc-discovery</module>
+        <module>svc-user</module>
+        <module>svc-gateway</module>
+        <module>bot-adapter</module>
     </modules>
 
     <properties>

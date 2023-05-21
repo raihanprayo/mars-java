@@ -1,0 +1,13 @@
+server:
+  port: ${MARS_BOT_PORT:11001}
+
+spring:
+  application:
+    name: adapter-bot
+
+mars:
+  witel: ${MARS_WITEL:ROC}
+
+telegram:
+  type: long_polling
+  name: ${spring.app}

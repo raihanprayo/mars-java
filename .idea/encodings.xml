@@ -1,16 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/bot-adapter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/bot-svc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/bot-svc/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/core-svc/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/core-v2-svc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib-commons/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib-telegram/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib-telegram/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/svc-core-v2/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/svc-discovery/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/svc-discovery/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/svc-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/svc-user/src/main/java" charset="UTF-8" />
   </component>
 </project>

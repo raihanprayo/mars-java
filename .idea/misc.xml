@@ -3,6 +3,7 @@
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/core-svc" />
+    <file type="web" url="file://$PROJECT_DIR$/gateway-svc" />
     <file type="web" url="file://$PROJECT_DIR$/svc-discovery" />
   </component>
   <component name="MavenProjectsManager">
@@ -13,6 +14,7 @@
         <option value="$PROJECT_DIR$/libs-telegram/pom.xml" />
         <option value="$PROJECT_DIR$/lib-telegram/pom.xml" />
         <option value="$PROJECT_DIR$/svc-discovery/pom.xml" />
+        <option value="$PROJECT_DIR$/svc-gateway/pom.xml" />
       </list>
     </option>
   </component>

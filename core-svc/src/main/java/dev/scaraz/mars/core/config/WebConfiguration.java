@@ -107,8 +107,6 @@ public class WebConfiguration implements WebMvcConfigurer, LocaleResolver {
         Locale locale;
         if (user != null) locale = user.getSetting().getLang();
         else locale = headerLocaleResolver.resolveLocale(request);
-
-        LocaleContextHolder.setLocale(locale, true);
         return locale;
     }
 
