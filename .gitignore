@@ -45,3 +45,6 @@ docker-compose.mars.yaml
 .env.docker
 /docker-run.sh
 /note
+
+!bot-adapter.iml
+node_modules
