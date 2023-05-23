@@ -13,9 +13,15 @@
         <option value="$PROJECT_DIR$/core-svc/pom.xml" />
         <option value="$PROJECT_DIR$/libs-telegram/pom.xml" />
         <option value="$PROJECT_DIR$/lib-telegram/pom.xml" />
+      </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/svc-core-v2/pom.xml" />
         <option value="$PROJECT_DIR$/svc-discovery/pom.xml" />
         <option value="$PROJECT_DIR$/svc-gateway/pom.xml" />
-      </list>
+        <option value="$PROJECT_DIR$/svc-user/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="NullableNotNullManager">

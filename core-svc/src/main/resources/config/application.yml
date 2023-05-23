@@ -55,11 +55,11 @@ spring:
 
 logging:
   file:
-    name: ${LOG_DIRECTORY:D:/webs/mars-java/logs}/${LOG_NAME:mars-core}.log
+    name: ${LOG_DIRECTORY:D:/webs/mars-java/logs}/${LOG_NAME:${spring.application.name}}.log
   logback:
     rollingpolicy:
       max-file-size: 10MB
-      file-name-pattern: ${LOG_ARCHIVE:${LOG_DIRECTORY:D:/webs/mars-java/logs}/archive}/${LOG_NAME:mars-core}-%d{yyyy-MM-dd}.%i.log
+      file-name-pattern: ${LOG_ARCHIVE:${LOG_DIRECTORY:D:/webs/mars-java/logs}/archive}/${LOG_NAME:${spring.application.name}}-%d{yyyy-MM-dd}.%i.log
   group:
     spring: org.springframework,com.netflix,io.micrometer,feign,_org.springframework.web,io.undertow,org.xnio,Validator
     http: okhttp3,org.apache
@@ -80,8 +80,8 @@ logging:
     flyway: warn
     mars: ${LOG_MARS_LIB_LEVEL:info}
   pattern:
-    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name:mars-roc},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
-    file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [${spring.application.name:mars-roc},%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
   charset:
     console: utf-8
     file: utf-8
