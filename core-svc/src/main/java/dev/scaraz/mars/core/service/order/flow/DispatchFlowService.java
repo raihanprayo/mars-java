@@ -68,9 +68,17 @@ public class DispatchFlowService {
 
         ticket.setStatus(TcStatus.DISPATCH);
 
+        log.info("NOTIFY SENDER -- ID {}", ticket.getSenderId());
         notifierService.send(ticket.getSenderId(),
                 "tg.ticket.update.dispatch",
                 ticket.getNo());
+
+        if (agent.getTelegramId() != ticket.getSenderId()) {
+            log.info("NOTIFY AGENT -- ID {}", agent.getTelegramId());
+            notifierService.safeSend(agent.getTelegramId(),
+                    "tg.ticket.update.dispatch.agent",
+                    ticket.getNo());
+        }
 
         logTicketService.add(LogTicket.builder()
                 .ticket(ticket)
