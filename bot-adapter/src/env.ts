@@ -1,6 +1,6 @@
 import {Witel} from "./utils/types";
 import {cpus} from "os";
-import {isDefined, isString} from "./utils/guards";
+import {isDefined, isStr} from "./utils/guards";
 
 type Mode = 'dev' | 'development' | 'prod' | 'production'
 type EnvParseCallback<T = any> = (value: string | undefined, envKey: string) => T;
@@ -8,7 +8,7 @@ type EnvParseCallback<T = any> = (value: string | undefined, envKey: string) => 
 function env(key: string | string[]): string | undefined;
 function env<T>(key: string | string[], cb: EnvParseCallback<T>): T;
 function env(keys: string | string[], cb?: EnvParseCallback): any {
-    keys = isString(keys) ? [keys] : keys;
+    keys = isStr(keys) ? [keys] : keys;
 
     let value;
     if (keys.length > 1) {
@@ -21,9 +21,9 @@ function env(keys: string | string[], cb?: EnvParseCallback): any {
         }
 
         if (!isDefined(value))
-            value = cb ? cb(value, keys[0].toUpperCase()) : value;
+            value = cb ? cb(value, keys[0]!.toUpperCase()) : value;
     } else {
-        const envName = keys[0].toUpperCase();
+        const envName = keys[0]!.toUpperCase();
         value = process.env[envName];
         value = cb ? cb(value, envName) : value;
     }

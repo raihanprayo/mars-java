@@ -8,12 +8,18 @@ import Source = Tg.Source;
 export class BotWorker extends EventEmitter {
 
     constructor() {
+        if ('worker' in globalThis)
+            throw new Error("Bot worker already running in current thread");
+
         super({captureRejections: true});
         if (!cluster.isWorker) {
             throw new Error('Bot worker cannot be instantiate in primary process');
         }
 
         process.on('message', this.onReceivedMessage.bind(this));
+        Object.defineProperty(globalThis, 'worker', {
+            value: this
+        })
     }
 
     get id() {
@@ -21,7 +27,7 @@ export class BotWorker extends EventEmitter {
     }
 
     private onReceivedMessage(message: MasterEvent, sendHandle: unknown) {
-        console.log('[WORKER-%s] Received event from master', this.id);
+        log.info('[WORKER-%s] Received event from master', this.id);
         switch (message.id) {
             case EventID.TELEGRAM_UPDATE:
                 this.onTelegramUpdate(message.data);

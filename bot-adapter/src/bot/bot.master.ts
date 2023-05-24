@@ -15,11 +15,18 @@ export class BotMaster extends EventEmitter {
     private index = -1;
 
     constructor() {
+        if ('bot' in globalThis)
+            throw new Error("Bot master already running in current thread");
+
         super({captureRejections: true});
         this.bot = new Telegraf(BOT_TOKEN);
         process.once('SIGINT', () => this.bot.stop('SIGINT'));
         process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
-        console.log('Initialize Bot Master (%s - %s)', Witel[BOT_WITEL], BOT_NAME);
+        log.info('Initialize Bot Master (%s - %s)', Witel[BOT_WITEL], BOT_NAME);
+
+        Object.defineProperty(globalThis, 'bot', {
+            value: this
+        })
     }
 
     create(total: number, env: NodeJS.Dict<string> = {}, cb?: WorkerCallback) {
@@ -31,7 +38,7 @@ export class BotMaster extends EventEmitter {
 
     createWorker(env: NodeJS.Dict<string> = {}, cb?: WorkerCallback) {
         const worker = cluster.fork(Object.assign({}, process.env, env));
-        console.log('Created new bot-worker (pid %s)', worker.process.pid);
+        log.info('Created new bot-worker (pid %s)', worker.process.pid);
 
 
         this.items.set(worker.process.pid!, worker);
@@ -48,12 +55,16 @@ export class BotMaster extends EventEmitter {
     get(pid: number): Worker
     get(pid: number | null | undefined = null) {
         if (isDefined(pid)) {
-            if (!this.items.has(pid)) throw new Error("No worker with pid " + pid);
+            if (!this.items.has(pid)) {
+                throw new Error("No worker with pid " + pid);
+            }
             return this.items.get(pid)
-        } else {
+        }
+        else {
             this.index += 1;
-            if (this.index === this.items.size)
+            if (this.index === this.items.size) {
                 this.index = 0;
+            }
             const workerArr = [...this.items.values()]
             return workerArr[this.index];
         }
@@ -62,10 +73,12 @@ export class BotMaster extends EventEmitter {
     send(message: Serializable): void
     send(pid: number, message: Serializable): void
     send(pidOrMessage: any, message?: any): void {
-        if (arguments.length === 2)
+        if (arguments.length === 2) {
             this.get(pidOrMessage).send(message);
-        else
+        }
+        else {
             this.get().send(pidOrMessage);
+        }
     }
 
     start() {
