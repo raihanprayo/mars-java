@@ -150,6 +150,15 @@ public class CloseFlowService {
                     "tg.ticket.confirm.reopen.agent",
                     ticket.getNo(),
                     reopenMessage);
+
+            if (agent.getTelegramId() != ticket.getSenderId()) {
+                log.info("NOTIFY SENDER -- ID {}", ticket.getSenderId());
+                notifierService.safeSend(
+                        ticket.getSenderId(),
+                        "tg.ticket.confirm.reopen.sender",
+                        ticket.getNo(),
+                        reopenMessage);
+            }
         }
         else {
             ticket.setStatus(TcStatus.CLOSED);
@@ -172,12 +181,26 @@ public class CloseFlowService {
                         ticket.getNo(),
                         Translator.tr("app.done.watermark")
                 );
+
+                if (agent.getTelegramId() != ticket.getSenderId()) {
+                    log.info("NOTIFY SENDER -- ID {}", ticket.getSenderId());
+                    notifierService.safeSend(ticket.getSenderId(),
+                            "tg.ticket.confirm.closed.sender",
+                            ticket.getNo());
+                }
             }
             else {
                 logMessage = LOG_AUTO_CLOSE;
                 notifierService.send(ticket.getSenderId(),
                         "tg.ticket.confirm.auto-closed",
                         ticket.getNo());
+
+                if (agent.getTelegramId() != ticket.getSenderId()) {
+                    log.info("NOTIFY SENDER -- ID {}", ticket.getSenderId());
+                    notifierService.safeSend(ticket.getSenderId(),
+                            "tg.ticket.confirm.auto-closed.sender",
+                            ticket.getNo());
+                }
             }
 
             workspace.setStatus(AgStatus.CLOSED);

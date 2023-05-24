@@ -2,7 +2,7 @@
   "name": "bot-adapter",
   "version": "1.0.0",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --sourceMap",
     "dev": "node -r dotenv/config ./build/main"
   },
   "devDependencies": {
@@ -13,7 +13,9 @@
   "dependencies": {
     "axios": "^1.4.0",
     "commander": "^10.0.1",
+    "node-eureka": "^0.0.2",
     "telegraf": "^4.12.2",
+    "tslib": "^2.5.2",
     "typegram": "^5.0.0"
   }
 }

@@ -1,17 +1,17 @@
 import {Telegraf} from "telegraf";
-import {BOT_TOKEN, BOT_WITEL, BOT_WORKER} from "../env";
+import {BOT_DATEL, BOT_NAME, BOT_TOKEN, BOT_WITEL, BOT_WORKER} from "../env";
 import cluster, {Worker} from "cluster";
 import {isDefined} from "../utils/guards";
 import EventEmitter from "events";
 import {EventID, Witel} from "../utils/types";
 import {Serializable} from "worker_threads";
 
-type WorkerCallback = (i: number, worker: Worker) => void;
+type WorkerCallback = (pid: number, worker: Worker) => void;
 
 export class BotMaster extends EventEmitter {
 
     private readonly bot: Telegraf;
-    private readonly items: Worker[] = [];
+    private readonly items = new Map<number, Worker>();
     private index = -1;
 
     constructor() {
@@ -19,7 +19,7 @@ export class BotMaster extends EventEmitter {
         this.bot = new Telegraf(BOT_TOKEN);
         process.once('SIGINT', () => this.bot.stop('SIGINT'));
         process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
-        console.log('Initialize Bot Master (%s)', Witel[BOT_WITEL]);
+        console.log('Initialize Bot Master (%s - %s)', Witel[BOT_WITEL], BOT_NAME);
     }
 
     create(total: number, env: NodeJS.Dict<string> = {}, cb?: WorkerCallback) {
@@ -30,38 +30,42 @@ export class BotMaster extends EventEmitter {
     }
 
     createWorker(env: NodeJS.Dict<string> = {}, cb?: WorkerCallback) {
-        const currentIndex = this.items.length;
-        const worker = cluster.fork(Object.assign({
-            BOT_WORKER_INDEX: currentIndex
-        }, process.env, env));
-        console.log('Create New worker-%s (pid %s)', currentIndex, worker.process.pid);
+        const worker = cluster.fork(Object.assign({}, process.env, env));
+        console.log('Created new bot-worker (pid %s)', worker.process.pid);
 
 
-        this.items.push(worker);
-        cb?.(currentIndex, worker);
+        this.items.set(worker.process.pid!, worker);
+        cb?.(worker.process.pid!, worker);
 
         worker.on('message', (message, handle) => {
-            this.emit(`worker-${currentIndex}:message`, message, handle);
+            this.emit(`worker-${worker.process.pid}:message`, message, handle);
         });
 
         return worker;
     }
 
     get(): Worker
-    get(index: number): Worker
-    get(index: number | null | undefined = null) {
-        if (isDefined(index)) {
-            return this.items[index];
+    get(pid: number): Worker
+    get(pid: number | null | undefined = null) {
+        if (isDefined(pid)) {
+            if (!this.items.has(pid)) throw new Error("No worker with pid " + pid);
+            return this.items.get(pid)
         } else {
             this.index += 1;
-            if (this.index === this.items.length)
+            if (this.index === this.items.size)
                 this.index = 0;
-            return this.items[this.index];
+            const workerArr = [...this.items.values()]
+            return workerArr[this.index];
         }
     }
 
-    send(message: Serializable) {
-        this.get().send(message);
+    send(message: Serializable): void
+    send(pid: number, message: Serializable): void
+    send(pidOrMessage: any, message?: any): void {
+        if (arguments.length === 2)
+            this.get(pidOrMessage).send(message);
+        else
+            this.get().send(pidOrMessage);
     }
 
     start() {

@@ -11,17 +11,26 @@ function env(keys: string | string[], cb?: EnvParseCallback): any {
     keys = isString(keys) ? [keys] : keys;
 
     let value;
-    for (let key of keys) {
-        const envName = key.toUpperCase();
-        value = process.env[envName];
+    if (keys.length > 1) {
+        for (let key of keys) {
+            const envName = key.toUpperCase();
+            value = process.env[envName];
 
-        if (isDefined(value))
-            return cb ? cb(value, envName) : value;
+            if (isDefined(value))
+                return cb ? cb(value, envName) : value;
+        }
+
+        if (!isDefined(value))
+            value = cb ? cb(value, keys[0].toUpperCase()) : value;
+    } else {
+        const envName = keys[0].toUpperCase();
+        value = process.env[envName];
+        value = cb ? cb(value, envName) : value;
     }
     return value;
 }
 
-export const MODE = env(['MODE', 'NODE_ENV'], (v) => {
+export const MODE: Mode = env(['MODE', 'NODE_ENV'], (v) => {
     if (!v) return 'dev';
     const predicate: Mode[] = ['dev', 'development', 'prod', 'production'];
 
@@ -45,3 +54,8 @@ export const BOT_WITEL = env<Witel>('bot_witel', (v, k) => {
 });
 
 export const BOT_DATEL = env('bot_datel');
+
+export const BOT_NAME = env('bot_name', v => {
+    if (v) return v;
+    return `BOT-${Witel[BOT_WITEL]}-${BOT_DATEL||'A/N'}`;
+});
