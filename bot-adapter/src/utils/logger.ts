@@ -30,26 +30,17 @@ export interface LoggerConfig {
 }
 
 export interface Logger {
+    readonly error: LoggerFn;
+    readonly warn: LoggerFn;
+    readonly info: LoggerFn;
+    readonly debug: LoggerFn;
+    readonly verbose: LoggerFn;
+}
 
-    error(message: string, ...params: any[]): void;
+export interface LoggerFn {
+    (message: string, ...args: any[]): void;
 
-    error(...args: any[]): void;
-
-    warn(message: string, ...params: any[]): void;
-
-    warn(...args: any[]): void;
-
-    info(message: string, ...params: any[]): void;
-
-    info(...args: any[]): void;
-
-    debug(message: string, ...params: any[]): void;
-
-    debug(...args: any[]): void;
-
-    verbose(message: string, ...params: any[]): void;
-
-    verbose(...args: any[]): void;
+    (...args: any[]): void;
 }
 
 export enum LogLevel {
@@ -307,6 +298,13 @@ class FileLogStream extends PassThrough {
 class BotLogger implements Logger {
 
     constructor(private readonly factory: LoggerFactory) {
+        Object.defineProperties(this, {
+            error: this.createLogFn(LogLevel.ERROR),
+            warn: this.createLogFn(LogLevel.WARN),
+            info: this.createLogFn(LogLevel.INFO),
+            debug: this.createLogFn(LogLevel.DEBUG),
+            verbose: this.createLogFn(LogLevel.VERBOSE),
+        });
     }
 
     private print(level: LogLevel, message: any, params: any[]) {
@@ -334,43 +332,28 @@ class BotLogger implements Logger {
     }
 
     private isLevelAllowed(level: LogLevel) {
-        return level <= this.factory.get('level');
+        const b = level <= this.factory.get('level');
+        // console.log("%s is allowed ? %o", LogLevel[level], b);
+        return b;
     }
 
     private isWarnOrError(level: LogLevel) {
         return level <= LogLevel.WARN;
     }
 
-    debug(message: string, ...params: any[]): void;
-    debug(...args: any[]): void;
-    debug(msg: any, ...args: any[]): void {
-        this.print(LogLevel.DEBUG, msg, args);
-    }
+    debug: LoggerFn;
+    error: LoggerFn;
+    info: LoggerFn;
+    verbose: LoggerFn;
+    warn: LoggerFn;
 
-    error(message: string, ...params: any[]): void;
-    error(...args: any[]): void;
-    error(msg: any, ...args: any[]): void {
-        this.print(LogLevel.ERROR, msg, args);
+    private createLogFn(lvl: LogLevel): PropertyDescriptor {
+        return {
+            value: (message: any, ...args: any[]) => this.print(lvl, message, args),
+            writable: false,
+            configurable: false
+        }
     }
-
-    info(message: string, ...params: any[]): void;
-    info(...args: any[]): void;
-    info(msg: any, ...args: any[]): void {
-        this.print(LogLevel.INFO, msg, args);
-    }
-
-    verbose(message: string, ...params: any[]): void;
-    verbose(...args: any[]): void;
-    verbose(msg: any, ...args: any[]): void {
-        this.print(LogLevel.VERBOSE, msg, args);
-    }
-
-    warn(message: string, ...params: any[]): void;
-    warn(...args: any[]): void;
-    warn(msg: any, ...args: any[]): void {
-        this.print(LogLevel.WARN, msg, args);
-    }
-
 }
 
 const ANSII_CHAR_REGX = /\x1b\[[0-9;]+m/g;

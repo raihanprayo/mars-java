@@ -9,6 +9,7 @@ import {
 } from './guards';
 import {inlineKey, objectMerge} from './object';
 import {kebabCaseToCamelCase} from './string';
+import cluster from "cluster";
 
 const storage = new WeakMap<Properties, PropertiesMetadata>();
 
@@ -150,15 +151,20 @@ export class Properties implements Iterable<[string, any]> {
 
     set(key: string, value: any) {
         // if (storage.get(this)!.locked) return;
-        const t_key = kebabCaseToCamelCase(key);
         // const evt = new Utils.PipeEvent(t_key, value);
-        set_r(
-            split_key(t_key),
-            value,
-            storage.get(this)!.props,
-            storage.get(this)!.fieldTypes,
-            this
-        );
+        if (key === "#") {
+            storage.get(this)!.props = value;
+        }
+        else {
+            const t_key = kebabCaseToCamelCase(key);
+            set_r(
+                split_key(t_key),
+                value,
+                storage.get(this)!.props,
+                storage.get(this)!.fieldTypes,
+                this
+            );
+        }
     }
 
     has(key: string) {
@@ -189,17 +195,14 @@ export class Properties implements Iterable<[string, any]> {
 
 }
 
-export class StrictProperties<I extends map> extends Properties {
-
-    constructor(initial: I) {
-        super(initial);
-    }
-
-    override set<K extends keyof I>(key: K, value: I[K]) {
-        super.set(key as string, value);
-    }
-
-    override get<K extends keyof I>(key: K): I[K] {
-        return super.get(key as string);
-    }
-}
+// export class ClusterProperties extends Properties {
+//
+//     constructor() {
+//         super();
+//         if (cluster.isPrimary) throw new Error("ClusterProperties can only be instantiate in child/worker thread");
+//     }
+//
+//     override get<T = any>(key: string): T {
+//         return super.get(key);
+//     }
+// }

@@ -4,10 +4,28 @@ import {type Logger, LoggerFactory} from "./utils/logger";
 import {createOption, program} from "commander";
 import {Properties} from "./utils/properties";
 import {BotMaster} from "./bot/bot.master";
-import {BOT_WORKER, MODE} from "./env";
+import {BOT_TOKEN, BOT_WITEL, BOT_WORKER, MODE} from "./env";
+import {Witel} from "./utils/types";
+import {isDefined} from "./utils/guards";
+
+globalThis.settings = new Properties({
+    bot: {
+        token: BOT_TOKEN,
+        worker: BOT_WORKER,
+        witel: BOT_WITEL
+    }
+});
+settings.setParser("bot", {
+    token: String,
+    worker: Number,
+    witel: v => {
+        const value = Witel[v];
+        if (isDefined((value))) return value;
+        return BOT_WITEL;
+    }
+})
 
 
-globalThis.settings = new Properties();
 globalThis.factory = new LoggerFactory();
 globalThis.log = factory.create();
 
@@ -31,12 +49,11 @@ if (cluster.isPrimary) {
                 .create(BOT_WORKER)
                 .start();
 
-            console.log(settings.raw);
         })
         .parse();
 }
 else {
-    new BotWorker();
+    new BotWorker().on("tg:message", log.info);
 }
 
 declare global {

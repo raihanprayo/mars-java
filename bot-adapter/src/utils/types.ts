@@ -1,70 +1,63 @@
-import {Chat, Document, MessageEntity, PhotoSize, User} from "typegram";
+import { Chat, Document, MessageEntity, PhotoSize, User } from "typegram";
 
 export enum Witel {
-    ROC,
-    BANTEN,
-    BEKASI,
-    BOGOR,
-    JAKBAR,
-    JAKPUS,
-    JAKSEL,
-    JAKTIM,
-    JAKUT,
-    TANGERANG
-};
-
+	ROC = "ROC",
+	BANTEN = "BANTEN",
+	BEKASI = "BEKASI",
+	BOGOR = "BOGOR",
+	JAKBAR = "JAKBAR",
+	JAKPUS = "JAKPUS",
+	JAKSEL = "JAKSEL",
+	JAKTIM = "JAKTIM",
+	JAKUT = "JAKUT",
+	TANGERANG = "TANGERANG",
+}
 
 export enum Product {
-    INTERNET,
-    IPTV,
-    VOICE
-}
-
-export interface MasterEvent<D = any> {
-    id: EventID;
-    data: D;
-}
-
-export interface WorkerEvent<D = any> extends MasterEvent<D> {
-    worker: number;
-}
-
-export enum EventID {
-    TELEGRAM_UPDATE
+	INTERNET,
+	IPTV,
+	VOICE,
 }
 
 export enum TgEventID {
-    UNKNOWN,
-    MESSAGE,
-    COMMAND,
-    CAPTION_MESSAGE,
-    CAPTION_COMMAND
+	UNKNOWN,
+	MESSAGE,
+	COMMAND,
+	CAPTION_MESSAGE,
+	CAPTION_COMMAND,
+}
+
+export namespace AppEvent {
+	export interface Settings {
+		key: string;
+		value: any;
+	}
 }
 
 export namespace Tg {
-    export enum Source {
-        GROUP,
-        SUPER_GROUP,
-        CHANNEL,
-        PRIVATE
-    }
+	export enum Source {
+		GROUP,
+		SUPER_GROUP,
+		CHANNEL,
+		PRIVATE,
+	}
 
-    export interface TgEvent {
-        id: TgEventID;
-    }
+	export interface TgEvent {
+		id: TgEventID;
+	}
 
-    export type TgChat = Chat & { type: Source }
+	export type TgChat = Chat & { type: Source };
 
-    export interface MessageEvent extends TgEvent {
-        message_id: number;
+	export interface MessageEvent extends TgEvent {
+		message_id: number;
 
-        chat: TgChat;
-        date: number;
-        from: User;
+		chat: TgChat;
+		date: number;
+		from: User;
 
-        text?: string;
-        command?: MessageEntity & { cmd: string; }
-        photo?: PhotoSize[];
-        document?: Document;
-    }
+		text?: string;
+		command?: MessageEntity & { cmd: string };
+		photo?: PhotoSize[];
+		document?: Document;
+	}
 }
