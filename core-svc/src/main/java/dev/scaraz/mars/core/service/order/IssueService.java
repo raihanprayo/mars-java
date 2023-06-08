@@ -19,4 +19,6 @@ public interface IssueService {
 
     @Transactional
     Issue update(long id, UpdateIssueDTO dto);
+
+    void deleteByIds(Iterable<Long> ids);
 }

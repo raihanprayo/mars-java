@@ -5,6 +5,7 @@ import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.tools.enums.TcSource;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.LogTicket;
@@ -117,6 +118,10 @@ public class TicketServiceImpl implements TicketService {
 
         List<List<String>> rows = tickets.stream()
                 .map(ticket -> {
+                    String issueName = StringUtils.isBlank(ticket.getIssue().getAlias()) ?
+                            ticket.getIssue().getName() :
+                            ticket.getIssue().getAlias();
+
                     List<String> row = new ArrayList<>();
                     row.add(ticket.getNo());
                     row.add(ticket.getWitel().name());
@@ -126,17 +131,22 @@ public class TicketServiceImpl implements TicketService {
                     row.add(ticket.getSource().name());
                     row.add(ticket.getSenderName());
                     row.add(ticket.isGaul() ? "Y" : "N");
-                    row.add(ticket.getIssue().getName());
+                    row.add(issueName);
                     row.add(ticket.getIssue().getProduct().name());
 
                     row.add(ticket.getCreatedAt()
                             .atZone(ZONE_LOCAL)
                             .format(formatter));
-                    row.add(Optional.ofNullable(ticket.getUpdatedAt())
-                            .map(ins -> ins.atZone(ZONE_LOCAL)
-                                    .toLocalDateTime()
-                                    .format(formatter))
-                            .orElse("-"));
+                    if (ticket.getStatus() == TcStatus.CLOSED) {
+                        row.add(Optional.ofNullable(ticket.getUpdatedAt())
+                                .map(ins -> ins.atZone(ZONE_LOCAL)
+                                        .toLocalDateTime()
+                                        .format(formatter))
+                                .orElse("-"));
+                    }
+                    else {
+                        row.add("-");
+                    }
                     return row;
                 })
                 .collect(Collectors.toList());

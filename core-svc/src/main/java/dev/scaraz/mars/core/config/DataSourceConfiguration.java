@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.config;
 
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -30,5 +31,12 @@ public class DataSourceConfiguration {
         jpaTransactionManager.setEntityManagerFactory(entityManagerFactory);
         return jpaTransactionManager;
     }
+
+//    @Bean
+//    public FlywayMigrationStrategy flywayMigrationStrategy() {
+//        return flyway -> {
+//            flyway.repair();
+//        };
+//    }
 
 }

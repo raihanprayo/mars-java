@@ -8,8 +8,6 @@ import lombok.*;
 
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashSet;
 
 @Data
 @Builder(toBuilder = true)
@@ -39,4 +37,6 @@ public class AgentWorklogDTO implements Serializable {
     @JsonSerialize(using = InstantSerializer.class)
     private Instant updatedAt;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private TicketShortDTO ticket;
 }

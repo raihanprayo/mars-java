@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -33,6 +36,9 @@ public class LeaderBoardDTO {
 
     @Builder.Default
     private int totalHandleDispatch = 0;
+
+    @Builder.Default
+    private List<AgentWorklogDTO> worklogs = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

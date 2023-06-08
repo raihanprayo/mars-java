@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -61,7 +63,8 @@ public class ChartResource {
 
     @GetMapping("/ticket/report")
     public ResponseEntity<?> getTicketReports(
-            TicketSummaryCriteria criteria
+            TicketSummaryCriteria criteria,
+            Pageable pageable
     ) {
         TicketPieChartDTO chart = new TicketPieChartDTO();
         chart.getCount().setTotal(summaryQueryService.count(criteria));
@@ -69,15 +72,16 @@ public class ChartResource {
         chart.getCount().setIptv(count(Product.IPTV, criteria));
         chart.getCount().setVoice(count(Product.VOICE, criteria));
 
-        List<TicketSummary> all = summaryQueryService.findAll(criteria);
-        chart.setAge(chartService.pieTicketByAge(all));
-        chart.setActionAge(chartService.pieTicketByActionAge(all));
-        chart.setResponseAge(chartService.pieTicketByResponseAge(all));
+        Page<TicketSummary> all = summaryQueryService.findAll(criteria, pageable);
+        chart.setAge(chartService.pieTicketByAge(all.getContent()));
+        chart.setActionAge(chartService.pieTicketByActionAge(all.getContent()));
+        chart.setResponseAge(chartService.pieTicketByResponseAge(all.getContent()));
 
-        return ResponseEntity.ok(Map.of(
+        HttpHeaders headers = ResourceUtil.generatePaginationHeader(all, "/chart/ticket.report");
+        return new ResponseEntity<>(Map.of(
                 "chart", chart,
                 "raw", all
-        ));
+        ), headers, HttpStatus.OK);
     }
 
     @GetMapping("/ticket/report/download")

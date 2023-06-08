@@ -1,14 +1,21 @@
 package dev.scaraz.mars.core.service.order;
 
+import dev.scaraz.mars.common.domain.response.AgentWorklogDTO;
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
+import dev.scaraz.mars.common.domain.response.TicketShortDTO;
+import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
+import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.mapper.AgentMapper;
+import dev.scaraz.mars.core.mapper.TicketMapper;
+import dev.scaraz.mars.core.query.AgentWorklogQueryService;
+import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
-import dev.scaraz.mars.core.query.criteria.LeaderBoardCriteria;
-import dev.scaraz.mars.core.query.criteria.RoleCriteria;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.criteria.*;
 import dev.scaraz.mars.core.query.spec.LeaderBoardSpecBuilder;
 import dev.scaraz.mars.core.repository.view.LeaderBoardFragmentRepo;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +23,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -33,6 +43,12 @@ public class LeaderBoardService {
 
     private final LeaderBoardFragmentRepo repo;
     private final LeaderBoardSpecBuilder specBuilder;
+
+    private final AgentMapper agentMapper;
+    private final AgentWorklogQueryService agentWorklogQueryService;
+
+    private final TicketMapper ticketMapper;
+    private final TicketSummaryQueryService ticketSummaryQueryService;
 
     public Page<LeaderBoardDTO> findAll(LeaderBoardCriteria criteria, Pageable pageable) {
         Page<User> users = userQueryService.findAll(UserCriteria.builder()
@@ -72,6 +88,33 @@ public class LeaderBoardService {
                     .map(LeaderBoardFragment::getTotalHandleDispatch)
                     .reduce(0, Integer::sum);
 
+//            List<Long> ids = fragments.stream().map(LeaderBoardFragment::getId)
+//                    .collect(Collectors.toList());
+//
+//            Page<AgentWorklog> worklogs = agentWorklogQueryService.findAll(
+//                            AgentWorklogCriteria.builder()
+//                                    .workspace(AgentWorkspaceCriteria.builder()
+//                                            .id(new LongFilter().setIn(ids))
+//                                            .build())
+//                                    .build(),
+//                            PageRequest.of(0, Integer.MAX_VALUE, Sort.Direction.ASC, "createdAt")
+//                    );
+
+            List<AgentWorklogDTO> worklogs = new ArrayList<>();
+            for (LeaderBoardFragment frg : fragments) {
+                TicketShortDTO ticket = ticketMapper.toShortDTO(ticketSummaryQueryService.findByIdOrNo(frg.getTicketNo()));
+                List<AgentWorklog> worklogsRaw = agentWorklogQueryService.findAll(AgentWorklogCriteria.builder()
+                        .workspace(AgentWorkspaceCriteria.builder()
+                                .id(new LongFilter().setEq(frg.getId()))
+                                .build())
+                        .build());
+
+                worklogsRaw.stream()
+                        .map(agentMapper::toDTO)
+                        .peek(dto -> dto.setTicket(ticket))
+                        .forEach(worklogs::add);
+            }
+
             return LeaderBoardDTO.builder()
                     .id(user.getId())
                     .nik(user.getNik())
@@ -81,6 +124,7 @@ public class LeaderBoardService {
                     .total(total)
                     .totalDispatch(totalDispatch)
                     .totalHandleDispatch(totalHandleDispatch)
+                    .worklogs(worklogs)
                     .build();
         };
     }

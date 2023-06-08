@@ -12,8 +12,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static dev.scaraz.mars.common.utils.AppConstants.RESET_ISSUE_INLINE_BTN_EVENT;
 
@@ -54,6 +57,20 @@ public class IssueResource {
         Issue update = service.update(id, issue);
         eventPublisher.publishEvent(new RefreshIssueInlineButtons());
         return ResponseEntity.ok(update);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable long id) {
+        service.deleteByIds(List.of(id));
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping(
+            path = "/bulk",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> deleteBulk(@RequestBody List<Long> ids) {
+        service.deleteByIds(ids);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

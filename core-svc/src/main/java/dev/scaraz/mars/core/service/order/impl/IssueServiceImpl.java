@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -125,6 +124,11 @@ public class IssueServiceImpl implements IssueService {
         }
 
         return save(issue);
+    }
+
+    @Override
+    public void deleteByIds(Iterable<Long> ids) {
+        repo.deleteAllById(ids);
     }
 
 }

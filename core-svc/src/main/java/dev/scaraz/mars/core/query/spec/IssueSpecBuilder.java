@@ -17,6 +17,7 @@ public class IssueSpecBuilder extends AuditableSpec<Issue, IssueCriteria> {
             spec = nonNull(spec, criteria.getId(), Issue_.id);
             spec = nonNull(spec, criteria.getName(), Issue_.name);
             spec = nonNull(spec, criteria.getProduct(), Issue_.product);
+            spec = nonNull(spec, criteria.getDeleted(), Issue_.deleted);
         }
         return auditSpec(spec, criteria);
     }

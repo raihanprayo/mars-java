@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.query.impl;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.query.AgentWorklogQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
+import dev.scaraz.mars.core.query.spec.AgentWorklogSpecBuilder;
 import dev.scaraz.mars.core.repository.order.AgentWorklogRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.util.List;
 public class AgentWorklogQueryServiceImpl implements AgentWorklogQueryService {
 
     private final AgentWorklogRepo repo;
+    private final AgentWorklogSpecBuilder specBuilder;
 
     @Override
     public List<AgentWorklog> findAll() {
@@ -34,21 +36,21 @@ public class AgentWorklogQueryServiceImpl implements AgentWorklogQueryService {
 
     @Override
     public List<AgentWorklog> findAll(AgentWorklogCriteria criteria) {
-        return null;
+        return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Page<AgentWorklog> findAll(AgentWorklogCriteria criteria, Pageable pageable) {
-        return null;
+        return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
 
     @Override
     public long count() {
-        return 0;
+        return repo.count();
     }
 
     @Override
     public long count(AgentWorklogCriteria criteria) {
-        return 0;
+        return repo.count(specBuilder.createSpec(criteria));
     }
 }

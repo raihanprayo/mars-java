@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.query.impl;
 
+import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
@@ -47,11 +48,13 @@ public class IssueQueryServiceImpl implements IssueQueryService {
 
     @Override
     public List<Issue> findAll(IssueCriteria criteria) {
+        interceptCriteria(criteria);
         return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Page<Issue> findAll(IssueCriteria criteria, Pageable pageable) {
+        interceptCriteria(criteria);
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
 
@@ -62,6 +65,13 @@ public class IssueQueryServiceImpl implements IssueQueryService {
 
     @Override
     public long count(IssueCriteria criteria) {
+        interceptCriteria(criteria);
         return repo.count(specBuilder.createSpec(criteria));
     }
+
+    private void interceptCriteria(IssueCriteria criteria) {
+        if (criteria.getDeleted() != null) return;
+        criteria.setDeleted(new BooleanFilter().setEq(false));
+    }
+
 }

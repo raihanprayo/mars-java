@@ -15,7 +15,7 @@ import java.time.Instant;
 public class LeaderBoardFragment {
 
     @Id
-    private String id;
+    private long id;
 
     @Column(name = "ref_agent_id")
     private String agentId;
