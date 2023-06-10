@@ -2,7 +2,6 @@ package dev.scaraz.mars.core.config.interceptor;
 
 import dev.scaraz.mars.common.domain.response.JwtToken;
 import dev.scaraz.mars.common.exception.web.UnauthorizedException;
-import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.config.security.JwtUtil;
 import dev.scaraz.mars.core.domain.credential.User;
@@ -22,12 +21,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
