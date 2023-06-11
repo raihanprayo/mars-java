@@ -13,6 +13,7 @@
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/svc-core-v2/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/svc-core/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/svc-discovery/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/svc-discovery/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/svc-gateway/src/main/java" charset="UTF-8" />

@@ -21,6 +21,7 @@
         <module>discovery-svc</module>
         <module>lib-security</module>
         <module>svc-user</module>
+        <module>svc-core</module>
     </modules>
 
     <properties>

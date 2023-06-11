@@ -27,15 +27,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final MarsSecurityProperties securityProperties;
-
-    private final Gson gson = new Gson();
     private final WebAuthenticationDetailsSource authenticationDetailsSource = new WebAuthenticationDetailsSource();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorization = request.getHeader("Authorization");
 
-        if (StringUtils.isNoneBlank(authorization)) {
+        boolean isUnauthenticated = !(SecurityContextHolder.getContext().getAuthentication() != null &&
+                SecurityContextHolder.getContext().getAuthentication().isAuthenticated());
+
+        if (StringUtils.isNoneBlank(authorization) && isUnauthenticated) {
             String prefix = securityProperties.getJwt().getTokenPrefix().trim() + " ";
             String token = authorization.substring(prefix.length()).trim();
 

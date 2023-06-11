@@ -1,5 +1,6 @@
 package dev.scaraz.mars.user.initializer;
 
+import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.user.domain.db.MarsUser;
@@ -28,6 +29,7 @@ public class InitialRoleScript {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final ScriptService scriptService;
+    private final MarsProperties marsProperties;
 
     @Autowired
     @Transactional
@@ -54,7 +56,7 @@ public class InitialRoleScript {
                 .name("administrator")
                 .nik("admin")
                 .enabled(true)
-                .witel(Witel.ROC)
+                .witel(marsProperties.getWitel())
                 .password(passwordEncoder.encode("admin"))
                 .build());
 

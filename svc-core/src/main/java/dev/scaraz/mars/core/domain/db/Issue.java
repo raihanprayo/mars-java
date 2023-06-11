@@ -1,15 +1,14 @@
-package dev.scaraz.mars.core.domain.order;
-
+package dev.scaraz.mars.core.domain.db;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.Product;
 import lombok.*;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+import org.hibernate.annotations.SQLDelete;
 
 import javax.persistence.*;
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,10 +35,10 @@ public class Issue extends AuditableEntity {
     private Product product;
 
     @Column
-    private String name;
+    private String code;
 
-    @Column(name = "display_name")
-    private String alias;
+    @Column
+    private String name;
 
     /**
      * Instruksi

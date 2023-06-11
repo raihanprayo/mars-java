@@ -1,5 +1,5 @@
 server:
-  port: ${MARS_USER_PORT:10921}
+  port: ${MARS_CORE_PORT:10922}
   compression:
     enabled: true
     min-response-size: 1024
@@ -7,9 +7,9 @@ server:
 
 
 datasource:
-  url: ${MARS_USER_DB_URL:jdbc:postgresql://${DS_HOST:127.0.0.1}:${DS_PORT:15433}}
-  database: ${MARS_USER_DB_DATABASE:tr2db}
-  schema: ${MARS_USER_DB_SCHEMA:public}
+  url: ${MARS_CORE_DB_URL:jdbc:postgresql://${DS_HOST:127.0.0.1}:${DS_PORT:15433}}
+  database: ${MARS_CORE_DB_DATABASE:tr2db}
+  schema: ${MARS_CORE_DB_SCHEMA:public}
 
 
 spring:
@@ -18,7 +18,7 @@ spring:
       max-file-size: 10MB
       max-request-size: 20MB
   application:
-    name: mars-user
+    name: mars-core
   jpa:
     database: postgresql
     generate-ddl: false
