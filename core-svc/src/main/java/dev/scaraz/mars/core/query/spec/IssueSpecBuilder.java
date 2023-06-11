@@ -12,13 +12,12 @@ public class IssueSpecBuilder extends AuditableSpec<Issue, IssueCriteria> {
 
     @Override
     public Specification<Issue> createSpec(IssueCriteria criteria) {
-        Specification<Issue> spec = Specification.where(null);
-        if (criteria != null) {
-            spec = nonNull(spec, criteria.getId(), Issue_.id);
-            spec = nonNull(spec, criteria.getName(), Issue_.name);
-            spec = nonNull(spec, criteria.getProduct(), Issue_.product);
-            spec = nonNull(spec, criteria.getDeleted(), Issue_.deleted);
-        }
-        return auditSpec(spec, criteria);
+        return chain()
+                .pick(Issue_.id, criteria.getId())
+                .pick(Issue_.name, criteria.getName())
+                .pick(Issue_.product, criteria.getProduct())
+                .pick(Issue_.deleted, criteria.getDeleted())
+                .extend(s -> auditSpec(s, criteria))
+                .specification();
     }
 }

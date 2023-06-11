@@ -12,13 +12,12 @@ public class SolutionSpecBuilder extends TimestampSpec<Solution, SolutionCriteri
 
     @Override
     public Specification<Solution> createSpec(SolutionCriteria criteria) {
-        Specification<Solution> spec = Specification.where(null);
-        if (criteria != null) {
-            spec = nonNull(spec, criteria.getId(), Solution_.id);
-            spec = nonNull(spec, criteria.getName(), Solution_.name);
-            spec = nonNull(spec, criteria.getProduct(), Solution_.product);
-        }
-        return timestampSpec(spec, criteria);
+        return chain()
+                .pick(Solution_.id, criteria.getId())
+                .pick(Solution_.name, criteria.getName())
+                .pick(Solution_.product, criteria.getProduct())
+                .extend(s -> timestampSpec(s, criteria))
+                .specification();
     }
 
 }

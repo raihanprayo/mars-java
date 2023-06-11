@@ -15,41 +15,31 @@ import javax.persistence.metamodel.SingularAttribute;
 public class TicketSpecBuilder extends AuditableSpec<Ticket, TicketCriteria> {
     @Override
     public Specification<Ticket> createSpec(TicketCriteria criteria) {
-        Specification<Ticket> spec = Specification.where(null);
+        SpecSingleChain<Ticket> chain = chain();
+
         if (criteria != null) {
-            spec = nonNull(spec, criteria.getId(), Ticket_.id);
-            spec = nonNull(spec, criteria.getNo(), Ticket_.no);
-            spec = nonNull(spec, criteria.getWitel(), Ticket_.witel);
-            spec = nonNull(spec, criteria.getSto(), Ticket_.sto);
-            spec = nonNull(spec, criteria.getIncidentNo(), Ticket_.incidentNo);
-            spec = nonNull(spec, criteria.getServiceNo(), Ticket_.serviceNo);
-
-            spec = nonNull(spec, criteria.getStatus(), Ticket_.status);
-            spec = nonNull(spec, criteria.getSource(), Ticket_.source);
-            spec = nonNull(spec, criteria.getGaul(), Ticket_.gaul);
-
-            spec = nonNull(spec, criteria.getSenderId(), Ticket_.senderId);
-            spec = nonNull(spec, criteria.getSenderName(), Ticket_.senderName);
-
-            spec = nonNull(spec, criteria.getProduct(), Ticket_.issue, Issue_.product);
+            chain.pick(Ticket_.id, criteria.getId())
+                    .pick(Ticket_.no, criteria.getNo())
+                    .pick(Ticket_.witel, criteria.getWitel())
+                    .pick(Ticket_.sto, criteria.getSto())
+                    .pick(Ticket_.incidentNo, criteria.getIncidentNo())
+                    .pick(Ticket_.serviceNo, criteria.getServiceNo())
+                    .pick(Ticket_.status, criteria.getStatus())
+                    .pick(Ticket_.source, criteria.getSource())
+                    .pick(Ticket_.gaul, criteria.getGaul())
+                    .pick(Ticket_.senderId, criteria.getSenderId())
+                    .pick(Ticket_.senderName, criteria.getSenderName())
+                    .pick(criteria.getProduct(), r -> r.get(Ticket_.issue).get(Issue_.product))
+                    .extend(s -> auditSpec(s, criteria));
 
             if (criteria.getIssue() != null) {
                 IssueCriteria issue = criteria.getIssue();
-                spec = nonNull(spec, issue.getId(), Ticket_.issue, Issue_.id);
-                spec = nonNull(spec, issue.getName(), Ticket_.issue, Issue_.name);
-                spec = nonNull(spec, issue.getProduct(), Ticket_.issue, Issue_.product);
-                spec = auditSpec(spec, Ticket_.issue, issue);
+                chain.pick(issue.getId(), r -> r.get(Ticket_.issue).get(Issue_.id))
+                        .pick(issue.getName(), r -> r.get(Ticket_.issue).get(Issue_.name))
+                        .pick(issue.getProduct(), r -> r.get(Ticket_.issue).get(Issue_.product))
+                        .extend(s -> auditSpec(s, Ticket_.issue, issue));
             }
-//            if (criteria.getAgents() != null) {
-//                AgentCriteria agents = criteria.getAgents();
-//                spec = nonNull(spec, agents.getId(), Ticket_.agents, Agent_.id);
-//                spec = nonNull(spec, agents.getStatus(), Ticket_.agents, Agent_.status);
-//
-//                spec = nonNull(spec, agents.getUserId(), Ticket_.agents, Agent_.user, User_.id);
-//                spec = nonNull(spec, agents.getTicketId(), Ticket_.agents, Agent_.ticket, Ticket_.id);
-//                spec = auditSpec(spec, Ticket_.issue, agents);
-//            }
         }
-        return auditSpec(spec, criteria);
+        return chain.specification();
     }
 }

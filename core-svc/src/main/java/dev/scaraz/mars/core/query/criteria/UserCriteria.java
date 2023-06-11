@@ -27,6 +27,5 @@ public class UserCriteria extends AuditableCriteria {
     private BooleanFilter active;
     private UserTgCriteria tg;
 
-    private GroupCriteria group;
     private RoleCriteria roles;
 }

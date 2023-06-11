@@ -11,16 +11,12 @@ import org.springframework.stereotype.Component;
 public class LeaderBoardSpecBuilder extends QueryBuilder<LeaderBoardFragment, LeaderBoardCriteria> {
     @Override
     public Specification<LeaderBoardFragment> createSpec(LeaderBoardCriteria criteria) {
-        Specification<LeaderBoardFragment> spec = Specification.where(null);
-        if (criteria != null) {
-            spec = nonNull(spec, criteria.getUserId(), LeaderBoardFragment_.userId);
-
-            spec = nonNull(spec, criteria.getNo(), LeaderBoardFragment_.ticketNo);
-            spec = nonNull(spec, criteria.getIssue(), LeaderBoardFragment_.issueName);
-            spec = nonNull(spec, criteria.getProduct(), LeaderBoardFragment_.issueProduct);
-            spec = nonNull(spec, criteria.getCreatedAt(), LeaderBoardFragment_.ticketCreatedAt);
-            spec = nonNull(spec, criteria.getUpdatedAt(), LeaderBoardFragment_.ticketUpdatedAt);
-        }
-        return spec;
+        return chain()
+                .pick(LeaderBoardFragment_.ticketNo, criteria.getNo())
+                .pick(LeaderBoardFragment_.issueName, criteria.getIssue())
+                .pick(LeaderBoardFragment_.issueProduct, criteria.getProduct())
+                .pick(LeaderBoardFragment_.ticketCreatedAt, criteria.getCreatedAt())
+                .pick(LeaderBoardFragment_.ticketUpdatedAt, criteria.getUpdatedAt())
+                .specification();
     }
 }
