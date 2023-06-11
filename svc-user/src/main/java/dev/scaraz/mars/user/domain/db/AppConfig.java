@@ -1,10 +1,9 @@
-package dev.scaraz.mars.user.domain;
+package dev.scaraz.mars.user.domain.db;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.Gson;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.ClassUtils;
 

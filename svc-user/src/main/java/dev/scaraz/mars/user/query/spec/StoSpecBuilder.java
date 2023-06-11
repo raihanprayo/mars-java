@@ -1,24 +1,23 @@
 package dev.scaraz.mars.user.query.spec;
 
-import dev.scaraz.mars.common.utils.QueryBuilder;
-import dev.scaraz.mars.user.domain.Sto;
-import dev.scaraz.mars.user.domain.Sto_;
+import dev.scaraz.mars.common.query.TimestampSpec;
+import dev.scaraz.mars.user.domain.db.Sto;
+import dev.scaraz.mars.user.domain.db.Sto_;
 import dev.scaraz.mars.user.web.criteria.StoCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StoSpecBuilder extends QueryBuilder<Sto, StoCriteria> {
+public class StoSpecBuilder extends TimestampSpec<Sto, StoCriteria> {
+
     @Override
     public Specification<Sto> createSpec(StoCriteria criteria) {
-        Specification<Sto> spec = Specification.where(null);
-        if (criteria != null) {
-            spec = nonNull(spec, criteria.getId(), Sto_.id);
-            spec = nonNull(spec, criteria.getName(), Sto_.name);
-            spec = nonNull(spec, criteria.getAlias(), Sto_.alias);
-            spec = nonNull(spec, criteria.getDatel(), Sto_.datel);
-            spec = nonNull(spec, criteria.getWitel(), Sto_.witel);
-        }
-        return spec;
+        return chain()
+                .and(Sto_.id, criteria.getId())
+                .and(Sto_.name, criteria.getName())
+                .and(Sto_.datel, criteria.getDatel())
+                .and(Sto_.witel, criteria.getWitel())
+                .extend(s -> timestampSpec(s, criteria))
+                .specification();
     }
 }

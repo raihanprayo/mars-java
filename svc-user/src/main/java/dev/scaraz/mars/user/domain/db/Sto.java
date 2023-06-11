@@ -1,5 +1,6 @@
-package dev.scaraz.mars.user.domain;
+package dev.scaraz.mars.user.domain.db;
 
+import dev.scaraz.mars.common.domain.TimestampEntity;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 
@@ -7,18 +8,18 @@ import javax.persistence.*;
 
 @Getter
 @Setter
+@Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
 
 @Entity
 @Table(name = "t_sto")
-public class Sto {
+public class Sto extends TimestampEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public int id;
+    @Column(updatable = false)
+    public String id;
 
     @Column
     @Enumerated(EnumType.STRING)
@@ -26,9 +27,6 @@ public class Sto {
 
     @Column
     public String datel;
-
-    @Column
-    public String alias;
 
     @Column
     public String name;

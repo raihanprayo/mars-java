@@ -7,7 +7,7 @@ import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.security.MarsDatasourceAuditor;
 import dev.scaraz.mars.security.jwt.JwtAccessToken;
 import dev.scaraz.mars.security.jwt.JwtUtil;
-import dev.scaraz.mars.user.domain.MarsUser;
+import dev.scaraz.mars.user.domain.db.MarsUser;
 import dev.scaraz.mars.user.query.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Auth.PASSWORD_CONFIRMATION;
@@ -30,7 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final MarsDatasourceAuditor datasourceAuditor;
 
-    public AuthResDTO authenticate(AuthReqDTO authReq) {
+    public AuthResDTO webAuthentication(AuthReqDTO authReq) {
         MarsUser user = (MarsUser) userQueryService.loadUserByUsername(authReq.getNik());
 
         boolean hasPassword = user.getPassword() != null;
@@ -58,6 +59,15 @@ public class AuthService {
                 throw new UnauthorizedException("Silahkan menghubungi tim admin untuk mengaktifkan akunmu");
         }
 
+        return tokenFromUser(user);
+    }
+
+    public AuthResDTO webRefreshAuthentication(JwtAccessToken accessToken) {
+        MarsUser user = userQueryService.findById(accessToken.getSubject());
+        return tokenFromUser(user);
+    }
+
+    private AuthResDTO tokenFromUser(MarsUser user) {
         Instant issuedAt = Instant.now();
         JwtAccessToken accessToken = JwtAccessToken.builder()
                 .aud("web")
@@ -66,7 +76,7 @@ public class AuthService {
                 .telegram(user.getTelegram())
                 .witel(user.getWitel())
                 .sto(user.getSto())
-                .roles(user.getRoles())
+                .roles(new ArrayList<>(user.getRoles()))
                 .issuedAt(Date.from(issuedAt))
                 .build();
         String token = JwtUtil.encode(accessToken);
@@ -79,5 +89,4 @@ public class AuthService {
                 .refreshToken(refreshToken)
                 .build();
     }
-
 }

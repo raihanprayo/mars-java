@@ -1,6 +1,7 @@
 package dev.scaraz.mars.user.query.impl;
 
-import dev.scaraz.mars.user.domain.MarsUser;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.user.domain.db.MarsUser;
 import dev.scaraz.mars.user.query.UserQueryService;
 import dev.scaraz.mars.user.query.spec.UserSpecBuilder;
 import dev.scaraz.mars.user.repository.db.MarsUserRepo;
@@ -51,4 +52,11 @@ public class UserQueryServiceImpl implements UserQueryService {
     public Page<MarsUser> findAll(UserCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
+
+    @Override
+    public MarsUser findById(String id) {
+        return repo.findById(id)
+                .orElseThrow(() -> NotFoundException.entity(MarsUser.class, "id", id));
+    }
+
 }

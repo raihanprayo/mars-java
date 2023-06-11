@@ -1,18 +1,24 @@
 package dev.scaraz.mars.user.initializer;
 
-import dev.scaraz.mars.common.tools.enums.Witel;
-import dev.scaraz.mars.user.domain.Sto;
+import dev.scaraz.mars.user.domain.csv.StoCsv;
+import dev.scaraz.mars.user.domain.db.Sto;
+import dev.scaraz.mars.user.mapper.StoMapper;
 import dev.scaraz.mars.user.repository.db.StoRepo;
 import dev.scaraz.mars.user.service.ScriptService;
+import dev.scaraz.mars.user.service.csv.StoCsvReader;
+import io.github.avew.CsvewResultReader;
+import io.github.avew.CsvewValidationDTO;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 
 @Component
@@ -21,6 +27,8 @@ public class FillStoScript {
     private static final String SCRIPT = "initial-sto";
 
     private final StoRepo stoRepo;
+    private final StoMapper stoMapper;
+    private final StoCsvReader stoCsvReader;
     private final ScriptService scriptService;
 
     @Autowired
@@ -28,33 +36,19 @@ public class FillStoScript {
         if (scriptService.isExecuted("initial-sto")) return;
 
         try (InputStream is = getClass().getResourceAsStream("/list-sto.csv")) {
-            String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-            String[] lines = content.split("\n");
-
-            for (String line : lines) {
-                if (StringUtils.isBlank(line)) continue;
-                String[] splited = line.split(";");
-
-                String witel = splited[0],
-                        datel = splited[1],
-                        alias = splited[2],
-                        name = splited[3];
-
-                Witel w;
-                try {
-                    w = Witel.valueOf(witel.toUpperCase());
+            CsvewResultReader<StoCsv> result = stoCsvReader.process(is);
+            if (result.isError()) {
+                log.error("STO Validation Error:");
+                for (CsvewValidationDTO validation : result.getValidations()) {
+                    log.error("- {}", validation.getMessage());
                 }
-                catch (IllegalArgumentException ex) {
-                    continue;
-                }
+            }
+            else {
+                List<Sto> stos = result.getValues().stream()
+                        .map(stoMapper::toEntity)
+                        .collect(Collectors.toList());
 
-                if (stoRepo.existsByWitelAndAlias(w, alias)) continue;
-                stoRepo.save(Sto.builder()
-                        .witel(w)
-                        .datel(datel)
-                        .alias(alias)
-                        .name(name)
-                        .build());
+                stoRepo.saveAll(stos);
             }
         }
         catch (IOException ex) {

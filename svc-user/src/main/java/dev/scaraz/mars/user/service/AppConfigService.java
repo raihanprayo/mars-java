@@ -1,7 +1,7 @@
 package dev.scaraz.mars.user.service;
 
-import dev.scaraz.mars.user.domain.AppConfig;
-import dev.scaraz.mars.user.domain.AppConfigCategory;
+import dev.scaraz.mars.user.domain.db.AppConfig;
+import dev.scaraz.mars.user.domain.db.AppConfigCategory;
 
 import javax.annotation.Nullable;
 import java.time.Duration;

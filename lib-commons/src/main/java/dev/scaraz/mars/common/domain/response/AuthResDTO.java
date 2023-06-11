@@ -16,10 +16,10 @@ public class AuthResDTO implements Serializable {
     private String code;
 
     private String accessToken;
-    private long expiredAt;
+    private Long expiredAt;
 
     private String refreshToken;
-    private long refreshExpiredAt;
+    private Long refreshExpiredAt;
 
     @JsonIgnore
     private Object user;

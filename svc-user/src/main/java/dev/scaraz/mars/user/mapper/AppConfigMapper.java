@@ -1,6 +1,6 @@
 package dev.scaraz.mars.user.mapper;
 
-import dev.scaraz.mars.user.domain.AppConfig;
+import dev.scaraz.mars.user.domain.db.AppConfig;
 import dev.scaraz.mars.user.web.dto.config.*;
 import org.springframework.stereotype.Component;
 

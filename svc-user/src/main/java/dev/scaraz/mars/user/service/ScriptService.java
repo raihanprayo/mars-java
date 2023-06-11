@@ -1,6 +1,6 @@
 package dev.scaraz.mars.user.service;
 
-import dev.scaraz.mars.user.domain.ScriptInit;
+import dev.scaraz.mars.user.domain.db.ScriptInit;
 import dev.scaraz.mars.user.repository.db.ScriptInitRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

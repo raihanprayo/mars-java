@@ -1,8 +1,10 @@
 package dev.scaraz.mars.user.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.tools.converter.*;
+import dev.scaraz.mars.user.config.interceptor.LogInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -16,10 +18,11 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.EnableWebMvc;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.*;
+import org.zalando.problem.jackson.ProblemModule;
+import org.zalando.problem.violations.ConstraintViolationProblemModule;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -35,16 +38,6 @@ import static dev.scaraz.mars.common.utils.AppConstants.MimeType.MAPPED_MIME_TYP
 public class WebConfiguration implements WebMvcConfigurer {
 
     private final MarsProperties marsProperties;
-    @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jacksonCustomizer() {
-        log.info("Custom Jackson ObjectMapper settings");
-        return builder -> builder
-                .serializationInclusion(JsonInclude.Include.NON_NULL)
-                .serializerByType(Instant.class, new InstantSerializer())
-                .serializerByType(Duration.class, new DurationSerializer())
-                .deserializerByType(Instant.class, new InstantDeserializer())
-                .deserializerByType(Duration.class, new DurationDeserializer());
-    }
 
     @Override
     public void addFormatters(FormatterRegistry registry) {
@@ -56,15 +49,23 @@ public class WebConfiguration implements WebMvcConfigurer {
         converters.add(new StringHttpMessageConverter());
         converters.add(new ResourceHttpMessageConverter());
         converters.add(new ByteArrayHttpMessageConverter());
-        WebMvcConfigurer.super.configureMessageConverters(converters);
+
+        Jackson2ObjectMapperBuilder jacksonBuilder = new Jackson2ObjectMapperBuilder()
+                .modulesToInstall(new JavaTimeModule(), new ProblemModule(), new ConstraintViolationProblemModule())
+                .serializationInclusion(JsonInclude.Include.NON_NULL)
+                .serializerByType(Instant.class, new InstantSerializer())
+                .serializerByType(Duration.class, new DurationSerializer())
+                .deserializerByType(Instant.class, new InstantDeserializer())
+                .deserializerByType(Duration.class, new DurationDeserializer());
+
+        converters.add(new MappingJackson2HttpMessageConverter(jacksonBuilder.build()));
     }
 
     @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        configurer
-                .mediaTypes(MAPPED_MIME_TYPE);
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LogInterceptor());
+        WebMvcConfigurer.super.addInterceptors(registry);
     }
-
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {

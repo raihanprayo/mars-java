@@ -1,11 +1,7 @@
-package dev.scaraz.mars.user.domain;
+package dev.scaraz.mars.user.domain.db;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.security.core.GrantedAuthority;
 
 import javax.persistence.*;
 

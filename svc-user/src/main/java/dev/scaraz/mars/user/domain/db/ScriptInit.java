@@ -1,4 +1,4 @@
-package dev.scaraz.mars.user.domain;
+package dev.scaraz.mars.user.domain.db;
 
 import lombok.*;
 

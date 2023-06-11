@@ -2,8 +2,8 @@ package dev.scaraz.mars.user.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
 import dev.scaraz.mars.common.utils.lambda.PluralSupplier;
-import dev.scaraz.mars.user.domain.Role;
-import dev.scaraz.mars.user.domain.Role_;
+import dev.scaraz.mars.user.domain.db.Role;
+import dev.scaraz.mars.user.domain.db.Role_;
 import dev.scaraz.mars.user.web.criteria.RoleCriteria;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,6 +30,7 @@ public class RoleSpecBuilder extends AuditableSpec<Role, RoleCriteria> {
             RoleCriteria criteria,
             PluralSupplier<Role, E, C> plural
     ) {
+        if (criteria == null) return spec;
         return chain(spec, plural)
                 .and(Role_.id, criteria.getId())
                 .and(Role_.name, criteria.getName())

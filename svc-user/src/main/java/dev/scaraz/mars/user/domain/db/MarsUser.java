@@ -1,4 +1,4 @@
-package dev.scaraz.mars.user.domain;
+package dev.scaraz.mars.user.domain.db;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
@@ -11,9 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Getter
 @Setter
@@ -35,7 +33,7 @@ public class MarsUser extends AuditableEntity implements UserDetails {
     private String nik;
 
     @Column(name = "tg_id")
-    private long telegram;
+    private Long telegram;
 
     private Witel witel;
 
@@ -53,13 +51,13 @@ public class MarsUser extends AuditableEntity implements UserDetails {
     @ToString.Exclude
     @Builder.Default
     @OneToMany(fetch = FetchType.EAGER)
+    @OrderBy("createdBy desc")
     @JoinTable(
             name = "t_roles",
             schema = "mars",
             joinColumns = @JoinColumn(name = "ref_user_id"),
             inverseJoinColumns = @JoinColumn(name = "ref_role_id"))
-    private List<Role> roles = new ArrayList<>();
-
+    private Set<Role> roles = new LinkedHashSet<>();
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;

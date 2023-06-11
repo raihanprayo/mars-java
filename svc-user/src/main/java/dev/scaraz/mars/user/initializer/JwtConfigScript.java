@@ -1,18 +1,16 @@
 package dev.scaraz.mars.user.initializer;
 
 import dev.scaraz.mars.security.MarsSecurityProperties;
-import dev.scaraz.mars.user.domain.AppConfig;
-import dev.scaraz.mars.user.domain.AppConfigCategory;
+import dev.scaraz.mars.user.domain.db.AppConfig;
+import dev.scaraz.mars.user.domain.db.AppConfigCategory;
 import dev.scaraz.mars.user.repository.db.AppConfigRepo;
 import dev.scaraz.mars.user.service.AppConfigService;
 import dev.scaraz.mars.user.service.ScriptService;
-import dev.scaraz.mars.user.util.annotation.Script;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.List;
 
 @Component

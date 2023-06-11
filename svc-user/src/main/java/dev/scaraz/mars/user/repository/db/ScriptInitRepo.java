@@ -1,6 +1,6 @@
 package dev.scaraz.mars.user.repository.db;
 
-import dev.scaraz.mars.user.domain.ScriptInit;
+import dev.scaraz.mars.user.domain.db.ScriptInit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

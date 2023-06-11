@@ -1,8 +1,8 @@
 package dev.scaraz.mars.user.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
-import dev.scaraz.mars.user.domain.MarsUser;
-import dev.scaraz.mars.user.domain.MarsUser_;
+import dev.scaraz.mars.user.domain.db.MarsUser;
+import dev.scaraz.mars.user.domain.db.MarsUser_;
 import dev.scaraz.mars.user.web.criteria.UserCriteria;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -16,7 +16,7 @@ public class UserSpecBuilder extends AuditableSpec<MarsUser, UserCriteria> {
 
     @Override
     public Specification<MarsUser> createSpec(UserCriteria criteria) {
-        return chain().and(MarsUser_.id, criteria.getId())
+        return chain()
                 .and(MarsUser_.id, criteria.getId())
                 .and(MarsUser_.name, criteria.getName())
                 .and(MarsUser_.nik, criteria.getNik())

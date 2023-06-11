@@ -2,8 +2,8 @@ package dev.scaraz.mars.user.web.rest;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.user.domain.AppConfig;
-import dev.scaraz.mars.user.domain.AppConfigCategory;
+import dev.scaraz.mars.user.domain.db.AppConfig;
+import dev.scaraz.mars.user.domain.db.AppConfigCategory;
 import dev.scaraz.mars.user.mapper.AppConfigMapper;
 import dev.scaraz.mars.user.repository.db.AppConfigCategoryRepo;
 import dev.scaraz.mars.user.repository.db.AppConfigRepo;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -45,9 +44,7 @@ public class ConfigResources {
     }
 
     @GetMapping("/{categoryName}")
-    public ResponseEntity<?> findAllByCategory(
-            @PathVariable String categoryName
-    ) {
+    public ResponseEntity<?> findAllByCategory(@PathVariable String categoryName) {
         AppConfigCategory category = categoryRepo.findById(categoryName)
                 .orElseThrow(() -> NotFoundException.entity(AppConfigCategory.class, "id", categoryName));
 
@@ -59,9 +56,7 @@ public class ConfigResources {
     }
 
     @GetMapping("/specified/{key}")
-    public ResponseEntity<?> findByKey(
-            @PathVariable String key
-    ) {
+    public ResponseEntity<?> findByKey(@PathVariable String key) {
         AppConfig config = repo.findByName(key)
                 .orElseThrow(() -> NotFoundException.entity(AppConfig.class, "name", key));
 

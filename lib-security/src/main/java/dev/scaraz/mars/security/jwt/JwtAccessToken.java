@@ -30,7 +30,7 @@ public class JwtAccessToken implements Serializable {
 
     private String sto;
 
-    private long telegram;
+    private Long telegram;
 
     private Date expiredAt;
 

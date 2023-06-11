@@ -2,9 +2,9 @@ package dev.scaraz.mars.user.initializer;
 
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.user.domain.MarsUser;
-import dev.scaraz.mars.user.domain.Role;
-import dev.scaraz.mars.user.domain.Roles;
+import dev.scaraz.mars.user.domain.db.MarsUser;
+import dev.scaraz.mars.user.domain.db.Role;
+import dev.scaraz.mars.user.domain.db.Roles;
 import dev.scaraz.mars.user.repository.db.RoleRepo;
 import dev.scaraz.mars.user.repository.db.RolesRepo;
 import dev.scaraz.mars.user.service.ScriptService;

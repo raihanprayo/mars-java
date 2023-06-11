@@ -1,6 +1,7 @@
 package dev.scaraz.mars.user.query.impl;
 
-import dev.scaraz.mars.user.domain.Sto;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.user.domain.db.Sto;
 import dev.scaraz.mars.user.query.StoQueryService;
 import dev.scaraz.mars.user.query.spec.StoSpecBuilder;
 import dev.scaraz.mars.user.repository.db.StoRepo;
@@ -39,6 +40,12 @@ public class StoQueryServiceImpl implements StoQueryService {
     @Override
     public Page<Sto> findAll(StoCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
+    }
+
+    @Override
+    public Sto findByIdOrName(String idOrName) {
+        return repo.findByIdOrName(idOrName, idOrName)
+                .orElseThrow(() -> NotFoundException.entity(Sto.class, "id/name", idOrName));
     }
 
 }

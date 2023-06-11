@@ -1,6 +1,6 @@
 package dev.scaraz.mars.user.web.dto.config;
 
-import dev.scaraz.mars.user.domain.AppConfig;
+import dev.scaraz.mars.user.domain.db.AppConfig;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -28,7 +28,7 @@ import java.time.Instant;
 public class TimestampEntity implements Serializable {
 
     @CreatedDate
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     @JsonDeserialize(using = InstantDeserializer.class)
     @JsonSerialize(using = InstantSerializer.class)
     private Instant createdAt;
@@ -47,11 +47,17 @@ public class TimestampEntity implements Serializable {
 
         TimestampEntity that = (TimestampEntity) o;
 
-        return new EqualsBuilder().append(getCreatedAt(), that.getCreatedAt()).append(getUpdatedAt(), that.getUpdatedAt()).isEquals();
+        return new EqualsBuilder()
+                .append(getCreatedAt(), that.getCreatedAt())
+                .append(getUpdatedAt(), that.getUpdatedAt())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(getCreatedAt()).append(getUpdatedAt()).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .append(getCreatedAt())
+                .append(getUpdatedAt())
+                .toHashCode();
     }
 }

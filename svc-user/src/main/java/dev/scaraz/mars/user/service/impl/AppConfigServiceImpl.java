@@ -2,8 +2,8 @@ package dev.scaraz.mars.user.service.impl;
 
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
-import dev.scaraz.mars.user.domain.AppConfig;
-import dev.scaraz.mars.user.domain.AppConfigCategory;
+import dev.scaraz.mars.user.domain.db.AppConfig;
+import dev.scaraz.mars.user.domain.db.AppConfigCategory;
 import dev.scaraz.mars.user.repository.db.AppConfigCategoryRepo;
 import dev.scaraz.mars.user.repository.db.AppConfigRepo;
 import dev.scaraz.mars.user.service.AppConfigService;

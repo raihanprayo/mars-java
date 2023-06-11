@@ -49,7 +49,8 @@ public class JwtUtil {
                 ChronoUnit.MILLIS
         )));
 
-        claims.put("tg", accessToken.getWitel());
+        claims.put("nik", accessToken.getNik());
+        claims.put("tg", accessToken.getTelegram());
         claims.put("witel", accessToken.getWitel());
         claims.put("sto", accessToken.getSto());
         claims.put("roles", accessToken.getRoles().stream()

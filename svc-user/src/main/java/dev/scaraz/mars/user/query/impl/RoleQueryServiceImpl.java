@@ -1,6 +1,7 @@
 package dev.scaraz.mars.user.query.impl;
 
-import dev.scaraz.mars.user.domain.Role;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.user.domain.db.Role;
 import dev.scaraz.mars.user.query.RoleQueryService;
 import dev.scaraz.mars.user.query.spec.RoleSpecBuilder;
 import dev.scaraz.mars.user.repository.db.RoleRepo;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -40,4 +42,16 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     public Page<Role> findAll(RoleCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
+
+    @Override
+    public Optional<Role> findByNameOpt(String name) {
+        return repo.findByName(name);
+    }
+
+    @Override
+    public Role findByName(String name) {
+        return findByNameOpt(name).orElseThrow(() -> NotFoundException.entity(Role.class, "name", name));
+    }
+
+
 }

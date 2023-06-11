@@ -7,7 +7,7 @@ create table t_user
 
     phone      varchar(50),
     witel      varchar(15),
-    sto        varchar(50),
+    sto        varchar(10),
     email      varchar(100) unique,
     password   text,
 
@@ -16,7 +16,9 @@ create table t_user
     created_at timestamp(0)       not null default CURRENT_TIMESTAMP,
     created_by varchar(255)       not null,
     updated_at timestamp(0)                default CURRENT_TIMESTAMP,
-    updated_by varchar(255)
+    updated_by varchar(255),
+
+    constraint fk_sto_id foreign key (sto) references t_sto (id)
 );
 
 create table t_user_approval
