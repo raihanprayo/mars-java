@@ -80,22 +80,22 @@
         </dependency>
 
         <!--    Akka    -->
-<!--        <dependency>-->
-<!--            <groupId>com.typesafe.akka</groupId>-->
-<!--            <artifactId>akka-actor_${akka.sbt.version}</artifactId>-->
-<!--            <version>${akka.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.typesafe.akka</groupId>-->
-<!--            <artifactId>akka-slf4j_${akka.sbt.version}</artifactId>-->
-<!--            <version>${akka.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.google.protobuf</groupId>-->
-<!--            <artifactId>protobuf-java</artifactId>-->
-<!--            <version>3.21.12</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.typesafe.akka</groupId>-->
+        <!--            <artifactId>akka-actor_${akka.sbt.version}</artifactId>-->
+        <!--            <version>${akka.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.typesafe.akka</groupId>-->
+        <!--            <artifactId>akka-slf4j_${akka.sbt.version}</artifactId>-->
+        <!--            <version>${akka.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.google.protobuf</groupId>-->
+        <!--            <artifactId>protobuf-java</artifactId>-->
+        <!--            <version>3.21.12</version>-->
+        <!--            <scope>compile</scope>-->
+        <!--        </dependency>-->
 
         <!--    3rd Party    -->
         <dependency>
@@ -145,6 +145,18 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <finalName>mars-core</finalName>

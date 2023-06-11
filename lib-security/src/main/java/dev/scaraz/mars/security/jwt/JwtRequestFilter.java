@@ -1,8 +1,10 @@
 package dev.scaraz.mars.security.jwt;
 
 import com.google.gson.Gson;
+import dev.scaraz.mars.common.exception.web.UnauthorizedException;
 import dev.scaraz.mars.security.MarsAuthenticationToken;
 import dev.scaraz.mars.security.MarsSecurityProperties;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,51 +41,22 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
             try {
                 JwtAccessToken accessToken = JwtUtil.decode(token);
-                MarsAuthenticationToken authToken = new MarsAuthenticationToken(accessToken);
+                MarsAuthenticationToken authToken = new MarsAuthenticationToken(
+                        token,
+                        accessToken);
 
                 authToken.setDetails(authenticationDetailsSource.buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                filterChain.doFilter(request, response);
+            }
+            catch (ExpiredJwtException ex) {
+                throw new UnauthorizedException("Token expired");
             }
             catch (Exception ex) {
                 ex.printStackTrace();
             }
         }
-        filterChain.doFilter(request, response);
+        else filterChain.doFilter(request, response);
     }
 
-    private AuthenticateResult authenticate(HttpServletRequest request) {
-        String authorization = request.getHeader("Authorization");
-        AuthenticateResult result = new AuthenticateResult();
-
-        if (StringUtils.isNoneBlank(authorization)) {
-            String prefix = securityProperties.getJwt().getTokenPrefix().trim() + " ";
-            String token = authorization.substring(prefix.length()).trim();
-
-            try {
-                JwtAccessToken accessToken = JwtUtil.decode(token);
-                MarsAuthenticationToken authToken = new MarsAuthenticationToken(accessToken);
-
-                authToken.setDetails(authenticationDetailsSource.buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-                result.ok = true;
-            }
-            catch (Exception ex) {
-                ex.printStackTrace();
-                result.ok = false;
-                result.message = ex.getMessage();
-            }
-        }
-        else {
-            result.ok = false;
-            result.message = "Authorization header empty";
-        }
-
-        return result;
-    }
-
-    @Getter
-    private static class AuthenticateResult {
-        boolean ok = false;
-        String message;
-    }
 }

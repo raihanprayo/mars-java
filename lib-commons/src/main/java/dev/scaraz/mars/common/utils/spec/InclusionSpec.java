@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.utils.spec;
 
+import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
@@ -35,7 +36,7 @@ public class InclusionSpec {
     public static <T, E> Specification<E> spec(
             Collection<T> values,
             boolean negate,
-            Function<Root<E>, Expression<T>> targetPath) {
+            PathSupplier<E, T> targetPath) {
         return (r, q, b) -> inclusion(b, targetPath.apply(r), negate, values);
     }
 

@@ -13,9 +13,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,8 +30,12 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 @RequiredArgsConstructor
 
 @Configuration
-@EnableWebSecurity
 @Import({SecurityProblemSupport.class})
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(
+        securedEnabled = true,
+        prePostEnabled = true,
+        jsr250Enabled = true)
 public class WebSecurityConfiguration {
 
     private static final int SALT = 14;
@@ -39,19 +45,6 @@ public class WebSecurityConfiguration {
     private final JwtRequestFilter jwtRequestFilter;
 
     private final MarsProperties marsProperties;
-
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder builder) {
-    }
-
-    @Bean
-    public MethodInvokingFactoryBean methodInvokingFactoryBean() {
-        MethodInvokingFactoryBean methodInvokingFactoryBean = new MethodInvokingFactoryBean();
-        methodInvokingFactoryBean.setTargetClass(SecurityContextHolder.class);
-        methodInvokingFactoryBean.setTargetMethod("setStrategyName");
-        methodInvokingFactoryBean.setArguments(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
-        return methodInvokingFactoryBean;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -91,4 +84,10 @@ public class WebSecurityConfiguration {
                 .build();
     }
 
+    @Bean
+    public GrantedAuthorityDefaults grantedAuthorityDefaults() {
+        return new GrantedAuthorityDefaults("");
+    }
+
 }
+

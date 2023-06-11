@@ -17,7 +17,7 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
-@ConfigurationProperties(prefix = "mars", ignoreUnknownFields = false)
+@ConfigurationProperties(prefix = "mars")
 public class MarsProperties {
 
     private Witel witel;

@@ -3,11 +3,10 @@ package dev.scaraz.mars.security.jwt;
 
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.security.MarsSecurityProperties;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultClaims;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -17,6 +16,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class JwtUtil {
@@ -37,10 +37,12 @@ public class JwtUtil {
     }
 
     public static String encode(JwtAccessToken accessToken) {
-        Instant issuedAt = Instant.now();
+        Objects.requireNonNull(accessToken.getIssuedAt(), "issuedAt cannot be empty");
+        Instant issuedAt = accessToken.getIssuedAt().toInstant();
 
         Claims claims = new DefaultClaims();
         claims.setSubject(accessToken.getSubject());
+        claims.setAudience(accessToken.getAud());
         claims.setIssuedAt(Date.from(issuedAt));
         claims.setExpiration(Date.from(issuedAt.plus(
                 INSTANCE.securityProperties.getJwt().getTokenDuration().toMillis(),
@@ -54,33 +56,51 @@ public class JwtUtil {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toUnmodifiableList()));
 
+        if (!accessToken.isRefreshToken()) {
+            claims.put("tip", "acs");
+        }
+        else {
+            claims.put("tip", "rfs");
+            claims.setExpiration(Date.from(issuedAt.plus(
+                    INSTANCE.securityProperties.getJwt().getRefreshTokenDuration().toMillis(),
+                    ChronoUnit.MILLIS
+            )));
+        }
+
         return Jwts.builder()
                 .setClaims(claims)
                 .signWith(INSTANCE.secret)
                 .compact();
     }
 
-    public static JwtAccessToken decode(String token) {
+    public static JwtAccessToken decode(String token) throws ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
         Jws<Claims> claims = Jwts.parserBuilder()
                 .setSigningKey(INSTANCE.secret)
                 .build()
                 .parseClaimsJws(token);
 
-        Witel witel = Witel.valueOf(claims.getBody().get("witel", String.class));
+        Claims body = claims.getBody();
+        Witel witel = Witel.valueOf(body.get("witel", String.class));
         List<SimpleGrantedAuthority> roles = new ArrayList<>();
 
-        List<String> rawRoles = claims.getBody().get("roles", List.class);
+        List<String> rawRoles = body.get("roles", List.class);
         rawRoles.stream()
                 .map(SimpleGrantedAuthority::new)
                 .forEach(roles::add);
 
+        boolean isRefreshToken = body.get("tip", String.class).equals("rfs");
+
         return JwtAccessToken.builder()
-                .subject(claims.getBody().getSubject())
-                .nik(claims.getBody().get("nik", String.class))
-                .telegram(claims.getBody().get("tg", Long.class))
+                .aud(body.getAudience())
+                .subject(body.getSubject())
+                .nik(body.get("nik", String.class))
+                .telegram(body.get("tg", Long.class))
                 .witel(witel)
-                .sto(claims.getBody().get("sto", String.class))
+                .sto(body.get("sto", String.class))
                 .roles(roles)
+                .expiredAt(body.getExpiration())
+                .issuedAt(body.getIssuedAt())
+                .refreshToken(isRefreshToken)
                 .build();
     }
 

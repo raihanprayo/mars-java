@@ -1,12 +1,6 @@
 package dev.scaraz.mars.telegram.config;
 
-import dev.scaraz.mars.telegram.annotation.TelegramBot;
-import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
-import dev.scaraz.mars.telegram.annotation.TelegramCommand;
-import dev.scaraz.mars.telegram.annotation.TelegramForward;
-import dev.scaraz.mars.telegram.annotation.TelegramHelp;
-import dev.scaraz.mars.telegram.annotation.TelegramMessage;
-
+import dev.scaraz.mars.telegram.annotation.*;
 import dev.scaraz.mars.telegram.model.TelegramBotCommand;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
 import dev.scaraz.mars.telegram.model.TelegramHandlers;
@@ -20,14 +14,11 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.function.Consumer;
 import java.util.stream.Stream;

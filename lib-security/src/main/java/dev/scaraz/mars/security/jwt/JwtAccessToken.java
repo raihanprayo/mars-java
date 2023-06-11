@@ -18,6 +18,10 @@ import java.util.List;
 @AllArgsConstructor
 public class JwtAccessToken implements Serializable {
 
+    private String aud;
+    @Builder.Default
+    private boolean refreshToken = false;
+
     private String subject;
 
     private String nik;

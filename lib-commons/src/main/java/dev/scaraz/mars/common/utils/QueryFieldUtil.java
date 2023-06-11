@@ -3,14 +3,11 @@ package dev.scaraz.mars.common.utils;
 import dev.scaraz.mars.common.tools.filter.Filter;
 import dev.scaraz.mars.common.tools.filter.RangeFilter;
 import dev.scaraz.mars.common.tools.filter.ReadableFilter;
+import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import dev.scaraz.mars.common.utils.spec.*;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.SetAttribute;
 import javax.persistence.metamodel.SingularAttribute;
-import java.util.function.Function;
 
 public class QueryFieldUtil {
 
@@ -221,7 +218,7 @@ public class QueryFieldUtil {
 
     protected static <T, E> Specification<E> compose(
             Filter<T> filter,
-            Function<Root<E>, Expression<T>> targetPath
+            PathSupplier<E, T> targetPath
     ) {
         boolean negated = filter.isNegated();
 
@@ -238,7 +235,7 @@ public class QueryFieldUtil {
 
     protected static <T extends Comparable<? super T>, E> Specification<E> composeRange(
             RangeFilter<T> filter,
-            Function<Root<E>, Expression<T>> targetPath
+            PathSupplier<E, T> targetPath
     ) {
         Specification<E> spec = compose(filter, targetPath);
         if (spec == null) {
@@ -260,7 +257,7 @@ public class QueryFieldUtil {
 
     protected static <E> Specification<E> composeReadable(
             ReadableFilter<String> filter,
-            Function<Root<E>, Expression<String>> targetPath
+            PathSupplier<E, String> targetPath
     ) {
         Specification<E> spec = compose(filter, targetPath);
         if (spec == null) {

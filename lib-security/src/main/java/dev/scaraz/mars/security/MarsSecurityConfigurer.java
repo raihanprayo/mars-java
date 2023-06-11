@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -18,11 +19,11 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
 public abstract class MarsSecurityConfigurer implements ApplicationContextAware {
 
-    private ApplicationContext applicationContext;
-    private MarsSecurityProperties securityProperties;
-    private SecurityProblemSupport problemSupport;
+    protected ApplicationContext applicationContext;
+    protected MarsSecurityProperties securityProperties;
+    protected SecurityProblemSupport problemSupport;
 
-    protected void configure(HttpSecurity security) {
+    protected void configure(HttpSecurity security) throws Exception {
     }
 
     @Bean
@@ -57,6 +58,16 @@ public abstract class MarsSecurityConfigurer implements ApplicationContextAware 
         return authenticationConfiguration.getAuthenticationManager();
     }
 
+    @Bean
+    public GrantedAuthorityDefaults grantedAuthorityDefaults() {
+        return new GrantedAuthorityDefaults("");
+    }
+
+    @Bean
+    public MarsDatasourceAuditor marsDatasourceAuditor() {
+        return new MarsDatasourceAuditor();
+    }
+
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
@@ -64,4 +75,5 @@ public abstract class MarsSecurityConfigurer implements ApplicationContextAware 
         this.problemSupport = applicationContext.getBean(SecurityProblemSupport.class);
         SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
     }
+
 }

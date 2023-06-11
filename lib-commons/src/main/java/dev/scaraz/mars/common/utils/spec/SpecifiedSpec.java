@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.utils.spec;
 
+import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
@@ -18,7 +19,7 @@ public interface SpecifiedSpec {
 
     static <T, E> Specification<E> spec(
             boolean specified,
-            Function<Root<E>, Expression<T>> targetPath
+            PathSupplier<E, T> targetPath
     ) {
         return (r, q, b) -> nullable(b, targetPath.apply(r), specified);
     }

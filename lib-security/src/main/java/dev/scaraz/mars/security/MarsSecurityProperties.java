@@ -21,5 +21,6 @@ public class MarsSecurityProperties {
         private String secret;
         private String tokenPrefix = "Bearer";
         private Duration tokenDuration = Duration.ofHours(1);
+        private Duration refreshTokenDuration = Duration.ofHours(6);
     }
 }

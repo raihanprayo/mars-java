@@ -8,16 +8,18 @@ import javax.security.auth.Subject;
 public class MarsAuthenticationToken extends AbstractAuthenticationToken {
 
     private final JwtAccessToken principal;
+    private final String token;
 
-    public MarsAuthenticationToken(JwtAccessToken principal) {
+    public MarsAuthenticationToken(String token, JwtAccessToken principal) {
         super(principal.getRoles());
         this.principal = principal;
+        this.token = token;
         super.setAuthenticated(true);
     }
 
     @Override
-    public Object getCredentials() {
-        return null;
+    public String getCredentials() {
+        return this.token;
     }
 
     @Override

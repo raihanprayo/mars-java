@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.utils.spec;
 
+import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
@@ -21,7 +22,7 @@ public class LikeSpec {
     public static <E> Specification<E> spec(
             String value,
             boolean negate,
-            Function<Root<E>, Expression<String>> targetPath
+            PathSupplier<E, String> targetPath
     ) {
         String wrappedLike = ("%" + value + "%").toLowerCase();
         return (r, q, b) -> like(b, targetPath.apply(r), negate, wrappedLike);

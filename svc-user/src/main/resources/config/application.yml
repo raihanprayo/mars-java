@@ -1,0 +1,95 @@
+server:
+  port: ${MARS_USER_PORT:10921}
+  compression:
+    enabled: true
+    min-response-size: 1024
+    mime-types: text/html,text/xml,text/plain,text/css, application/javascript, application/json
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  application:
+    name: mars-user
+  jpa:
+    database: postgresql
+    generate-ddl: false
+    show-sql: ${JPA_SHOW_SQL:false}
+    open-in-view: ${JPA_OPEN_IN_VIEW:false}
+  flyway:
+    table: mars_schema_history
+    default-schema: ${MARS_USER_SCHEMA:mars-user}
+    create-schemas: true
+    locations: ${MIGRATION_DIR:classpath:db/migration}
+    out-of-order: true
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://${DS_HOST:127.0.0.1}:${DS_PORT:15433}/${MARS_USER_DATABASE:tr2db}
+    username: ${DS_USERNAME:mars}
+    password: ${DS_PASSWORD:12qwaszx}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: mars-core
+      schema: ${MARS_USER_SCHEMA:mars-user}
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${random.value}
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: ${DISCOVERY_URL:http://localhost:10920}/eureka/
+
+logging:
+  file:
+    name: ${LOG_DIRECTORY:D:/webs/mars-java/logs}/${LOG_NAME:${spring.application.name}}.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      file-name-pattern: ${LOG_ARCHIVE:${LOG_DIRECTORY:D:/webs/mars-java/logs}/archive}/${LOG_NAME:${spring.application.name}}-%d{yyyy-MM-dd}.%i.log
+  group:
+    spring: org.springframework,com.netflix,io.micrometer,feign,_org.springframework.web,io.undertow,org.xnio,Validator
+    http: okhttp3,org.apache
+    database: com.zaxxer.hikari,io.lettuce,io.netty,org.hibernate,org.postgresql,org.redisson
+    java: sun.net,javax.management,javax.activation,unknown.jul.logger,sun.rmi,sun.rmi.transport,jdk.event,reactor,io.github.resilience4j,sun.awt,com.sun,org.jboss
+    swagger: io.swagger,springfox,org.springdoc
+    keycloak: org.keycloak
+    flyway: org.flywaydb.core
+    mars: dev.scaraz.mars.telegram,dev.scaraz.mars.common
+  level:
+    root: ${LOG_LEVEL:debug}
+    spring: warn
+    database: warn
+    http: warn
+    keycloak: warn
+    java: off
+    swagger: off
+    flyway: warn
+    mars: ${LOG_MARS_LIB_LEVEL:info}
+  pattern:
+    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
+    file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
+  charset:
+    console: utf-8
+    file: utf-8
+
+mars:
+  secret: ${JWT_SECRET:}
+  directory:
+    tmp: ${MARS_TMP_DIRECTORY:D:/TMP/mars}
+    shared: ${MARS_SHARED_DIRECTORY:D:/TMP/mars}
+  cors:
+    max-age: 3600
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:${MARS_USER_PORT}}
+    allowed-headers: "*"
+    allowed-methods: GET, POST, PUT, DELETE, OPTIONS
+    allow-credentials: on
+    exposed-headers: X-Total-Count, X-Sort, filename
+  security:
+    password-strength: 15
+    jwt:
+      secret: ${JWT_SECRET:}
+      token-duration: ${JWT_EXPIRED:2h}
+      token-prefix: ${JWT_PREFIX:Bearer}

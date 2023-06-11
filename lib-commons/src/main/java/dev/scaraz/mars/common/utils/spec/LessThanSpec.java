@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.utils.spec;
 
+import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import org.springframework.data.jpa.domain.Specification;
 
 import javax.persistence.criteria.*;
@@ -23,7 +24,7 @@ public class LessThanSpec {
     public static <T extends Comparable<? super T>, E> Specification<E> spec(
             T value,
             boolean equality,
-            Function<Root<E>, Expression<T>> targetPath
+            PathSupplier<E, T> targetPath
     ) {
         return (r, q, b) -> lessThan(b, targetPath.apply(r), equality, value);
     }
