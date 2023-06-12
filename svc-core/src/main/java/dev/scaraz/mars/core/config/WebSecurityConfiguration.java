@@ -22,6 +22,7 @@ public class WebSecurityConfiguration extends MarsSecurityConfigurer {
     protected void configure(HttpSecurity security) throws Exception {
         security.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .antMatchers("/test/**").permitAll()
                 .anyRequest().authenticated();
     }
 }

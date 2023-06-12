@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.query.impl;
 
 import dev.scaraz.mars.core.domain.db.Issue;
 import dev.scaraz.mars.core.query.IssueQueryService;
+import dev.scaraz.mars.core.query.spec.IssueSpecBuilder;
 import dev.scaraz.mars.core.repository.db.IssueRepo;
 import dev.scaraz.mars.core.web.criteria.IssueCriteria;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import java.util.List;
 public class IssueQueryServiceImpl implements IssueQueryService {
 
     private final IssueRepo repo;
+    private final IssueSpecBuilder specBuilder;
 
     @Override
     public List<Issue> findAll() {
@@ -31,11 +33,11 @@ public class IssueQueryServiceImpl implements IssueQueryService {
 
     @Override
     public List<Issue> findAll(IssueCriteria criteria) {
-        return repo.findAll();
+        return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
     public Page<Issue> findAll(IssueCriteria criteria, Pageable pageable) {
-        return repo.findAll(pageable);
+        return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
 }

@@ -77,17 +77,6 @@ public class Ticket extends AuditableEntity {
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "ticket")
     private TicketAsset assets;
 
-//    @OneToOne(mappedBy = "ticket")
-//    private TicketImport imports;
-
-//    @JsonIgnore
-//    @ManyToMany
-//    @Builder.Default
-//    @JoinTable(name = "t_agent_workspace",
-//            inverseJoinColumns = @JoinColumn(name = "ref_ticket_id"),
-//            joinColumns = @JoinColumn(name = "ref_agent_id"))
-//    private Set<Agent> agents = new HashSet<>();
-
     @JsonIgnore
     @Builder.Default
     @ToString.Exclude
