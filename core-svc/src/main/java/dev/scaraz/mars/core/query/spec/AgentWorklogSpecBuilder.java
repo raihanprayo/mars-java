@@ -15,55 +15,47 @@ import org.springframework.stereotype.Component;
 @Component
 public class AgentWorklogSpecBuilder extends TimestampSpec<AgentWorklog, AgentWorklogCriteria> {
 
-    private final TicketSpecBuilder ticketSpecBuilder;
-
     @Override
     public Specification<AgentWorklog> createSpec(AgentWorklogCriteria criteria) {
-        Specification<AgentWorklog> spec = Specification.where(null);
+        SpecSingleChain<AgentWorklog> chain = chain();
         if (criteria != null) {
-            spec = nonNull(spec, criteria.getId(), AgentWorklog_.id);
-            spec = nonNull(spec, criteria.getSolution(), AgentWorklog_.solution);
-
-            spec = nonNull(spec, criteria.getTakeStatus(), AgentWorklog_.takeStatus);
-            spec = nonNull(spec, criteria.getCloseStatus(), AgentWorklog_.closeStatus);
+            chain.pick(AgentWorklog_.id, criteria.getId())
+                    .pick(AgentWorklog_.solution, criteria.getSolution())
+                    .pick(AgentWorklog_.takeStatus, criteria.getTakeStatus())
+                    .pick(AgentWorklog_.closeStatus, criteria.getCloseStatus())
+                    .extend(s -> timestampSpec(s, criteria));
 
             if (criteria.getWorkspace() != null) {
                 AgentWorkspaceCriteria ws = criteria.getWorkspace();
-                spec = nonNull(spec, ws.getId(), AgentWorklog_.workspace, AgentWorkspace_.id);
-                spec = nonNull(spec, ws.getStatus(), AgentWorklog_.workspace, AgentWorkspace_.status);
-
-                spec = nonNull(spec, ws.getUserId(), AgentWorklog_.workspace, AgentWorkspace_.agent, Agent_.userId);
+                chain.pick(ws.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.id))
+                        .pick(ws.getStatus(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.status))
+                        .pick(ws.getUserId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.userId));
 
                 if (ws.getAgent() != null) {
                     AgentCriteria ag = ws.getAgent();
-                    spec = nonNull(spec, ag.getId(), AgentWorklog_.workspace, AgentWorkspace_.agent, Agent_.id);
-                    spec = nonNull(spec, ag.getNik(), AgentWorklog_.workspace, AgentWorkspace_.agent, Agent_.nik);
-                    spec = nonNull(spec, ag.getUserId(), AgentWorklog_.workspace, AgentWorkspace_.agent, Agent_.userId);
-                    spec = nonNull(spec, ag.getTelegram(), AgentWorklog_.workspace, AgentWorkspace_.agent, Agent_.telegramId);
+                    chain.pick(ag.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.id))
+                            .pick(ag.getNik(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.nik))
+                            .pick(ag.getUserId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.userId))
+                            .pick(ag.getTelegram(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.telegramId));
                 }
 
                 if (ws.getTicket() != null) {
                     TicketCriteria tc = ws.getTicket();
-                    spec = nonNull(spec, tc.getId(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.id);
-                    spec = nonNull(spec, tc.getNo(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.no);
-                    spec = nonNull(spec, tc.getWitel(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.witel);
-                    spec = nonNull(spec, tc.getSto(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.sto);
-                    spec = nonNull(spec, tc.getIncidentNo(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.incidentNo);
-                    spec = nonNull(spec, tc.getServiceNo(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.serviceNo);
-                    spec = nonNull(spec, tc.getStatus(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.status);
-                    spec = nonNull(spec, tc.getSource(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.source);
-                    spec = nonNull(spec, tc.getGaul(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.gaul);
-                    spec = nonNull(spec, tc.getSenderId(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.senderId);
-                    spec = nonNull(spec, tc.getSenderName(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.senderName);
-                    spec = nonNull(spec, tc.getProduct(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.issue, Issue_.product);
-
-                    spec = nonNull(spec, tc.getCreatedAt(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.createdAt);
-                    spec = nonNull(spec, tc.getCreatedBy(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.createdBy);
-                    spec = nonNull(spec, tc.getUpdatedAt(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.updatedAt);
-                    spec = nonNull(spec, tc.getUpdatedBy(), AgentWorklog_.workspace, AgentWorkspace_.ticket, Ticket_.updatedBy);
+                    chain.pick(tc.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.id))
+                            .pick(tc.getNo(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.no))
+                            .pick(tc.getWitel(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.witel))
+                            .pick(tc.getSto(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.sto))
+                            .pick(tc.getIncidentNo(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.incidentNo))
+                            .pick(tc.getServiceNo(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.serviceNo))
+                            .pick(tc.getStatus(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.status))
+                            .pick(tc.getSource(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.source))
+                            .pick(tc.getGaul(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.gaul))
+                            .pick(tc.getSenderId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.senderId))
+                            .pick(tc.getSenderName(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.senderName))
+                            .pick(tc.getProduct(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.issue).get(Issue_.product));
                 }
             }
         }
-        return timestampSpec(spec, criteria);
+        return chain.specification();
     }
 }

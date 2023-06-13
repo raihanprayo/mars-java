@@ -11,12 +11,13 @@ import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
 import dev.scaraz.mars.core.domain.credential.*;
-import dev.scaraz.mars.core.query.GroupQueryService;
 import dev.scaraz.mars.core.query.RoleQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
-import dev.scaraz.mars.core.repository.credential.*;
+import dev.scaraz.mars.core.repository.credential.RolesRepo;
+import dev.scaraz.mars.core.repository.credential.UserRepo;
+import dev.scaraz.mars.core.repository.credential.UserSettingRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
@@ -36,7 +37,10 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -59,8 +63,6 @@ public class UserServiceImpl implements UserService {
 
     private final RoleQueryService roleQueryService;
     private final RoleService roleService;
-
-    private final GroupQueryService groupQueryService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -117,11 +119,6 @@ public class UserServiceImpl implements UserService {
         else {
             Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
             roleService.addUserRoles(nuser, roleUser);
-        }
-
-        if (req.getGroup() != null) {
-            Group group = groupQueryService.findByIdOrName(req.getGroup());
-            nuser.setGroup(group);
         }
 
         nuser = save(nuser);

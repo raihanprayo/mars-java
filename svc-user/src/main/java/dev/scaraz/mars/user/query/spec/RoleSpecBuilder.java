@@ -17,12 +17,11 @@ public class RoleSpecBuilder extends AuditableSpec<Role, RoleCriteria> {
 
     @Override
     public Specification<Role> createSpec(RoleCriteria criteria) {
-        Specification<Role> spec = Specification.where(null);
-        if (criteria != null) {
-            spec = nonNull(spec, criteria.getId(), Role_.id);
-            spec = nonNull(spec, criteria.getName(), Role_.name);
-        }
-        return auditSpec(spec, criteria);
+        return chain()
+                .pick(Role_.id, criteria.getId())
+                .pick(Role_.name, criteria.getName())
+                .extend(s -> auditSpec(s, criteria))
+                .specification();
     }
 
     public <E, C extends Collection<Role>> Specification<E> joinSpec(

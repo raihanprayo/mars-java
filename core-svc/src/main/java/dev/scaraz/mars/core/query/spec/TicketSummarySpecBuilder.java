@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
+import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.UserTg_;
 import dev.scaraz.mars.core.domain.credential.User_;
 import dev.scaraz.mars.core.domain.order.Issue_;
@@ -17,35 +18,32 @@ import org.springframework.stereotype.Component;
 public class TicketSummarySpecBuilder extends AuditableSpec<TicketSummary, TicketSummaryCriteria> {
     @Override
     public Specification<TicketSummary> createSpec(TicketSummaryCriteria criteria) {
-        Specification<TicketSummary> spec = Specification.where(null);
+        SpecSingleChain<TicketSummary> chain = chain();
 
         if (criteria != null) {
-            spec = nonNull(spec, criteria.getId(), TicketSummary_.id);
-            spec = nonNull(spec, criteria.getNo(), TicketSummary_.no);
-            spec = nonNull(spec, criteria.getWitel(), TicketSummary_.witel);
-            spec = nonNull(spec, criteria.getSto(), TicketSummary_.sto);
-            spec = nonNull(spec, criteria.getIncidentNo(), TicketSummary_.incidentNo);
-            spec = nonNull(spec, criteria.getServiceNo(), TicketSummary_.serviceNo);
-
-            spec = nonNull(spec, criteria.getStatus(), TicketSummary_.status);
-            spec = nonNull(spec, criteria.getSource(), TicketSummary_.source);
-            spec = nonNull(spec, criteria.getGaul(), TicketSummary_.gaul);
-            spec = nonNull(spec, criteria.getGaulCount(), TicketSummary_.gaulCount);
-
-            spec = nonNull(spec, criteria.getSenderId(), TicketSummary_.senderId);
-            spec = nonNull(spec, criteria.getSenderName(), TicketSummary_.senderName);
-
-            spec = nonNull(spec, criteria.getProduct(), TicketSummary_.product);
-
-            spec = nonNull(spec, criteria.getWip(), TicketSummary_.wip);
-            spec = nonNull(spec, criteria.getWipBy(), TicketSummary_.wipBy);
+            chain.pick(TicketSummary_.id, criteria.getId())
+                    .pick(TicketSummary_.no, criteria.getNo())
+                    .pick(TicketSummary_.witel, criteria.getWitel())
+                    .pick(TicketSummary_.sto, criteria.getSto())
+                    .pick(TicketSummary_.incidentNo, criteria.getIncidentNo())
+                    .pick(TicketSummary_.serviceNo, criteria.getServiceNo())
+                    .pick(TicketSummary_.status, criteria.getStatus())
+                    .pick(TicketSummary_.source, criteria.getSource())
+                    .pick(TicketSummary_.gaul, criteria.getGaul())
+                    .pick(TicketSummary_.gaulCount, criteria.getGaulCount())
+                    .pick(TicketSummary_.senderId, criteria.getSenderId())
+                    .pick(TicketSummary_.senderName, criteria.getSenderName())
+                    .pick(TicketSummary_.product, criteria.getProduct())
+                    .pick(TicketSummary_.wip, criteria.getWip())
+                    .pick(TicketSummary_.wipBy, criteria.getWipBy())
+                    .extend(s -> auditSpec(s, criteria));
 
             if (criteria.getIssue() != null) {
                 IssueCriteria issue = criteria.getIssue();
-                spec = nonNull(spec, issue.getId(), TicketSummary_.issue, Issue_.id);
+                chain.pick(issue.getId(), r -> r.get(TicketSummary_.issue).get(Issue_.id));
             }
         }
 
-        return auditSpec(spec, criteria);
+        return chain.specification();
     }
 }

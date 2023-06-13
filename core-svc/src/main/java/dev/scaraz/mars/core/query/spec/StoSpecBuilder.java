@@ -11,14 +11,12 @@ import org.springframework.stereotype.Component;
 public class StoSpecBuilder extends QueryBuilder<Sto, StoCriteria> {
     @Override
     public Specification<Sto> createSpec(StoCriteria criteria) {
-        Specification<Sto> spec = Specification.where(null);
-        if (criteria != null) {
-            spec = nonNull(spec, criteria.getId(), Sto_.id);
-            spec = nonNull(spec, criteria.getWitel(), Sto_.witel);
-            spec = nonNull(spec, criteria.getDatel(), Sto_.datel);
-            spec = nonNull(spec, criteria.getAlias(), Sto_.alias);
-            spec = nonNull(spec, criteria.getName(), Sto_.name);
-        }
-        return spec;
+        return chain()
+                .pick(Sto_.id, criteria.getId())
+                .pick(Sto_.witel, criteria.getWitel())
+                .pick(Sto_.datel, criteria.getDatel())
+                .pick(Sto_.alias, criteria.getAlias())
+                .pick(Sto_.name, criteria.getName())
+                .specification();
     }
 }

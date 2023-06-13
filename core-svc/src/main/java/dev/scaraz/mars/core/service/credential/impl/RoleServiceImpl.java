@@ -4,7 +4,6 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.Roles;
 import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.repository.credential.GroupRepo;
 import dev.scaraz.mars.core.repository.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.credential.RolesRepo;
 import dev.scaraz.mars.core.service.credential.RoleService;
@@ -24,7 +23,6 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepo repo;
     private final RolesRepo rolesRepo;
-    private final GroupRepo groupRepo;
 
     public Role save(Role role) {
         return repo.save(role);
