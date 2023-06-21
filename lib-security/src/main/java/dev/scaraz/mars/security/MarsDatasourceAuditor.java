@@ -1,6 +1,6 @@
 package dev.scaraz.mars.security;
 
-import dev.scaraz.mars.security.MarsAuthenticationToken;
+import dev.scaraz.mars.security.auth.MarsAuthenticationToken;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;

@@ -17,7 +17,7 @@ public class AgentWorklogSpecBuilder extends TimestampSpec<AgentWorklog, AgentWo
 
     @Override
     public Specification<AgentWorklog> createSpec(AgentWorklogCriteria criteria) {
-        SpecSingleChain<AgentWorklog> chain = chain();
+        SpecChain<AgentWorklog> chain = chain();
         if (criteria != null) {
             chain.pick(AgentWorklog_.id, criteria.getId())
                     .pick(AgentWorklog_.solution, criteria.getSolution())

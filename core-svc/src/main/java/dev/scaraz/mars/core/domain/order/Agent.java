@@ -37,42 +37,6 @@ public class Agent extends AuditableEntity {
     @Column(name = "ref_user_id", updatable = false)
     private String userId;
 
-//    @Column
-//    @Enumerated(EnumType.STRING)
-//    private AgStatus status;
-//
-//    @Column(name = "tc_take_status", updatable = false)
-//    @Enumerated(EnumType.STRING)
-//    private TcStatus takeStatus;
-//
-//    @Column(name = "tc_close_status")
-//    @Enumerated(EnumType.STRING)
-//    private TcStatus closeStatus;
-//
-//    @JsonIgnore
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "ref_ticket_id")
-//    @ToString.Exclude
-//    private Ticket ticket;
-//
-//    @ManyToOne
-//    @JsonIgnore
-//    @JoinColumn(name = "ref_user_id")
-//    private User user;
-//
-//    @Column
-//    private Long solution;
-//
-//    @Column
-//    private String description;
-//
-//    @Column(updatable = false)
-//    private String reopenDescription;
-//
-//    @OneToOne(mappedBy = "agent")
-//    private TicketAsset assets;
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

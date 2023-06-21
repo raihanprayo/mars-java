@@ -168,6 +168,15 @@ public class AppConfigServiceImpl implements AppConfigService {
                 ));
     }
 
+    @Override
+    public AppConfig getTelegramStartIssueColumn_int() {
+        return repo.findById(TELEGRAM_ISSUE_COLUMN_INT)
+                .orElseGet(() -> create(TELEGRAM_ISSUE_COLUMN_INT,
+                        "telegram-cmd-start-issue-column",
+                        3,
+                        "Menyesuaikan jumlah kolom pada command /start"));
+    }
+
     private AppConfig createNew(long id, String name, @Nullable String description) {
         AppConfig appConfig = new AppConfig();
         appConfig.setId(id);

@@ -1,16 +1,11 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
-import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.credential.UserTg_;
-import dev.scaraz.mars.core.domain.credential.User_;
 import dev.scaraz.mars.core.domain.order.Issue_;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.domain.view.TicketSummary_;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
-import dev.scaraz.mars.core.query.criteria.UserTgCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +13,7 @@ import org.springframework.stereotype.Component;
 public class TicketSummarySpecBuilder extends AuditableSpec<TicketSummary, TicketSummaryCriteria> {
     @Override
     public Specification<TicketSummary> createSpec(TicketSummaryCriteria criteria) {
-        SpecSingleChain<TicketSummary> chain = chain();
+        SpecChain<TicketSummary> chain = chain();
 
         if (criteria != null) {
             chain.pick(TicketSummary_.id, criteria.getId())

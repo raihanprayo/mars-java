@@ -50,7 +50,7 @@ public class CoreApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-//        initializer.initIssue();
+        initializer.initIssue();
 
         initializer.initRolesAndCreateAdmin();
 //        initializer.preInitGroups();

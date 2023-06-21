@@ -12,5 +12,4 @@ public interface LeaderBoardFragmentRepo extends
         JpaRepository<LeaderBoardFragment, String>,
         JpaSpecificationExecutor<LeaderBoardFragment> {
 
-    List<LeaderBoardFragment> findAllByUserId(String userId);
 }

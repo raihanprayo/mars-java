@@ -45,21 +45,10 @@ public class ChartResource {
     private final StorageService storageService;
 
     @GetMapping("/leaderboard")
-    public ResponseEntity<?> getLeaderBoard(
-            LeaderBoardCriteria criteria,
-            Pageable pageable
-    ) {
-        Page<LeaderBoardDTO> page = leaderBoardService.findAll(criteria, pageable);
-        return ResourceUtil.pagination(page, "/chart/leaderboard");
+    public ResponseEntity<?> getLeaderBoard(LeaderBoardCriteria criteria) {
+        List<LeaderBoardDTO> page = leaderBoardService.findAll(criteria);
+        return new ResponseEntity<>(page, HttpStatus.OK);
     }
-
-//    @GetMapping("/leaderboard/closed")
-//    public ResponseEntity<?> getClosedTicketLeaderboard(
-//            LeaderBoardCriteria criteria,
-//            Pageable pageable
-//    ) {
-//        return null;
-//    }
 
     @GetMapping("/ticket/report")
     public ResponseEntity<?> getTicketReports(

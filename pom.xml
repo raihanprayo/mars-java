@@ -18,10 +18,7 @@
         <module>lib-commons</module>
         <module>lib-telegram</module>
         <module>core-svc</module>
-        <module>discovery-svc</module>
         <module>lib-security</module>
-        <module>svc-user</module>
-        <module>svc-core</module>
     </modules>
 
     <properties>

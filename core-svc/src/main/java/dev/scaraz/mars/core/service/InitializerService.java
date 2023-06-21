@@ -78,6 +78,7 @@ public class InitializerService {
         appConfigService.getApprovalDurationHour_drt();
         appConfigService.getApprovalAdminEmails_arr();
         appConfigService.getAllowAgentCreateTicket_bool();
+        appConfigService.getTelegramStartIssueColumn_int();
     }
 
     @Transactional
@@ -111,26 +112,26 @@ public class InitializerService {
         }
     }
 
-//    @Async
-//    @Transactional
-//    public void initIssue() {
-//        Map<String, Product> names = Map.of("lambat", Product.INTERNET,
-//                "intermittent", Product.INTERNET,
-//                "tbb", Product.INTERNET,
-//                "blank", Product.IPTV,
-//                "login", Product.IPTV,
-//                "network", Product.IPTV,
-//                "matot", Product.VOICE,
-//                "bulk", Product.VOICE,
-//                "icog", Product.VOICE);
-//
-//        for (String name : names.keySet()) {
-//            if (issueRepo.existsByNameAndProduct(name, names.get(name))) continue;
-//            issueService.create(name, names.get(name), null);
-//        }
-//
-//        createIssueInlineButton();
-//    }
+    @Async
+    @Transactional
+    public void initIssue() {
+        Map<String, Product> names = Map.of("lambat", Product.INTERNET,
+                "intermittent", Product.INTERNET,
+                "tbb", Product.INTERNET,
+                "blank", Product.IPTV,
+                "login", Product.IPTV,
+                "network", Product.IPTV,
+                "matot", Product.VOICE,
+                "bulk", Product.VOICE,
+                "icog", Product.VOICE);
+
+        for (String name : names.keySet()) {
+            if (issueRepo.existsByNameAndProduct(name, names.get(name))) continue;
+            issueService.create(name, names.get(name), null);
+        }
+
+        createIssueInlineButton();
+    }
 
     @Async
     public void initSto() {

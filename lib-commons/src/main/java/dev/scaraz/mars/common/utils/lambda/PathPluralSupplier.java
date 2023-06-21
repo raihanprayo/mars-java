@@ -4,6 +4,7 @@ import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.PluralJoin;
 import java.util.Collection;
 
+@FunctionalInterface
 public interface PathPluralSupplier<T, E, Z, C extends Collection<? super E>> {
 
     Expression<T> apply(PluralJoin<Z, C, E> plural);

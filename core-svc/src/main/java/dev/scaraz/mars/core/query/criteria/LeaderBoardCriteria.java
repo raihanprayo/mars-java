@@ -16,11 +16,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LeaderBoardCriteria implements Criteria {
 
+    // User Criteria
     private StringFilter name;
     private StringFilter nik;
-    private StringFilter userId;
 
-    private StringFilter no;
+    // Leaderboard Criteria
+    private StringFilter userId;
+    private StringFilter ticketId;
+    private StringFilter ticketNo;
     private StringFilter issue;
     private ProductFilter product;
     private InstantFilter createdAt;

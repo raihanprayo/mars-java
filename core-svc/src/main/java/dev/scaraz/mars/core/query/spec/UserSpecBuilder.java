@@ -15,7 +15,7 @@ public class UserSpecBuilder extends AuditableSpec<User, UserCriteria> {
 
     @Override
     public Specification<User> createSpec(UserCriteria criteria) {
-        SpecSingleChain<User> chain = chain();
+        SpecChain<User> chain = chain();
 
         if (criteria != null) {
             chain.pick(User_.id, criteria.getId())

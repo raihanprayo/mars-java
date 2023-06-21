@@ -5,17 +5,15 @@ import dev.scaraz.mars.common.tools.filter.Filter;
 import dev.scaraz.mars.common.tools.filter.RangeFilter;
 import dev.scaraz.mars.common.tools.filter.ReadableFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.common.utils.lambda.PathPluralSupplier;
-import dev.scaraz.mars.common.utils.lambda.PathSupplier;
-import dev.scaraz.mars.common.utils.lambda.PluralSupplier;
+import dev.scaraz.mars.common.utils.lambda.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.annotation.Nullable;
+import javax.persistence.criteria.Path;
 import javax.persistence.metamodel.*;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @Slf4j
@@ -128,8 +126,12 @@ public abstract class QueryBuilder<E, C extends Criteria> {
         return r -> plural.join(r).get(attr);
     }
 
-    protected SpecSingleChain<E> chain() {
-        return new SpecSingleChain<>(this);
+    protected SpecChain<E> chain() {
+        return new SpecChain<>(this);
+    }
+
+    protected <Z> SpecSingleChain<E, Z> chain(Specification<Z> spec, SingularAttribute<Z, E> attr) {
+        return new SpecSingleChain<>(spec, attr, this);
     }
 
     protected <Z, C extends Collection<E>> SpecJoinChain<E, Z, C> chain(
@@ -139,12 +141,12 @@ public abstract class QueryBuilder<E, C extends Criteria> {
         return new SpecJoinChain<>(spec, this, supplier);
     }
 
-    public static class SpecSingleChain<E> {
+    public static class SpecChain<E> {
 
         private final QueryBuilder<E, ? extends Criteria> qb;
         private Specification<E> spec;
 
-        private SpecSingleChain(QueryBuilder<E, ? extends Criteria> qb) {
+        private SpecChain(QueryBuilder<E, ? extends Criteria> qb) {
             this.qb = qb;
             this.spec = Specification.where(null);
         }
@@ -153,90 +155,210 @@ public abstract class QueryBuilder<E, C extends Criteria> {
             return spec;
         }
 
-        public <T> SpecSingleChain<E> pick(SingularAttribute<? super E, T> attr, Filter<T> filter) {
+        public <T> SpecChain<E> pick(SingularAttribute<? super E, T> attr, Filter<T> filter) {
             return pick(filter, r -> r.get(attr));
         }
-        public <T> SpecSingleChain<E> pick(Filter<T> filter, PathSupplier<E, T> path) {
+
+        public <T> SpecChain<E> pick(Filter<T> filter, PathSupplier<E, T> path) {
             this.spec = qb.nonNull(this.spec, filter, path);
             return this;
         }
 
-        public <T extends Comparable<? super T>> SpecSingleChain<E> pick(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
+        public <T extends Comparable<? super T>> SpecChain<E> pick(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
             return pick(filter, r -> r.get(attr));
         }
-        public <T extends Comparable<? super T>> SpecSingleChain<E> pick(RangeFilter<T> filter, PathSupplier<E, T> path) {
+
+        public <T extends Comparable<? super T>> SpecChain<E> pick(RangeFilter<T> filter, PathSupplier<E, T> path) {
             this.spec = qb.nonNull(this.spec, filter, path);
             return this;
         }
 
-        public SpecSingleChain<E> pick(SingularAttribute<? super E, String> attr, StringFilter filter) {
+        public SpecChain<E> pick(SingularAttribute<? super E, String> attr, StringFilter filter) {
             return pick(filter, r -> r.get(attr));
         }
-        public SpecSingleChain<E> pick(StringFilter filter, PathSupplier<E, String> path) {
+
+        public SpecChain<E> pick(StringFilter filter, PathSupplier<E, String> path) {
             this.spec = qb.nonNull(this.spec, filter, path);
             return this;
         }
 
-        public <T> SpecSingleChain<E> and(SingularAttribute<? super E, T> attr, Filter<T> filter) {
+        public <T> SpecChain<E> and(SingularAttribute<? super E, T> attr, Filter<T> filter) {
             this.spec = qb.andNonNull(this.spec, filter, r -> r.get(attr));
             return this;
         }
-        public <T> SpecSingleChain<E> and(Filter<T> filter, PathSupplier<E, T> path) {
-            this.spec = qb.andNonNull(this.spec, filter, path);
-            return this;
-        }
-        public SpecSingleChain<E> and(SingularAttribute<? super E, String> attr, StringFilter filter) {
-            this.spec = qb.andNonNull(this.spec, filter, r -> r.get(attr));
-            return this;
-        }
-        public SpecSingleChain<E> and(StringFilter filter, PathSupplier<E, String> path) {
-            this.spec = qb.andNonNull(this.spec, filter, path);
-            return this;
-        }
-        public <T extends Comparable<? super T>> SpecSingleChain<E> and(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
-            this.spec = qb.andNonNull(this.spec, filter, r -> r.get(attr));
-            return this;
-        }
-        public <T extends Comparable<? super T>> SpecSingleChain<E> and(RangeFilter<T> filter, PathSupplier<E, T> path) {
+
+        public <T> SpecChain<E> and(Filter<T> filter, PathSupplier<E, T> path) {
             this.spec = qb.andNonNull(this.spec, filter, path);
             return this;
         }
 
+        public SpecChain<E> and(SingularAttribute<? super E, String> attr, StringFilter filter) {
+            this.spec = qb.andNonNull(this.spec, filter, r -> r.get(attr));
+            return this;
+        }
 
-        public <T> SpecSingleChain<E> or(SingularAttribute<? super E, T> attr, Filter<T> filter) {
+        public SpecChain<E> and(StringFilter filter, PathSupplier<E, String> path) {
+            this.spec = qb.andNonNull(this.spec, filter, path);
+            return this;
+        }
+
+        public <T extends Comparable<? super T>> SpecChain<E> and(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
+            this.spec = qb.andNonNull(this.spec, filter, r -> r.get(attr));
+            return this;
+        }
+
+        public <T extends Comparable<? super T>> SpecChain<E> and(RangeFilter<T> filter, PathSupplier<E, T> path) {
+            this.spec = qb.andNonNull(this.spec, filter, path);
+            return this;
+        }
+
+
+        public <T> SpecChain<E> or(SingularAttribute<? super E, T> attr, Filter<T> filter) {
             this.spec = qb.orNonNull(this.spec, filter, r -> r.get(attr));
             return this;
         }
 
-        public <T> SpecSingleChain<E> or(Filter<T> filter, PathSupplier<E, T> path) {
+        public <T> SpecChain<E> or(Filter<T> filter, PathSupplier<E, T> path) {
             this.spec = qb.orNonNull(this.spec, filter, path);
             return this;
         }
 
-        public SpecSingleChain<E> or(SingularAttribute<? super E, String> attr, StringFilter filter) {
+        public SpecChain<E> or(SingularAttribute<? super E, String> attr, StringFilter filter) {
             this.spec = qb.orNonNull(this.spec, filter, r -> r.get(attr));
             return this;
         }
 
-        public SpecSingleChain<E> or(StringFilter filter, PathSupplier<E, String> path) {
+        public SpecChain<E> or(StringFilter filter, PathSupplier<E, String> path) {
             this.spec = qb.orNonNull(this.spec, filter, path);
             return this;
         }
 
-        public <T extends Comparable<? super T>> SpecSingleChain<E> or(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
+        public <T extends Comparable<? super T>> SpecChain<E> or(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
             this.spec = qb.orNonNull(this.spec, filter, r -> r.get(attr));
             return this;
         }
 
-        public <T extends Comparable<? super T>> SpecSingleChain<E> or(RangeFilter<T> filter, PathSupplier<E, T> path) {
+        public <T extends Comparable<? super T>> SpecChain<E> or(RangeFilter<T> filter, PathSupplier<E, T> path) {
             this.spec = qb.orNonNull(this.spec, filter, path);
             return this;
         }
 
-        public SpecSingleChain<E> extend(Function<Specification<E>, Specification<E>> extend) {
+        public SpecChain<E> extend(Function<Specification<E>, Specification<E>> extend) {
             spec = extend.apply(spec);
             return this;
         }
+    }
+
+    public static class SpecSingleChain<E, Z> {
+
+        private final QueryBuilder<E, ? extends Criteria> qb;
+        private final SingularAttribute<Z, E> attr;
+        private Specification<Z> spec;
+
+        private SpecSingleChain(Specification<Z> spec,
+                                SingularAttribute<Z, E> attr,
+                                QueryBuilder<E, ? extends Criteria> qb) {
+            this.qb = qb;
+            this.attr = attr;
+            this.spec = spec;
+        }
+
+        public Specification<Z> specification() {
+            return spec;
+        }
+
+        public <T> SpecSingleChain<E, Z> pick(SingularAttribute<? super E, T> attr, Filter<T> filter) {
+            return pick(filter, r -> r.get(attr));
+        }
+
+        public <T> SpecSingleChain<E, Z> pick(Filter<T> filter, PathSingleSupplier<T, E, Z> path) {
+            this.spec = qb.nonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+        public <T extends Comparable<? super T>> SpecSingleChain<E, Z> pick(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
+            return pick(filter, r -> r.get(attr));
+        }
+
+        public <T extends Comparable<? super T>> SpecSingleChain<E, Z> pick(RangeFilter<T> filter, PathSingleSupplier<T, E, Z> path) {
+            this.spec = qb.nonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+        public SpecSingleChain<E, Z> pick(SingularAttribute<? super E, String> attr, StringFilter filter) {
+            return pick(filter, r -> r.get(attr));
+        }
+
+        public SpecSingleChain<E, Z> pick(StringFilter filter, PathSingleSupplier<String, E, Z> path) {
+            this.spec = qb.nonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+        public <T> SpecSingleChain<E, Z> and(SingularAttribute<? super E, T> attr, Filter<T> filter) {
+            this.spec = qb.andNonNull(this.spec, filter, r -> r.get(this.attr).get(attr));
+            return this;
+        }
+
+        public <T> SpecSingleChain<E, Z> and(Filter<T> filter, PathSingleSupplier<T, E, Z> path) {
+            this.spec = qb.andNonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+        public SpecSingleChain<E, Z> and(SingularAttribute<? super E, String> attr, StringFilter filter) {
+            this.spec = qb.andNonNull(this.spec, filter, r -> r.get(this.attr).get(attr));
+            return this;
+        }
+
+        public SpecSingleChain<E, Z> and(StringFilter filter, PathSingleSupplier<String, E, Z> path) {
+            this.spec = qb.andNonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+        public <T extends Comparable<? super T>> SpecSingleChain<E, Z> and(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
+            this.spec = qb.andNonNull(this.spec, filter, r -> r.get(this.attr).get(attr));
+            return this;
+        }
+
+        public <T extends Comparable<? super T>> SpecSingleChain<E, Z> and(RangeFilter<T> filter, PathSingleSupplier<T, E, Z> path) {
+            this.spec = qb.andNonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+
+        public <T> SpecSingleChain<E, Z> or(SingularAttribute<? super E, T> attr, Filter<T> filter) {
+            return this.or(filter, r -> r.get(attr));
+        }
+
+        public <T> SpecSingleChain<E, Z> or(Filter<T> filter, PathSingleSupplier<T, E, Z> path) {
+            this.spec = qb.orNonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+        public SpecSingleChain<E, Z> or(SingularAttribute<? super E, String> attr, StringFilter filter) {
+            return this.or(filter, r -> r.get(attr));
+        }
+
+        public SpecSingleChain<E, Z> or(StringFilter filter, PathSingleSupplier<String, E, Z> path) {
+            this.spec = qb.orNonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+        public <T extends Comparable<? super T>> SpecSingleChain<E, Z> or(SingularAttribute<? super E, T> attr, RangeFilter<T> filter) {
+            return this.or(filter, r -> r.get(attr));
+        }
+
+        public <T extends Comparable<? super T>> SpecSingleChain<E, Z> or(RangeFilter<T> filter, PathSingleSupplier<T, E, Z> path) {
+            this.spec = qb.orNonNull(this.spec, filter, path.compose(this.attr));
+            return this;
+        }
+
+        public SpecSingleChain<E, Z> extend(
+                BiFunction<Specification<Z>, SingleSupplier<E, Z>, Specification<Z>> extend
+        ) {
+            spec = extend.apply(spec, r -> r.get(this.attr));
+            return this;
+        }
+
     }
 
     public static class SpecJoinChain<E, Z, C extends Collection<E>> {

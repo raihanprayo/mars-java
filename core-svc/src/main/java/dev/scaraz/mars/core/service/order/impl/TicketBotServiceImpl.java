@@ -13,6 +13,7 @@ import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.core.domain.AppConfig;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
@@ -48,6 +49,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
@@ -272,7 +274,8 @@ public class TicketBotServiceImpl implements TicketBotService {
                             List.of(formDescriptor.alias()));
                 }
                 field.setAccessible(false);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
+            }
+            catch (NoSuchFieldException | IllegalAccessException e) {
                 throw new TgError(e);
             }
         }
@@ -317,6 +320,10 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .build();
 
         synchronized (ISSUES_BUTTON_LIST) {
+            int colCount = appConfigService.getTelegramStartIssueColumn_int()
+                    .getAsNumber()
+                    .intValue();
+
             LinkedMultiValueMap<Product, InlineKeyboardButton> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
             List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
             for (Product product : all.keySet()) {
@@ -324,7 +331,29 @@ public class TicketBotServiceImpl implements TicketBotService {
                         .text(product.name())
                         .callbackData("DUMMY")
                         .build()));
-                buttons.add(all.get(product));
+
+                List<InlineKeyboardButton> row = new ArrayList<>();
+                buttons.add(row);
+
+                List<InlineKeyboardButton> defined = all.get(product);
+                for (int i = 0; i < defined.size(); i++) {
+                    if (i != 0 && (i % colCount) == 0) {
+                        row = new ArrayList<>();
+                        buttons.add(row);
+                    }
+
+                    row.add(defined.get(i));
+                }
+
+                if (row.size() < colCount) {
+                    int total = colCount - row.size();
+                    for (int i = total; i > 0; i--) {
+                        row.add(InlineKeyboardButton.builder()
+                                .text("-")
+                                .callbackData("DUMMY")
+                                .build());
+                    }
+                }
             }
 
             markUp.setKeyboard(buttons);

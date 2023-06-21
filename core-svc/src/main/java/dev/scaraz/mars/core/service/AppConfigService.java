@@ -37,4 +37,6 @@ public interface AppConfigService {
     AppConfig getApprovalAdminEmails_arr();
 
     AppConfig getAllowAgentCreateTicket_bool();
+
+    AppConfig getTelegramStartIssueColumn_int();
 }

@@ -73,6 +73,7 @@ public abstract class AppConstants {
         long USER_REG_APPROVAL_DURATION_ID_DRT = 6;
         long APPROVAL_ADMIN_EMAILS_ID_ARR = 7;
         long ALLOW_AGENT_CREATE_TICKET_BOOL = 8;
+        long TELEGRAM_ISSUE_COLUMN_INT = 9;
 
         static String title(long id) {
             switch ((int) id) {
@@ -92,6 +93,8 @@ public abstract class AppConstants {
                     return "Email admin untuk Approval";
                 case (int) ALLOW_AGENT_CREATE_TICKET_BOOL:
                     return "Tiket dibuat Agen";
+                case (int) TELEGRAM_ISSUE_COLUMN_INT:
+                    return "Kolom Command Start";
             }
 
             return null;
