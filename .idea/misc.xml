@@ -19,7 +19,6 @@
       <set>
         <option value="$PROJECT_DIR$/bot-adapter/pom.xml" />
         <option value="$PROJECT_DIR$/discovery-svc/pom.xml" />
-        <option value="$PROJECT_DIR$/svc-core-v2/pom.xml" />
         <option value="$PROJECT_DIR$/svc-core/pom.xml" />
         <option value="$PROJECT_DIR$/svc-discovery/pom.xml" />
         <option value="$PROJECT_DIR$/svc-gateway/pom.xml" />

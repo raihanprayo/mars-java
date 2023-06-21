@@ -36,5 +36,6 @@ group by tc.id,
          ws.id,
          wl.id,
          iss.product,
+         iss.name,
          wl.tc_take_status,
-         wl.tc_close_status
+         wl.tc_close_status;

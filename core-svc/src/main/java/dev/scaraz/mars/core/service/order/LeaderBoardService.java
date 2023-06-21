@@ -10,6 +10,7 @@ import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
+import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.mapper.AgentMapper;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -88,12 +90,18 @@ public class LeaderBoardService {
                     .filter(frg -> frg.getClose() == TcStatus.DISPATCH)
                     .count();
 
+            long totalTickets = fragments.stream()
+                    .map(LeaderBoardFragment::getTicket)
+                    .map(Ticket::getId)
+                    .collect(Collectors.toSet())
+                    .size();
+
             return LeaderBoardDTO.builder()
                     .id(user.getId())
                     .name(user.getName())
                     .nik(user.getNik())
                     .avgAction(avgAction)
-                    .total(fragments.size())
+                    .total(totalTickets)
                     .totalDispatch(totalDispatch)
                     .totalHandleDispatch(totalHandleDispatch)
                     .build();

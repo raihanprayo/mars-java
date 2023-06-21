@@ -26,7 +26,7 @@ public class LeaderBoardDTO {
     private long avgAction = 0;
 
     @Builder.Default
-    private int total = 0;
+    private long total = 0;
 
     @Builder.Default
     private long totalDispatch = 0;
