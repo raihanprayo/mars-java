@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
 @RequiredArgsConstructor
 @SpringBootApplication
 public class Application {
+
     public static void main(String[] args) throws UnknownHostException {
         ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
         ConfigurableEnvironment environment = context.getEnvironment();
@@ -33,4 +34,5 @@ public class Application {
                 port
         );
     }
+
 }
