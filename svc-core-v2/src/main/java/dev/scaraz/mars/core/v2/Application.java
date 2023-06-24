@@ -16,9 +16,12 @@ import java.net.UnknownHostException;
 public class Application {
 
     public static void main(String[] args) throws UnknownHostException {
-        ConfigurableApplicationContext context = SpringApplication.run(Application.class, args);
-        ConfigurableEnvironment environment = context.getEnvironment();
-        String port = environment.getProperty("server.port");
+        SpringApplication app = new SpringApplication(Application.class);
+        app.setAdditionalProfiles("common");
+
+        ConfigurableApplicationContext ctx = app.run(args);
+        ConfigurableEnvironment env = ctx.getEnvironment();
+        String port = env.getProperty("server.port");
         log.info("\n--------------------------------------------------------------\n" +
                         "   Application\t\t: {}\n" +
                         "   Witel\t\t\t: {}\n" +
@@ -26,9 +29,9 @@ public class Application {
                         "   Host Local\t\t: http://localhost:{}\n" +
                         "   Host External\t: http://{}:{}\n" +
                         "--------------------------------------------------------------",
-                environment.getProperty("spring.application.name"),
-                environment.getProperty("mars.witel").toUpperCase(),
-                environment.getActiveProfiles(),
+                env.getProperty("spring.application.name"),
+                env.getProperty("mars.witel").toUpperCase(),
+                env.getActiveProfiles(),
                 port,
                 InetAddress.getLocalHost().getHostAddress(),
                 port

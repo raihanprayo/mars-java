@@ -20,11 +20,11 @@ import javax.persistence.MappedSuperclass;
 public class AuditableEntity extends TimestampEntity {
 
     @CreatedBy
-    @Column(name = "created_by")
+    @Column(name = "created_by", updatable = false)
     private String createdBy;
 
     @LastModifiedBy
-    @Column(name = "updated_by")
+    @Column(name = "updated_by", insertable = false)
     private String updatedBy;
 
     @Override

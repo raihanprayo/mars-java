@@ -35,7 +35,7 @@
         <mars.app.core.version>1.0</mars.app.core.version>
         <mars.lib.version>1.0</mars.lib.version>
         <spring-cloud.version>2021.0.7</spring-cloud.version>
-        <keycloak.version>19.0.3</keycloak.version>
+        <keycloak.version>21.0.1</keycloak.version>
     </properties>
 
     <dependencyManagement>

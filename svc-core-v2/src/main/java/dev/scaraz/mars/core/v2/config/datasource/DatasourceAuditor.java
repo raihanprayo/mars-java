@@ -10,8 +10,7 @@ import java.time.ZoneId;
 import java.time.temporal.TemporalAccessor;
 import java.util.Optional;
 
-@Component
-public class DatasourceAuditor implements AuditorAware<String>, DateTimeProvider {
+public final class DatasourceAuditor implements AuditorAware<String>, DateTimeProvider {
 
     private static final ThreadLocal<String> usernameAttr = new InheritableThreadLocal<>();
     private static final ThreadLocal<Instant> timestampAttr = new InheritableThreadLocal<>();
@@ -29,7 +28,7 @@ public class DatasourceAuditor implements AuditorAware<String>, DateTimeProvider
         if (StringUtils.isNoneBlank(usernameAttr.get()))
             return Optional.of(usernameAttr.get());
 
-        return Optional.ofNullable(usernameAttr.get());
+        return Optional.of("system");
     }
 
     public static void setUsername(String username) {

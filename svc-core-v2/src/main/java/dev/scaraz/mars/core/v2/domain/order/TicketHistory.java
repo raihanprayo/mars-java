@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.v2.domain;
+package dev.scaraz.mars.core.v2.domain.order;
 
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import org.hibernate.annotations.GenericGenerator;

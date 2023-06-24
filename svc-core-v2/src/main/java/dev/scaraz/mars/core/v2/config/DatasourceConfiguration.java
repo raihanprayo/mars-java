@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.v2.config;
 
+import dev.scaraz.mars.core.v2.config.datasource.DatasourceAuditor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,11 @@ public class DatasourceConfiguration {
         JpaTransactionManager tm = new JpaTransactionManager();
         tm.setEntityManagerFactory(emf);
         return tm;
+    }
+
+    @Bean("datasourceAuditor")
+    public DatasourceAuditor datasourceAuditor() {
+        return new DatasourceAuditor();
     }
 
 }

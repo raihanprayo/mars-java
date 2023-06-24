@@ -20,7 +20,7 @@ import java.util.Map;
 @ConfigurationProperties(prefix = "mars")
 public class MarsProperties {
 
-    private Witel witel;
+    private Witel witel = Witel.ROC;
 
     private String secret;
 
