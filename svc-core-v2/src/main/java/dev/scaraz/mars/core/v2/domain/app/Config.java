@@ -20,9 +20,6 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "t_config")
-@TypeDef(name = "dynamic-type",
-        defaultForType = DynamicType.class,
-        typeClass = DynamicSqlType.class)
 public class Config extends AuditableEntity implements DynamicValue {
 
     @Id

@@ -4,6 +4,16 @@ import dev.scaraz.mars.core.v2.domain.credential.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
+
 @Repository
 public interface AccountRepo extends JpaRepository<Account, String> {
+
+    List<Account> findAllByEnabledIsTrueAndExpiredActiveIsTrueAndExpiredDateLessThanEqual(
+            Instant timestamp
+    );
+
+    boolean existsByUsernameIgnoreCase(String username);
+
 }

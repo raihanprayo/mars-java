@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.v2.config;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
 import com.nimbusds.jose.proc.SecurityContext;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
+import dev.scaraz.mars.core.v2.config.security.CorePasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -49,6 +53,11 @@ public class WebSecurityConfiguration {
     }
 
     @Bean
+    public CorePasswordEncoder passwordEncoder() {
+        return new CorePasswordEncoder();
+    }
+
+    @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration auth) throws Exception {
         return auth.getAuthenticationManager();
     }
@@ -72,7 +81,10 @@ public class WebSecurityConfiguration {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeRequests(r -> r
-                        .antMatchers("/auth/token").permitAll()
+                        .antMatchers(
+                                "/auth/token",
+                                "/auth/register"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);

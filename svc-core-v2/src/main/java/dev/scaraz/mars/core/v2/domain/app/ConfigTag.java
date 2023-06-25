@@ -24,7 +24,7 @@ public class ConfigTag {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column
+    @Column(updatable = false)
     private String name;
 
     @CreatedDate

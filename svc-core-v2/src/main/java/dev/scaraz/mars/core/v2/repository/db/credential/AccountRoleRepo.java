@@ -7,8 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Repository
 public interface AccountRoleRepo extends JpaRepository<AccountRole, Long> {
@@ -16,8 +17,13 @@ public interface AccountRoleRepo extends JpaRepository<AccountRole, Long> {
     void deleteAllByAccountId(String userId);
 
     @Transactional
-    default void of(Account account, Role... roles) {
-        saveAll(Arrays.stream(roles)
+    default void save(Account account, Role... roles) {
+        save(account, List.of(roles));
+    }
+
+    @Transactional
+    default void save(Account account, Iterable<Role> roles) {
+        saveAll(StreamSupport.stream(roles.spliterator(), false)
                 .map(role -> AccountRole.builder()
                         .role(role)
                         .account(account)

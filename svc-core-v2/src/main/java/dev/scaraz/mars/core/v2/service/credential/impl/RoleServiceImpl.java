@@ -21,10 +21,13 @@ public class RoleServiceImpl implements RoleService {
 
     @Override
     public Role getOrCreate(String name) {
-        return repo.findByNameIgnoreCase(name)
-                .orElseGet(() -> save(Role.builder()
-                        .name(name)
-                        .build()));
+        return repo.findByAuthorityIgnoreCase(name)
+                .orElseGet(() -> {
+                    log.info("CREATE NEW ROLE {}", name);
+                    return save(Role.builder()
+                            .authority(name)
+                            .build());
+                });
     }
 
 }

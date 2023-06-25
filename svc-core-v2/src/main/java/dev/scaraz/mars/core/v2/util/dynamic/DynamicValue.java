@@ -14,7 +14,7 @@ public interface DynamicValue {
     void setValue(Object value);
 
     @JsonIgnore
-    default <X> X getValue(DynamicValueDeserializer<X> converter) {
+    default <X> X getAs(DynamicValueDeserializer<X> converter) {
         if (StringUtils.isBlank(getValue())) return null;
 
         X x = converter.get(getValue());
@@ -24,38 +24,38 @@ public interface DynamicValue {
 
     @JsonIgnore
     default boolean getAsBoolean() {
-        return getValue(DynamicValueDeserializer.BOOL);
+        return getAs(DynamicValueDeserializer.BOOL);
     }
 
     @JsonIgnore
     default int getAsInt() {
-        return getValue(Integer::parseInt);
+        return getAs(Integer::parseInt);
     }
 
     @JsonIgnore
     default long getAsLong() {
-        return getValue(Long::parseLong);
+        return getAs(Long::parseLong);
     }
 
     @JsonIgnore
     default double getAsDouble() {
-        return getValue(Double::parseDouble);
+        return getAs(Double::parseDouble);
     }
 
     @JsonIgnore
     default float getAsFloat() {
-        return getValue(Float::parseFloat);
+        return getAs(Float::parseFloat);
     }
 
     @JsonIgnore
     default short getAsShort() {
-        return getValue(Short::parseShort);
+        return getAs(Short::parseShort);
     }
 
     @JsonIgnore
     default <T extends Enum<T>> T getAsEnum(Class<T> t) {
         if (!getType().isAssignable(Enum.class)) throw invalidType();
-        return getValue(v -> Enum.valueOf(t, v));
+        return getAs(v -> Enum.valueOf(t, v));
     }
 
     static IllegalStateException invalidType() {

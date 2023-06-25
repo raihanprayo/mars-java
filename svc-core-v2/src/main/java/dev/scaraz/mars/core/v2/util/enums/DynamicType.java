@@ -14,6 +14,7 @@ public final class DynamicType implements Serializable {
     private static final Set<DynamicType> REGISTERED = new LinkedHashSet<>();
     public static final DynamicType
             STRING = new DynamicType(String.class),
+            CHAR = new DynamicType(Character.class, Character.TYPE),
             BOOLEAN = new DynamicType(Boolean.class, Boolean.TYPE),
             INTEGER = new DynamicType(Integer.class, Integer.TYPE),
             LONG = new DynamicType(Long.class, Long.TYPE),

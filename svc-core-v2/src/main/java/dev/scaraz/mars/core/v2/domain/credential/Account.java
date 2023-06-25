@@ -1,15 +1,14 @@
 package dev.scaraz.mars.core.v2.domain.credential;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
-import dev.scaraz.mars.common.tools.enums.Witel;
+import dev.scaraz.mars.core.v2.domain.embed.AccountMisc;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
-import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -19,41 +18,76 @@ import java.util.Set;
 
 @Entity
 @Table(name = "t_account")
-public class Account extends AuditableEntity {
+public class Account extends AuditableEntity implements UserDetails {
 
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
 
-    @Column
+    @Column(name = "nik")
     private String username;
 
     @Column
     private String name;
 
-    @Email
-    @Column
-    private String email;
+    @Column(name = "active")
+    private boolean enabled;
 
-    @Column
-    private Witel witel;
+    @Builder.Default
+    private AccountMisc misc = new AccountMisc();
 
-    @Column
-    private String sto;
+    @Builder.Default
+    @OrderBy("priority ASC")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "account")
+    private Set<AccountCredential> credentials = new LinkedHashSet<>();
 
-    @Column
-    private boolean active;
+    @OneToOne(cascade = CascadeType.ALL, mappedBy = "account")
+    private AccountExpired expired;
 
     @Builder.Default
     @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "t_account_role",
-            joinColumns = @JoinColumn(name = "user_id"),
+            joinColumns = @JoinColumn(name = "account_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new LinkedHashSet<>();
 
-    @Column(name = "expired_at")
-    private Instant expiredAt;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles;
+    }
+
+    public AccountCredential getCredential() {
+        if (credentials == null || credentials.size() == 0) return null;
+        return new ArrayList<>(credentials).get(0);
+    }
+
+    @Override
+    public String getPassword() {
+        return Optional.ofNullable(getCredential())
+                .map(AccountCredential::format)
+                .orElse(null);
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return !expired.isActive();
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    public void replace(AccountExpired expired) {
+        this.expired.setActive(expired.isActive());
+        this.expired.setDate(expired.getDate());
+    }
 
 }
