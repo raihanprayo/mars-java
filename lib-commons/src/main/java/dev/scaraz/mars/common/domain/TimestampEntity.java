@@ -34,7 +34,7 @@ public class TimestampEntity implements Serializable {
     private Instant createdAt;
 
     @LastModifiedDate
-    @Column(name = "updated_at", insertable = false)
+    @Column(name = "updated_at")
     @JsonDeserialize(using = InstantDeserializer.class)
     @JsonSerialize(using = InstantSerializer.class)
     private Instant updatedAt;

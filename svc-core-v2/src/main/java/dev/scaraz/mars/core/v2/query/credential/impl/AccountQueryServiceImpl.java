@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,6 +41,9 @@ public class AccountQueryServiceImpl implements AccountQueryService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return null;
+        Optional<Account> account = repo.findByUsernameIgnoreCase(username);
+        if (account.isEmpty())
+            throw new UsernameNotFoundException("Unknown username");
+        return account.get();
     }
 }

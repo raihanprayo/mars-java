@@ -2,7 +2,6 @@ package dev.scaraz.mars.core.v2.service;
 
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.v2.config.security.CorePasswordEncoder;
 import dev.scaraz.mars.core.v2.domain.app.Config;
 import dev.scaraz.mars.core.v2.domain.app.Sto;
 import dev.scaraz.mars.core.v2.domain.credential.Account;
@@ -22,6 +21,7 @@ import dev.scaraz.mars.core.v2.service.app.StoService;
 import dev.scaraz.mars.core.v2.service.credential.AccountService;
 import dev.scaraz.mars.core.v2.service.credential.RoleService;
 import dev.scaraz.mars.core.v2.util.ConfigConstants;
+import dev.scaraz.mars.security.MarsPasswordEncoder;
 import io.github.avew.CsvewResultReader;
 import io.github.avew.CsvewValidationDTO;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +44,7 @@ import static dev.scaraz.mars.core.v2.util.ConfigConstants.*;
 public class Initializer {
 
     private final MarsProperties marsProperties;
-    private final CorePasswordEncoder passwordEncoder;
+    private final MarsPasswordEncoder passwordEncoder;
 
     private final AccountRepo accountRepo;
     private final AccountCredentialRepo accountCredentialRepo;
@@ -107,7 +107,6 @@ public class Initializer {
                 return;
             }
 
-            log.debug("Csv Result: {}", result.getValues());
             for (StoCsvValue value : result.getValues()) {
                 if (stoRepo.existsById(value.getCode())) continue;
 
@@ -146,6 +145,7 @@ public class Initializer {
             Account account = accountService.save(Account.builder()
                     .name("Administrator")
                     .username("admin")
+                    .enabled(true)
                     .misc(AccountMisc.builder()
                             .email("admin@dummy.com")
                             .witel(marsProperties.getWitel())

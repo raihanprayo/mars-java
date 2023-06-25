@@ -1,8 +1,9 @@
 package dev.scaraz.mars.core.v2.config.security;
 
+import dev.scaraz.mars.security.authentication.MarsJwtAuthenticationToken;
+import dev.scaraz.mars.security.jwt.MarsAccessToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 import java.util.Optional;
 
@@ -11,15 +12,27 @@ public final class UserContext {
     private UserContext() {
     }
 
-    private static JwtAuthenticationToken getPrincipal() {
+    private static MarsJwtAuthenticationToken getPrincipal() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth instanceof JwtAuthenticationToken) return (JwtAuthenticationToken) auth;
+        if (auth instanceof MarsJwtAuthenticationToken) return (MarsJwtAuthenticationToken) auth;
         return null;
     }
 
-    public static String currentUsername() {
+    public static MarsAccessToken getAccessToken() {
         return Optional.ofNullable(getPrincipal())
-                .map(t -> (String) t.getTokenAttributes().get("nik"))
+                .map(t -> (MarsAccessToken) t.getPrincipal())
+                .orElse(null);
+    }
+
+    public static String getSubject() {
+        return Optional.ofNullable(getAccessToken())
+                .map(MarsAccessToken::getSub)
+                .orElse(null);
+    }
+
+    public static String getUsername() {
+        return Optional.ofNullable(getPrincipal())
+                .map(MarsJwtAuthenticationToken::getName)
                 .orElse(null);
     }
 

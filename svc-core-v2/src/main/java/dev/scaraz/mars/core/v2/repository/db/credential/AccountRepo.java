@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountRepo extends JpaRepository<Account, String> {
@@ -15,5 +16,6 @@ public interface AccountRepo extends JpaRepository<Account, String> {
     );
 
     boolean existsByUsernameIgnoreCase(String username);
+    Optional<Account> findByUsernameIgnoreCase(String username);
 
 }

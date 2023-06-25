@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.v2.domain.credential;
 
 import dev.scaraz.mars.common.domain.TimestampEntity;
+import dev.scaraz.mars.security.credential.CredentialStructure;
 import lombok.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -19,7 +20,7 @@ import java.util.stream.Stream;
 
 @Entity
 @Table(name = "t_account_credential")
-public class AccountCredential extends TimestampEntity {
+public class AccountCredential extends TimestampEntity implements CredentialStructure {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

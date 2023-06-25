@@ -22,6 +22,7 @@ public class ExceptionHandling implements ProblemHandling, SecurityAdviceTrait {
 
     @Override
     public void log(Throwable throwable, Problem problem, NativeWebRequest request, HttpStatus status) {
+        log.debug("Poblem Occured");
         throwable.printStackTrace();
         ProblemHandling.super.log(throwable, problem, request, status);
     }

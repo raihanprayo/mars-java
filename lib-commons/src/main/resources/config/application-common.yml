@@ -13,7 +13,7 @@ logging:
     swagger: io.swagger,springfox,org.springdoc
     keycloak: org.keycloak
     flyway: org.flywaydb.core
-    mars: dev.scaraz.mars.telegram,dev.scaraz.mars.common
+    mars: dev.scaraz.mars.telegram,dev.scaraz.mars.common,com.github.avew
   level:
     root: ${LOG_LEVEL:debug}
     spring: warn

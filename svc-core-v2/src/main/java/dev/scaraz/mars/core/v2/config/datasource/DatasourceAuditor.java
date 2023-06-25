@@ -4,7 +4,6 @@ import dev.scaraz.mars.core.v2.config.security.UserContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -29,7 +28,7 @@ public final class DatasourceAuditor implements AuditorAware<String>, DateTimePr
         if (StringUtils.isNoneBlank(usernameAttr.get()))
             return Optional.of(usernameAttr.get());
 
-        String username = UserContext.currentUsername();
+        String username = UserContext.getUsername();
         return Optional.of(username != null ? username : "system");
     }
 
@@ -39,6 +38,11 @@ public final class DatasourceAuditor implements AuditorAware<String>, DateTimePr
 
     public static void setTimestamp(Instant timestamp) {
         timestampAttr.set(timestamp);
+    }
+
+    public static void clear() {
+        usernameAttr.remove();
+        timestampAttr.remove();
     }
 
 }

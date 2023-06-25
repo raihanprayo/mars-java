@@ -39,10 +39,14 @@ public class Account extends AuditableEntity implements UserDetails {
 
     @Builder.Default
     @OrderBy("priority ASC")
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "account")
+    @OneToMany(cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER,
+            mappedBy = "account")
     private Set<AccountCredential> credentials = new LinkedHashSet<>();
 
-    @OneToOne(cascade = CascadeType.ALL, mappedBy = "account")
+    @OneToOne(cascade = CascadeType.ALL,
+            fetch = FetchType.EAGER,
+            mappedBy = "account")
     private AccountExpired expired;
 
     @Builder.Default
@@ -88,6 +92,12 @@ public class Account extends AuditableEntity implements UserDetails {
     public void replace(AccountExpired expired) {
         this.expired.setActive(expired.isActive());
         this.expired.setDate(expired.getDate());
+    }
+
+    public boolean hasAnyRole(String... roles) {
+        List<String> predicates = List.of(roles);
+        return this.roles.stream()
+                .anyMatch(r -> predicates.contains(r.getAuthority()));
     }
 
     @PrePersist

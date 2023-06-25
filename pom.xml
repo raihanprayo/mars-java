@@ -19,6 +19,7 @@
         <module>lib-telegram</module>
         <module>core-svc</module>
         <module>svc-core-v2</module>
+        <module>lib-security</module>
     </modules>
 
     <properties>
