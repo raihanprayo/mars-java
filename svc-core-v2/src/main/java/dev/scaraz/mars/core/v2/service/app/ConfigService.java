@@ -2,8 +2,10 @@ package dev.scaraz.mars.core.v2.service.app;
 
 import dev.scaraz.mars.core.v2.domain.app.Config;
 import dev.scaraz.mars.core.v2.domain.app.ConfigTag;
+import dev.scaraz.mars.core.v2.util.ConfigConstants;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public interface ConfigService {
     Config save(Config c);
@@ -15,4 +17,12 @@ public interface ConfigService {
     Config get(String key);
 
     List<Config> getByTags(String tag);
+
+    <T> void createIfNotExist(String key, T value, ConfigTag tag);
+
+    <T> void createIfNotExist(String key, Supplier<T> value, ConfigTag tag);
+
+    void bulkCreate(String tagName, ConfigConstants.ConfigEntry<?>... entries);
+
+    void bulkCreate(ConfigConstants.ConfigEntry<?>... entries);
 }

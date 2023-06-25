@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface ConfigTagRepo extends JpaRepository<ConfigTag, Integer> {
     Optional<ConfigTag> findByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCase(String name);
 }

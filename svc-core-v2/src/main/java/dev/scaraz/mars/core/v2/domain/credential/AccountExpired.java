@@ -2,6 +2,8 @@ package dev.scaraz.mars.core.v2.domain.credential;
 
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import lombok.*;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import javax.persistence.*;
 import java.time.Duration;
@@ -52,4 +54,31 @@ public class AccountExpired extends TimestampEntity {
         return expireable ? active(duration) : inactive();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (!(o instanceof AccountExpired)) return false;
+
+        AccountExpired that = (AccountExpired) o;
+
+        return new EqualsBuilder()
+                .appendSuper(super.equals(o))
+                .append(getId(), that.getId())
+                .append(isActive(), that.isActive())
+                .append(getAccount(), that.getAccount())
+                .append(getDate(), that.getDate())
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .appendSuper(super.hashCode())
+                .append(getId())
+                .append(getAccount())
+                .append(isActive())
+                .append(getDate())
+                .toHashCode();
+    }
 }

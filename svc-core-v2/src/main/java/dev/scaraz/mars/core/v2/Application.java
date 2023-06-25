@@ -1,7 +1,9 @@
 package dev.scaraz.mars.core.v2;
 
+import dev.scaraz.mars.core.v2.service.Initializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -16,7 +18,10 @@ import java.net.UnknownHostException;
 @EnableAsync
 @EnableScheduling
 @SpringBootApplication
-public class Application {
+@RequiredArgsConstructor
+public class Application implements CommandLineRunner {
+
+    private final Initializer initializer;
 
     public static void main(String[] args) throws UnknownHostException {
         SpringApplication app = new SpringApplication(Application.class);
@@ -39,6 +44,13 @@ public class Application {
                 InetAddress.getLocalHost().getHostAddress(),
                 port
         );
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        initializer.createApplicationConfigs();
+        initializer.createDefaultsStoFromCsv();
+        initializer.createRolesAndAdministrator();
     }
 
 }

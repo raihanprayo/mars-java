@@ -30,5 +30,7 @@ public interface AccountRoleRepo extends JpaRepository<AccountRole, Long> {
                         .build())
                 .collect(Collectors.toSet())
         );
+
+        roles.forEach(r -> account.getRoles().add(r));
     }
 }

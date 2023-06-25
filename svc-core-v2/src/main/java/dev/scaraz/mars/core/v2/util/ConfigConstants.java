@@ -1,5 +1,9 @@
 package dev.scaraz.mars.core.v2.util;
 
+import lombok.Getter;
+
+import java.util.function.Supplier;
+
 public final class ConfigConstants {
     private ConfigConstants() {
     }
@@ -32,4 +36,18 @@ public final class ConfigConstants {
         String TELEGRAM = "telegram";
     }
 
+    @Getter
+    public static class ConfigEntry<T> {
+        private final String key;
+        private final Supplier<T> value;
+
+        public ConfigEntry(String key, Supplier<T> value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public ConfigEntry(String key, T value) {
+            this(key, () -> value);
+        }
+    }
 }

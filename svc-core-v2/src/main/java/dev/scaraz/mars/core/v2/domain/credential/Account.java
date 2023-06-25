@@ -90,4 +90,15 @@ public class Account extends AuditableEntity implements UserDetails {
         this.expired.setDate(expired.getDate());
     }
 
+    @PrePersist
+    protected void prePersist() {
+        if (expired != null && expired.getAccount() == null)
+            expired.setAccount(this);
+
+        for (AccountCredential credential : credentials) {
+            if (credential.getAccount() == null)
+                credential.setAccount(this);
+        }
+    }
+
 }

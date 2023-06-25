@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.v2.config.datasource;
 
+import dev.scaraz.mars.core.v2.config.security.UserContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.data.domain.AuditorAware;
@@ -28,7 +29,8 @@ public final class DatasourceAuditor implements AuditorAware<String>, DateTimePr
         if (StringUtils.isNoneBlank(usernameAttr.get()))
             return Optional.of(usernameAttr.get());
 
-        return Optional.of("system");
+        String username = UserContext.currentUsername();
+        return Optional.of(username != null ? username : "system");
     }
 
     public static void setUsername(String username) {
