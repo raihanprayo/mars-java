@@ -7,4 +7,5 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 public interface AccountQueryService extends
         NonSpecificationQueryService<Account>,
         UserDetailsService {
+    Account findById(String id);
 }

@@ -7,12 +7,16 @@ import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.UserSetting;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 
 public interface UserService extends UserDetailsPasswordService {
+
+    @Override
+    User updatePassword(UserDetails user, String newPassword);
 
     User save(User user);
 

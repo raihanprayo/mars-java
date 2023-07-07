@@ -1,33 +1,29 @@
 package dev.scaraz.mars.security.authentication;
 
-import dev.scaraz.mars.security.jwt.MarsAccessToken;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
+import dev.scaraz.mars.security.constants.AccessType;
+import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
 
-public class MarsJwtAuthenticationToken extends AbstractAuthenticationToken {
+public class MarsJwtAuthenticationToken extends MarsAuthenticationToken<MarsAccessToken> {
 
     private final String rawToken;
-    private final MarsAccessToken claims;
 
     public MarsJwtAuthenticationToken(String rawToken, MarsAccessToken token) {
-        super(token.getRoles());
-        this.claims = token;
+        super(AccessType.WEB, token);
         this.rawToken = rawToken;
-        super.setAuthenticated(getAuthorities().size() > 0);
+    }
+
+    public boolean isRefreshToken() {
+        return getPrincipal().isRefreshToken();
     }
 
     @Override
     public String getName() {
-        return claims.getNik();
+        return getPrincipal().getName();
     }
 
     @Override
     public Object getCredentials() {
         return rawToken;
-    }
-
-    @Override
-    public Object getPrincipal() {
-        return claims;
     }
 
     @Override

@@ -38,10 +38,8 @@ public abstract class MarsSecurityConfigurer {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        configure(http);
-        return http
-                .addFilterBefore(new MarsBearerFilter(), UsernamePasswordAuthenticationFilter.class)
-                .build();
+        configure(http.addFilterBefore(new MarsBearerFilter(), UsernamePasswordAuthenticationFilter.class));
+        return http.build();
     }
 
 }

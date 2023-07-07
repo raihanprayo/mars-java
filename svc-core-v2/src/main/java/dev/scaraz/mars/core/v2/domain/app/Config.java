@@ -44,19 +44,24 @@ public class Config extends AuditableEntity implements DynamicValue {
     public void setValue(Object value) {
         if (value == null) this.value = null;
         else {
-            if (this.type == null) {
-                this.type = DynamicType.of(value.getClass());
+            if (value instanceof DynamicValue) {
+                this.value = ((DynamicValue) value).getValue();
             }
             else {
-                boolean isAppliceable = this.type.isAssignable(value.getClass());
-                if (!isAppliceable)
-                    throw new IllegalArgumentException("Cannot set value from existing type " + type);
-            }
+                if (this.type == null) {
+                    this.type = DynamicType.of(value.getClass());
+                }
+                else {
+                    boolean isAppliceable = this.type.isAssignable(value.getClass());
+                    if (!isAppliceable)
+                        throw new IllegalArgumentException("Cannot set value from existing type " + type);
+                }
 
-            if (type == DynamicType.BOOLEAN)
-                this.value = DynamicValueSerializer.BOOL.get((Boolean) value);
-            else
-                this.value = value.toString();
+                if (type == DynamicType.BOOLEAN)
+                    this.value = DynamicValueSerializer.BOOL.get((Boolean) value);
+                else
+                    this.value = value.toString();
+            }
         }
     }
 

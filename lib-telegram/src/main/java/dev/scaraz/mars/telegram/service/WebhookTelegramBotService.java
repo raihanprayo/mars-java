@@ -6,6 +6,8 @@ import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.telegram.telegrambots.bots.TelegramWebhookBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -23,27 +25,42 @@ public class WebhookTelegramBotService extends TelegramBotService {
 
     @Getter
     private final TelegramWebhookBot client;
+    private final TelegramBotsApi api;
 
     public WebhookTelegramBotService(TelegramBotProperties botBuilder,
                                      TelegramBotsApi api) {
-
+        this.api = api;
         this.client = createBot(botBuilder);
-        try {
-            api.registerBot(this.client, SetWebhook.builder()
-                    .url(this.client.getBotPath())
-                    .build());
-        }
-        catch (TelegramApiException e) {
-            log.error("Cannot register Webhook with {}", botBuilder, e);
-            throw new RuntimeException(e);
-        }
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() throws TelegramApiException {
+        log.info("Webhook Bot Starting");
+        api.registerBot(client, SetWebhook.builder()
+                .url(client.getBotPath())
+                .build());
     }
 
     private TelegramWebhookBot createBot(TelegramBotProperties botProperties) {
         return new TelegramWebhookBot() {
+
+            private final String token = botProperties.getToken();
+            private final String path = botProperties.getPath();
+            private final String username = botProperties.getUsername();
+
             @Override
             public String getBotToken() {
-                return botProperties.getToken();
+                return this.token;
+            }
+
+            @Override
+            public String getBotPath() {
+                return this.path;
+            }
+
+            @Override
+            public String getBotUsername() {
+                return this.username;
             }
 
             @Override
@@ -59,16 +76,6 @@ public class WebhookTelegramBotService extends TelegramBotService {
                 finally {
                     TelegramContextHolder.clear();
                 }
-            }
-
-            @Override
-            public String getBotPath() {
-                return botProperties.getPath();
-            }
-
-            @Override
-            public String getBotUsername() {
-                return botProperties.getUsername();
             }
         };
     }

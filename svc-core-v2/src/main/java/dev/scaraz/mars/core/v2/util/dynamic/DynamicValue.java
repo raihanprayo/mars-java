@@ -58,6 +58,10 @@ public interface DynamicValue {
         return getAs(v -> Enum.valueOf(t, v));
     }
 
+    default void from(DynamicValue dv) {
+
+    }
+
     static IllegalStateException invalidType() {
         return new IllegalStateException("Invalid conversion");
     }

@@ -2,6 +2,7 @@ package dev.scaraz.mars.security.jwt;
 
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.tools.enums.Witel;
+import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -11,9 +12,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.Assert;
 
 import java.security.Key;
-import java.sql.Date;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -24,7 +25,12 @@ public final class JwtUtil {
     private static final Duration DEFAULT_EXPIRED_ACS = Duration.ofHours(1);
     private static final Duration DEFAULT_EXPIRED_RFS = Duration.ofHours(12);
 
-    private static final List<String> AUDIENCE = List.of("web", "api", "telegram");
+    private static final List<String> ISSUERS = List.of(
+            MarsAccessToken.ISSUER_WEB,
+            MarsAccessToken.ISSUER_API);
+    private static final List<String> AUDIENCES = List.of(
+            MarsAccessToken.ACS,
+            MarsAccessToken.RFS);
 
     private static final AtomicReference<Key> secret = new AtomicReference<>();
     private static final AtomicReference<Supplier<Duration>> accessExpired = new AtomicReference<>(() -> DEFAULT_EXPIRED_ACS);
@@ -36,10 +42,12 @@ public final class JwtUtil {
     public static JwtResult encode(MarsAccessToken claims) {
         Assert.notNull(secret.get(), "secret SigningKey is null");
         Assert.isTrue(StringUtils.isNoneBlank(claims.getSub()), "JWT Subject cannot be empty");
+
         Assert.isTrue(StringUtils.isNoneBlank(claims.getAud()), "JWT Audience cannot be empty");
+        Assert.isTrue(AUDIENCES.contains(claims.getAud()), "Invalid JWT audience");
 
         Assert.isTrue(StringUtils.isNoneBlank(claims.getIss()), "JWT Issuer cannot be empty");
-        Assert.isTrue(AUDIENCE.contains(claims.getIss()), "Invalid JWT issuer");
+        Assert.isTrue(ISSUERS.contains(claims.getIss()), "Invalid JWT issuer");
 
         String audience = claims.getAud();
         Claims c = Jwts.claims()
@@ -55,10 +63,14 @@ public final class JwtUtil {
 
             c.put("nik", claims.getNik());
             c.put("witel", claims.getWitel());
-            c.setExpiration(Date.from(claims
-                    .getIssuedAt()
-                    .toInstant()
-                    .plus(accessExpired.get().get().toMillis(), ChronoUnit.MILLIS)));
+
+            if (claims.getExpiredAt() != null)
+                c.setExpiration(claims.getExpiredAt());
+            else
+                c.setExpiration(Date.from(claims
+                        .getIssuedAt()
+                        .toInstant()
+                        .plus(accessExpired.get().get().toMillis(), ChronoUnit.MILLIS)));
 
             if (claims.getTelegram() != null)
                 c.put("tg", claims.getTelegram());
@@ -71,16 +83,34 @@ public final class JwtUtil {
                     .collect(Collectors.toSet()));
         }
         else if (audience.equalsIgnoreCase(MarsAccessToken.RFS)) {
-            c.setExpiration(Date.from(claims
-                    .getIssuedAt()
-                    .toInstant()
-                    .plus(refreshExpired.get().get().toMillis(), ChronoUnit.MILLIS)));
+
+            if (claims.getExpiredAt() != null)
+                c.setExpiration(claims.getExpiredAt());
+            else
+                c.setExpiration(Date.from(claims
+                        .getIssuedAt()
+                        .toInstant()
+                        .plus(refreshExpired.get().get().toMillis(), ChronoUnit.MILLIS)));
         }
 
+//        return JwtResult.builder()
+//                .id(c.getId())
+//                .token(Jwts.builder()
+//                        .signWith(secret.get())
+//                        .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+//                        .setClaims(c)
+//                        .compact())
+//                .expiredAt(c.getExpiration().toInstant())
+//                .build();
+        return encode(c);
+    }
+
+    public static JwtResult encode(Claims c) {
         return JwtResult.builder()
                 .id(c.getId())
                 .token(Jwts.builder()
                         .signWith(secret.get())
+                        .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
                         .setClaims(c)
                         .compact())
                 .expiredAt(c.getExpiration().toInstant())
@@ -94,36 +124,38 @@ public final class JwtUtil {
         JwtParseResult.JwtParseResultBuilder b = JwtParseResult.builder()
                 .rawToken(token);
         try {
-            Jws<Claims> jws = Jwts.parserBuilder()
-                    .setSigningKey(secret.get())
-                    .build()
-                    .parseClaimsJws(token);
+            Jws<Claims> jws = decodeToken(token);
             Claims claims = jws.getBody();
 
-            MarsAccessToken.MarsJwtClaimsBuilder cb = MarsAccessToken.builder()
+            if (!ISSUERS.contains(claims.getIssuer()))
+                throw new IllegalStateException("unknown issuer");
+
+            MarsAccessToken.MarsAccessTokenBuilder cb = MarsAccessToken.builder()
                     .sub(claims.getSubject())
                     .iss(claims.getIssuer())
                     .aud(claims.getAudience())
                     .expiredAt(claims.getExpiration())
                     .issuedAt(claims.getIssuedAt());
 
-            if (claims.getAudience().equals(MarsAccessToken.RFS)) {
-                b.claims(cb.build());
+            if (!AUDIENCES.contains(claims.getAudience())) {
+                throw new IllegalStateException("invalid audience");
             }
-            else if (claims.getAudience().equals(MarsAccessToken.ACS)) {
-                List<String> roles = claims.get("roles", List.class);
+            else {
+                if (claims.getAudience().equals(MarsAccessToken.ACS)) {
+                    List<String> roles = claims.get("roles", List.class);
 
-                cb.nik(claims.get("nik", String.class))
-                        .telegram(claims.get("tg", Long.class))
-                        .witel(Witel.valueOf(claims.get("witel", String.class)))
-                        .sto(claims.get("sto", String.class))
-                        .roles(roles.stream()
-                                .map(SimpleGrantedAuthority::new)
-                                .collect(Collectors.toList()));
+                    cb.nik(claims.get("nik", String.class))
+                            .telegram(claims.get("tg", Long.class))
+                            .witel(Witel.valueOf(claims.get("witel", String.class)))
+                            .sto(claims.get("sto", String.class))
+                            .roles(roles.stream()
+                                    .map(SimpleGrantedAuthority::new)
+                                    .collect(Collectors.toList()));
 
-                b.claims(cb.build());
+                }
+
+                b.code(JwtParseResult.Code.OK).claims(cb.build());
             }
-            else throw new UnsupportedJwtException("invalid audience");
         }
         catch (ExpiredJwtException ex) {
             b.code(JwtParseResult.Code.ERR_EXPIRED)
@@ -147,6 +179,13 @@ public final class JwtUtil {
         }
 
         return b.build();
+    }
+
+    public static Jws<Claims> decodeToken(String token) throws ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
+        return Jwts.parserBuilder()
+                .setSigningKey(secret.get())
+                .build()
+                .parseClaimsJws(token);
     }
 
     public static void setSecret(String signingKey) {

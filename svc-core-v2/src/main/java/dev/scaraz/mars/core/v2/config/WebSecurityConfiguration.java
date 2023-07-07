@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.v2.config;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.core.v2.service.app.ConfigService;
 import dev.scaraz.mars.core.v2.util.ConfigConstants;
+import dev.scaraz.mars.security.MarsJwtConfigurer;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
 import dev.scaraz.mars.security.MarsSecurityConfigurer;
 import dev.scaraz.mars.security.jwt.JwtUtil;
@@ -67,8 +68,7 @@ public class WebSecurityConfiguration extends MarsSecurityConfigurer {
                                 "/auth/register"
                         ).permitAll()
                         .anyRequest().authenticated()
-                )
-                .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt);
+                );
     }
 
     @Bean

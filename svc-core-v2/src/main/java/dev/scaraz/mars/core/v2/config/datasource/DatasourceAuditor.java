@@ -28,8 +28,7 @@ public final class DatasourceAuditor implements AuditorAware<String>, DateTimePr
         if (StringUtils.isNoneBlank(usernameAttr.get()))
             return Optional.of(usernameAttr.get());
 
-        String username = UserContext.getUsername();
-        return Optional.of(username != null ? username : "system");
+        return Optional.of(UserContext.getUsername());
     }
 
     public static void setUsername(String username) {

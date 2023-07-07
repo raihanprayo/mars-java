@@ -83,8 +83,8 @@ public class NotifierService {
                                     .map(TicketStatusFormDTO::getNote)
                                     .orElse("-"),
                             "",
-                            "_Balas pesan ini dengan mengreply command /reopen dan tambahkan deskripsi jika diperlukan, atau menekan tombol yang disediakan.\n",
-                            "Jika dalam " + expireMinute + " tidak ada respon, tiket akan close secara otomatis_"
+                            "_*Balas pesan ini dengan mengreply command /reopen dan tambahkan deskripsi jika diperlukan, atau menekan tombol yang disediakan.\n",
+                            "Jika dalam " + expireMinute + " tidak ada respon, tiket akan close secara otomatis*_"
                     ))
                     .build();
 

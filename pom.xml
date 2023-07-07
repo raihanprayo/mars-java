@@ -20,6 +20,7 @@
         <module>core-svc</module>
         <module>svc-core-v2</module>
         <module>lib-security</module>
+        <module>svc-discovery</module>
     </modules>
 
     <properties>

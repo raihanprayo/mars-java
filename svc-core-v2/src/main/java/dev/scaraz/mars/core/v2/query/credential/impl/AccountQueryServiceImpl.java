@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.v2.query.credential.impl;
 
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.v2.domain.credential.Account;
 import dev.scaraz.mars.core.v2.query.credential.AccountQueryService;
 import dev.scaraz.mars.core.v2.repository.db.credential.AccountRepo;
@@ -37,6 +38,12 @@ public class AccountQueryServiceImpl implements AccountQueryService {
     @Override
     public long count() {
         return repo.count();
+    }
+
+    @Override
+    public Account findById(String id) {
+        return repo.findById(id)
+                .orElseThrow(() -> NotFoundException.entity(Account.class, "id", id));
     }
 
     @Override

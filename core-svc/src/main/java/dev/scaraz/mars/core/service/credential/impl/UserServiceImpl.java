@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDetails updatePassword(UserDetails user, String newPassword) {
+    public User updatePassword(UserDetails user, String newPassword) {
         User account;
         if (user instanceof User) account = (User) user;
         else {

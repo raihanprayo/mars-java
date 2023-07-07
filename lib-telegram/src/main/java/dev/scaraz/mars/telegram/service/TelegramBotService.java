@@ -153,17 +153,17 @@ public abstract class TelegramBotService implements AutoCloseable {
         telegramProcessors.forEach(this::addProcessor);
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void onApplicationReady() {
-        if (springApplicationReady) return;
-        springApplicationReady = true;
-
-        for (Update update : incomingUpdatePreAppReady) {
-
-        }
-
-        incomingUpdatePreAppReady.clear();
-    }
+//    @EventListener(ApplicationReadyEvent.class)
+//    public void onApplicationReady() {
+//        if (springApplicationReady) return;
+//        springApplicationReady = true;
+//
+//        for (Update update : incomingUpdatePreAppReady) {
+//
+//        }
+//
+//        incomingUpdatePreAppReady.clear();
+//    }
 
     private String buildHelpMessage(OptionalLong userKey) {
         StringBuilder sb = new StringBuilder();

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -15,10 +16,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 @Slf4j
+@RequiredArgsConstructor
+
 @EnableAsync
 @EnableScheduling
+@EnableEurekaClient
 @SpringBootApplication
-@RequiredArgsConstructor
 public class Application implements CommandLineRunner {
 
     private final Initializer initializer;

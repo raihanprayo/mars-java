@@ -1,5 +1,6 @@
 server:
   port: ${MARS_CORE_PORT:10920}
+  shutdown: graceful
   compression:
     enabled: true
     min-response-size: 1024

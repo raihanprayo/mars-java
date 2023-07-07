@@ -44,10 +44,4 @@ public class TelegramConfiguration implements ImportAware {
         return new TelegramBotsApi(type);
     }
 
-    @Configuration
-    @ConditionalOnClass(TelegramFormAdapter.class)
-    public static class TelegramFormConfig {
-
-    }
-
 }

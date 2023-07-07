@@ -7,6 +7,8 @@ import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
@@ -22,15 +24,15 @@ import java.util.concurrent.*;
  * @author <a href="mailto:maratik@yandex-team.ru">Marat Bukharov</a>
  */
 @Slf4j
-public class LongPollingTelegramBotService extends TelegramBotService implements AutoCloseable {
+public class LongPollingTelegramBotService extends TelegramBotService {
 //    private final ExecutorService botExecutor;
 
+    private final TelegramBotsApi api;
     private final TelegramLongPollingBot client;
+    private final TaskExecutor executor;
 
     @Getter
-    private final BotSession session;
-
-    private final TaskExecutor executor;
+    private BotSession session;
 
     public LongPollingTelegramBotService(TelegramBotProperties botProperties,
                                          TelegramBotsApi api,
@@ -38,15 +40,15 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
     ) {
         log.info("Registering Long Polling with {}", botProperties);
 
+        this.api = api;
         this.client = createBot(botProperties);
         this.executor = executor;
-        try {
-            this.session = api.registerBot(client);
-        }
-        catch (TelegramApiException e) {
-            log.error("Cannot register Long Polling with {}", botProperties, e);
-            throw new RuntimeException(e);
-        }
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() throws TelegramApiException {
+        log.info("Longpolling Bot Starting");
+        this.session = api.registerBot(client);
     }
 
     @Override
@@ -56,6 +58,12 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
 
     @Override
     public void close() {
+        if (session == null) return;
+
+        if (session.isRunning()) {
+            log.info("Shutting down bot session");
+            session.stop();
+        }
 //        botExecutor.shutdown();
 //        boolean terminated = false;
 //        try {
@@ -76,33 +84,35 @@ public class LongPollingTelegramBotService extends TelegramBotService implements
 
     private TelegramLongPollingBot createBot(TelegramBotProperties botProperties) {
         return new TelegramLongPollingBot() {
+
+            private final String token = botProperties.getToken();
+            private final String username = botProperties.getUsername();
+
             @Override
             public String getBotToken() {
-                return botProperties.getToken();
+                return this.token;
             }
 
             @Override
             public String getBotUsername() {
-                return botProperties.getUsername();
+                return this.username;
             }
 
             @Override
             public void onUpdateReceived(Update update) {
                 CompletableFuture.runAsync(() -> {
                     LongPollingTelegramBotService.this.onUpdateReceived(update);
-                    if (springApplicationReady) {
-                        try {
-                            TelegramProcessContext ctx = TelegramContextHolder.get();
-                            if (ctx.hasResult()) this.execute(ctx.getResult());
-                        }
-                        catch (TelegramApiException | IllegalStateException ex) {
-                            InternalTelegram.update(c -> c.cycle(ProcessCycle.SEND));
-                            TelegramContextHolder.getIfAvailable(ctx ->
-                                    ctx.getProcessor().handleExceptions(LongPollingTelegramBotService.this, update, ex)
-                            );
-                        }
-                        TelegramContextHolder.clear();
+                    try {
+                        TelegramProcessContext ctx = TelegramContextHolder.get();
+                        if (ctx.hasResult()) this.execute(ctx.getResult());
                     }
+                    catch (TelegramApiException | IllegalStateException ex) {
+                        InternalTelegram.update(c -> c.cycle(ProcessCycle.SEND));
+                        TelegramContextHolder.getIfAvailable(ctx ->
+                                ctx.getProcessor().handleExceptions(LongPollingTelegramBotService.this, update, ex)
+                        );
+                    }
+                    TelegramContextHolder.clear();
                 }, LongPollingTelegramBotService.this.executor);
             }
         };

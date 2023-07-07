@@ -1,0 +1,23 @@
+server:
+  port: ${MARS_DISCOVERY_PORT:11200}
+
+spring:
+  application:
+    name: mars-discovery
+  sleuth:
+    enabled: true
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${random.value}
+  client:
+    fetch-registry: false
+    register-with-eureka: false
+    service-url:
+      defaultZone: ${MARS_DISCOVERY_URL:http://localhost:${server.port}}/eureka/
+
+mars:
+  secret: ${JWT_SECRET}
+  directory:
+    tmp: ${MARS_TMP_DIRECTORY:D:/TMP/mars}
+    shared: ${MARS_SHARED_DIRECTORY:D:/TMP/mars}

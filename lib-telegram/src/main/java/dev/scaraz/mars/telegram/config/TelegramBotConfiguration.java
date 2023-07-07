@@ -32,7 +32,18 @@ public class TelegramBotConfiguration {
 
     private final TelegramProperties telegramProperties;
 
-    @Bean
+    @Bean(TELEGRAM_EXECUTOR)
+    @ConditionalOnProperty(prefix = "telegram", name = "type", havingValue = "long_polling")
+    public TaskExecutor telegramExecutor() {
+        ThreadPoolTaskExecutor exc = new ThreadPoolTaskExecutor();
+        exc.setCorePoolSize(telegramProperties.getAsync().getCorePoolSize());
+        exc.setMaxPoolSize(telegramProperties.getAsync().getMaxPoolSize());
+        exc.setQueueCapacity(telegramProperties.getAsync().getQueueCapacity());
+        exc.setThreadNamePrefix("Telegram");
+        return exc;
+    }
+
+    @Bean(destroyMethod = "close")
     @ConditionalOnMissingBean(TelegramBotService.class)
     public TelegramBotService telegramBotService(
             @Autowired(required = false)
@@ -51,17 +62,6 @@ public class TelegramBotConfiguration {
         }
 
         throw new IllegalStateException(String.format("Unhandled bot type %s", telegramProperties.getType()));
-    }
-
-    @Bean(TELEGRAM_EXECUTOR)
-    @ConditionalOnProperty(prefix = "telegram", name = "type", havingValue = "long_polling")
-    public TaskExecutor telegramExecutor() {
-        ThreadPoolTaskExecutor exc = new ThreadPoolTaskExecutor();
-        exc.setCorePoolSize(telegramProperties.getAsync().getCorePoolSize());
-        exc.setMaxPoolSize(telegramProperties.getAsync().getMaxPoolSize());
-        exc.setQueueCapacity(telegramProperties.getAsync().getQueueCapacity());
-        exc.setThreadNamePrefix("Telegram");
-        return exc;
     }
 
 }

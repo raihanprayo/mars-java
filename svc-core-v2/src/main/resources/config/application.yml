@@ -1,5 +1,5 @@
 server:
-  port: ${MARS_CORE_PORT:11200}
+  port: ${MARS_CORE_PORT:11201}
 
 dump:
   datasource:
@@ -53,6 +53,15 @@ spring:
         jwt:
           issuer-uri: ${ISSUER_URI:https://auth.scaraz.dev/realms/mars}
           jwk-set-uri: ${spring.security.oauth2.resourceserver.jwt.issuer-uri}/protocol/openid-connect/certs
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${random.value}
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: ${MARS_DISCOVERY_URL:http://localhost:${MARS_DISCOVERY_PORT:11200}}/eureka/
 
 mars:
   secret: ${JWT_SECRET}

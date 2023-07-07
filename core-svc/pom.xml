@@ -29,6 +29,11 @@
             <artifactId>telegram</artifactId>
             <version>${mars.lib.version}</version>
         </dependency>
+        <dependency>
+            <groupId>dev.scaraz.mars</groupId>
+            <artifactId>security</artifactId>
+            <version>${mars.lib.version}</version>
+        </dependency>
 
         <!--    Spring's    -->
         <dependency>

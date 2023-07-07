@@ -1,5 +1,6 @@
 package dev.scaraz.mars.security.jwt;
 
+import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

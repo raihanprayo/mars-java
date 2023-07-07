@@ -1,12 +1,11 @@
 package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
+import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
+import dev.scaraz.mars.common.domain.response.ForgotResDTO;
 import dev.scaraz.mars.core.domain.credential.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
+import dev.scaraz.mars.security.authentication.MarsJwtAuthenticationToken;
 
 public interface AuthService {
 
@@ -14,9 +13,13 @@ public interface AuthService {
 
     User authenticateFromBot(long telegramId);
 
-    AuthResDTO refresh(String refreshToken);
+    AuthResDTO refresh(MarsJwtAuthenticationToken authentication);
 
     void logout(User user, boolean confirmed);
+
+    ForgotResDTO forgotPasswordFlow(ForgotReqDTO f);
+
+    ForgotResDTO forgotRegenerateOtp(String token);
 
     boolean isUserRegistered(long telegramId);
 

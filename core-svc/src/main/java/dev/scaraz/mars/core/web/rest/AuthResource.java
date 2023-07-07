@@ -2,34 +2,29 @@ package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
-import dev.scaraz.mars.common.domain.request.RefreshTokenReqDTO;
+import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
-import dev.scaraz.mars.common.domain.response.JwtToken;
-import dev.scaraz.mars.common.domain.response.WhoamiDTO;
+import dev.scaraz.mars.common.domain.response.ForgotResDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
-import dev.scaraz.mars.common.exception.web.UnauthorizedException;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.config.security.JwtUtil;
-import dev.scaraz.mars.core.domain.credential.Roles;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
-import dev.scaraz.mars.core.repository.credential.RolesRepo;
+import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.util.SecurityUtil;
-import io.jsonwebtoken.ExpiredJwtException;
+import dev.scaraz.mars.security.authentication.MarsJwtAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
+import javax.validation.Valid;
 import java.util.Map;
-import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,7 +34,7 @@ public class AuthResource {
 
     private final MarsProperties marsProperties;
     private final AuthService authService;
-    private final AuthenticationManager authManager;
+    private final UserQueryService userQueryService;
     private final CredentialMapper credentialMapper;
 
     @GetMapping("/whoami")
@@ -59,53 +54,16 @@ public class AuthResource {
         return ResponseEntity.ok(authResult);
     }
 
-    @GetMapping("/authorize")
-    public ResponseEntity<?> authorize(@RequestHeader("Authorization") String bearer) {
-        try {
-            String token = bearer.substring("Bearer ".length());
-            JwtUtil.decode(token);
-            return new ResponseEntity<>(
-                    Map.of("ok", true),
-                    HttpStatus.OK);
-        }
-        catch (ExpiredJwtException ex) {
-            return new ResponseEntity<>(
-                    Map.of("ok", false,
-                            "code", "refresh-required"),
-                    HttpStatus.BAD_REQUEST
-            );
-        }
-        catch (Exception ex) {
-            throw BadRequestException.args(ex.getMessage());
-        }
-    }
+    @PostMapping(path = "/refresh", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> refresh(Authentication authentication) {
+        if (!(authentication instanceof MarsJwtAuthenticationToken))
+            throw new IllegalStateException("invalid authentication token");
 
-    @PostMapping("/unauthorize")
-    public ResponseEntity<?> unauthorize() {
+        MarsJwtAuthenticationToken token = (MarsJwtAuthenticationToken) authentication;
+        if (!token.isRefreshToken())
+            throw new IllegalStateException("format JWT tidak sesuai");
 
-        ResponseCookie cookieToken = ResponseCookie
-                .from(AppConstants.Auth.COOKIE_TOKEN, "")
-                .maxAge(0)
-                .build();
-
-        ResponseCookie cookieRefreshToken = ResponseCookie
-                .from(AppConstants.Auth.COOKIE_REFRESH_TOKEN, "")
-                .maxAge(0)
-                .build();
-
-        return ResponseEntity
-                .status(200)
-                .header("Set-Cookie", cookieToken.toString())
-                .header("Set-Cookie", cookieRefreshToken.toString())
-                .build();
-    }
-
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(
-            HttpServletRequest request,
-            @RequestBody(required = false) RefreshTokenReqDTO req
-    ) {
-        AuthResDTO authResult = authService.refresh(req.getRefreshToken());
+        AuthResDTO authResult = authService.refresh(token);
         return ResponseEntity.ok(authResult);
     }
 
@@ -117,31 +75,51 @@ public class AuthResource {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    private ResponseEntity<?> attachJwtCookie(AuthResDTO authResult) {
-        long issuedAt = authResult.getIssuedAt();
-        long expiredAt = authResult.getExpiredAt();
-        long refreshExpiredAt = authResult.getRefreshExpiredAt();
-        ResponseCookie cookieToken = ResponseCookie.from(AppConstants.Auth.COOKIE_TOKEN, authResult.getAccessToken())
-                .httpOnly(marsProperties.getCookie().isHttpOnly())
-                .domain(marsProperties.getCookie().getDomain())
-                .path(marsProperties.getCookie().getPath())
-                .secure(marsProperties.getCookie().isSecure())
-                .maxAge(expiredAt - issuedAt)
-                .build();
+    @RestController
+    @RequestMapping("/auth/forgot")
+    public class AuthForgotResource {
 
-        ResponseCookie cookieRefreshToken = ResponseCookie.from(AppConstants.Auth.COOKIE_REFRESH_TOKEN, authResult.getAccessToken())
-                .httpOnly(marsProperties.getCookie().isHttpOnly())
-                .domain(marsProperties.getCookie().getDomain())
-                .path(marsProperties.getCookie().getPath())
-                .secure(marsProperties.getCookie().isSecure())
-                .maxAge(refreshExpiredAt - issuedAt)
-                .build();
+        @GetMapping
+        public ResponseEntity<?> forgotAccess(@RequestParam("u") String username) {
+            try {
+                User user = userQueryService.loadUserByUsername(username);
+                boolean accessibleViaEmail = StringUtils.isNoneBlank(user.getEmail());
+                boolean accessibleViaTelegram = user.getTg().getId() != null;
+                return ResponseEntity.ok(Map.of(
+                        "email", accessibleViaEmail,
+                        "telegram", accessibleViaTelegram
+                ));
+            }
+            catch (UsernameNotFoundException ex) {
+                throw new BadRequestException("User not found");
+            }
+        }
 
-        return ResponseEntity
-                .status(200)
-                .header("Set-Cookie", cookieToken.toString())
-                .header("Set-Cookie", cookieRefreshToken.toString())
-                .body(authResult);
+        @PostMapping("/generate")
+        public ResponseEntity<?> generateOtp(@RequestBody ForgotReqDTO req) {
+            req.setState(ForgotReqDTO.State.GENERATE);
+            return ResponseEntity.ok(authService.forgotPasswordFlow(req));
+        }
+
+        @PutMapping("/regenerate")
+        public ResponseEntity<?> regenerateOtp(@RequestParam String token) {
+            return new ResponseEntity<>(
+                    authService.forgotRegenerateOtp(token),
+                    HttpStatus.OK
+            );
+        }
+
+        @PostMapping("/validate")
+        public ResponseEntity<?> validateOtp(@RequestBody ForgotReqDTO forgot) {
+            forgot.setState(ForgotReqDTO.State.VALIDATE);
+            return new ResponseEntity<>(authService.forgotPasswordFlow(forgot), HttpStatus.OK);
+        }
+
+        @PutMapping("/reset")
+        public ResponseEntity<?> resetAccount(@RequestBody ForgotReqDTO forgot) {
+            forgot.setState(ForgotReqDTO.State.ACCOUNT_RESET);
+            return new ResponseEntity<>(authService.forgotPasswordFlow(forgot), HttpStatus.OK);
+        }
+
     }
-
 }

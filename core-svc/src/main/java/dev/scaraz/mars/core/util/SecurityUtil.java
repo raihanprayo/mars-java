@@ -3,14 +3,13 @@ package dev.scaraz.mars.core.util;
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.security.authentication.identity.MarsAuthentication;
+import dev.scaraz.mars.security.authentication.MarsAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Locale;
 import java.util.Optional;
-
-import static dev.scaraz.mars.common.tools.Translator.LANG_EN;
 
 
 @Component
@@ -26,18 +25,17 @@ public class SecurityUtil {
 
     public static User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && auth instanceof CoreAuthenticationToken) {
-            CoreAuthenticationToken coreAuth = (CoreAuthenticationToken) auth;
-            DelegateUser principal = coreAuth.getPrincipal();
-            return INSTANCE.userQueryService.findById(principal.getId());
+        if (auth != null && auth.isAuthenticated()) {
+            if (auth instanceof CoreAuthenticationToken) {
+                CoreAuthenticationToken coreAuth = (CoreAuthenticationToken) auth;
+                return INSTANCE.userQueryService.findById(coreAuth.getPrincipal().getId());
+            }
+            else if (auth instanceof MarsAuthenticationToken) {
+                MarsAuthenticationToken<MarsAuthentication> marsAuth = (MarsAuthenticationToken<MarsAuthentication>) auth;
+                return INSTANCE.userQueryService.findById(marsAuth.getPrincipal().getId());
+            }
         }
         return null;
-    }
-
-    public static Locale getUserLocale() {
-        User user = getCurrentUser();
-        if (user == null) return LANG_EN;
-        return user.getSetting().getLang();
     }
 
     public static boolean isUserPresent() {

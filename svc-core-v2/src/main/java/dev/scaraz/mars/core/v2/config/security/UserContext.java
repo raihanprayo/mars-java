@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.v2.config.security;
 
 import dev.scaraz.mars.security.authentication.MarsJwtAuthenticationToken;
-import dev.scaraz.mars.security.jwt.MarsAccessToken;
+import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -33,7 +33,7 @@ public final class UserContext {
     public static String getUsername() {
         return Optional.ofNullable(getPrincipal())
                 .map(MarsJwtAuthenticationToken::getName)
-                .orElse(null);
+                .orElse("system");
     }
 
 }

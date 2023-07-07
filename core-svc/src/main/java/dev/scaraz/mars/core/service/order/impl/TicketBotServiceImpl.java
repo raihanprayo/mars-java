@@ -471,14 +471,14 @@ public class TicketBotServiceImpl implements TicketBotService {
                         .text(TelegramUtil.esc(
                                 String.format("*[%s]* Mohon input request order sesuai format:", name),
                                 "",
-                                "Tiket NOSSA: _(opt)_",
+                                "Tiket NOSSA: _(required)_",
                                 "No Service: _(required)_",
                                 "Witel: _(opt)_",
                                 "STO: _(opt)_",
                                 additionalField,
                                 "",
                                 "_Untuk *Witel/STO* jika tidak diisi, akan menyesuaikan dengan *Witel/STO* user yg menginput.",
-                                "Balas pesan, dengan mengreply balon chat ini._"
+                                "*Balas pesan, dengan mengreply balon chat ini*._"
                         ))
                         .build())
                 .getMessageId();
