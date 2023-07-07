@@ -20,8 +20,9 @@
         <module>svc-core</module>
 <!--        <module>svc-core-v2</module>-->
         <module>lib-security</module>
-<!--        <module>svc-discovery</module>-->
+        <module>svc-discovery</module>
         <module>v1-impl</module>
+        <module>v1-impl/mars-gateway</module>
     </modules>
 
     <properties>

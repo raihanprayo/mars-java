@@ -9,6 +9,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
+    <groupId>dev.scaraz.mars.v1</groupId>
     <artifactId>mars-core</artifactId>
     <version>0.1.0</version>
     <packaging>war</packaging>
@@ -174,7 +175,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>dev.scaraz.mars.core.CoreApplication</mainClass>
+                    <mainClass>dev.scaraz.mars.v1.core.CoreApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

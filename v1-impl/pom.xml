@@ -23,7 +23,7 @@
 
     <modules>
         <module>mars-core</module>
-        <module>mars-keycloak</module>
+        <module>mars-admin</module>
         <module>mars-bot</module>
     </modules>
 

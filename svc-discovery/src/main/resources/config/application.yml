@@ -1,5 +1,5 @@
 server:
-  port: ${MARS_DISCOVERY_PORT:11200}
+  port: ${MARS_DISCOVERY_PORT:10919}
 
 spring:
   application:

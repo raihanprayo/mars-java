@@ -5,6 +5,8 @@
     <file type="web" url="file://$PROJECT_DIR$/gateway-svc" />
     <file type="web" url="file://$PROJECT_DIR$/svc-core" />
     <file type="web" url="file://$PROJECT_DIR$/svc-discovery" />
+    <file type="web" url="file://$PROJECT_DIR$/v1-impl/mars-admin" />
+    <file type="web" url="file://$PROJECT_DIR$/v1-impl/mars-core" />
   </component>
   <component name="MavenProjectsManager">
     <option name="originalFiles">
@@ -20,9 +22,9 @@
         <option value="$PROJECT_DIR$/bot-adapter/pom.xml" />
         <option value="$PROJECT_DIR$/discovery-svc/pom.xml" />
         <option value="$PROJECT_DIR$/svc-core-v2/pom.xml" />
-        <option value="$PROJECT_DIR$/svc-discovery/pom.xml" />
         <option value="$PROJECT_DIR$/svc-gateway/pom.xml" />
         <option value="$PROJECT_DIR$/svc-user/pom.xml" />
+        <option value="$PROJECT_DIR$/v1-impl/lib-dto/pom.xml" />
         <option value="$PROJECT_DIR$/v1-impl/lib-v1-security/pom.xml" />
       </set>
     </option>
