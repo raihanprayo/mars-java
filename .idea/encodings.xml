@@ -4,7 +4,6 @@
     <file url="file://$PROJECT_DIR$/bot-adapter/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/bot-svc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/bot-svc/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/core-svc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/discovery-svc/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib-commons/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/lib-security/src/main/java" charset="UTF-8" />
