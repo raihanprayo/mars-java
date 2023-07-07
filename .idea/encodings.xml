@@ -17,5 +17,10 @@
     <file url="file://$PROJECT_DIR$/svc-discovery/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/svc-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/svc-user/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/v1-impl/mars-bot/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/v1-impl/mars-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/v1-impl/mars-keycloak/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/v1-impl/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/v1-impl/src/main/resources" charset="UTF-8" />
   </component>
 </project>

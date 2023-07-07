@@ -1,0 +1,22 @@
+spring:
+  sleuth:
+    enabled: true
+  redis:
+    client-type: jedis
+    client-name: "mars-roc"
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    database: ${REDIS_DATABASE:0}
+    username: ${REDIS_USERNAME:}
+    password: ${REDIS_PASSWORD:}
+
+mars:
+  cookie:
+    name: ${COOKIE_NAME:MARSID}
+    domain: ${COOKIE_DOMAIN:localhost}
+    path: ${COOKIE_PATH:/}
+    http-only: ${COOKIE_HTTP_ONLY:true}
+    secure: ${COOKIE_SECURE:false}
+  i18n:
+    with-defaults: ${INCLUDE_DEFAULT_MESSAGES:true}
+    externals: ${MESSAGES_DIRS:}
