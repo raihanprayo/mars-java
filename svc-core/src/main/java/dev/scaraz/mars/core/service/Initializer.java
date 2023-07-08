@@ -132,9 +132,7 @@ public class Initializer {
             log.debug("CREATE DEFAULT ADMIN USER");
             Account admin = userService.create(CreateUserDTO.builder()
                     .name("Administrator")
-                    .phone("00000000000")
-                    .nik(AppConstants.Authority.ADMIN_NIK)
-                    .username("admin")
+                    .nik("admin")
                     .active(true)
                     .witel(marsProperties.getWitel())
                     .roles(List.of(adminRole.getId()))

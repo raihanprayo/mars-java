@@ -22,4 +22,8 @@ insert into t_credential (user_id, algo, password, priority)
         (select id, 'bcrypt', password, 10 from t_user);
 
 alter table t_user
-    drop column password;
+    drop column password,
+    drop column ref_group_id;
+
+drop table t_group_setting cascade;
+drop table t_group cascade;
