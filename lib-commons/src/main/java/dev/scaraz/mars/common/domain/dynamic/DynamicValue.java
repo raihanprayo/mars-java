@@ -3,6 +3,9 @@ package dev.scaraz.mars.common.domain.dynamic;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Duration;
+import java.util.List;
+
 public interface DynamicValue {
 
     DynamicType getType();
@@ -51,13 +54,19 @@ public interface DynamicValue {
     }
 
     @JsonIgnore
+    default Duration getAsDuration() {
+        return getAs(Duration::parse);
+    }
+
+    @JsonIgnore
+    default List<String> getAsList() {
+        return getAs(DynamicValueDeserializer.LIST_STRING);
+    }
+
+    @JsonIgnore
     default <T extends Enum<T>> T getAsEnum(Class<T> t) {
         if (!getType().isAssignable(Enum.class)) throw invalidType();
         return getAs(v -> Enum.valueOf(t, v));
-    }
-
-    default void from(DynamicValue dv) {
-
     }
 
     static IllegalStateException invalidType() {

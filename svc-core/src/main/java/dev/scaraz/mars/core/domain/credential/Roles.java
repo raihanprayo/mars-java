@@ -2,7 +2,6 @@ package dev.scaraz.mars.core.domain.credential;
 
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -22,7 +21,7 @@ public class Roles extends TimestampEntity {
 
     @ManyToOne
     @JoinColumn(name = "ref_user_id")
-    private User user;
+    private Account account;
 
     @ManyToOne
     @JoinColumn(name = "ref_role_id")

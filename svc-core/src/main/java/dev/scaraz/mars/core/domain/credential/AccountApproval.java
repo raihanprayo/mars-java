@@ -16,7 +16,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "t_user_approval")
-public class UserApproval extends TimestampEntity {
+public class AccountApproval extends TimestampEntity {
 
     public static String WAIT_APPROVAL = "WAIT_APPROVAL";
     public static String REQUIRE_DOCUMENT = "REQUIRE_DOCUMENT";
@@ -50,6 +50,6 @@ public class UserApproval extends TimestampEntity {
 
     @Embedded
     @Builder.Default
-    private UserTg tg = new UserTg();
+    private AccountTg tg = new AccountTg();
 
 }

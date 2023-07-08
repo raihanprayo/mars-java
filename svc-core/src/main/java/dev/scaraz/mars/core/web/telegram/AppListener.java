@@ -6,6 +6,7 @@ import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
@@ -67,11 +68,11 @@ public class AppListener {
             Update update,
             Message message,
             @Text String text,
-            @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
+            @TgAuth(throwUnautorized = false) Account marsAccount
     ) {
         log.info("{}", gson.toJson(update));
 
-        if (marsUser == null) {
+        if (marsAccount == null) {
             Optional<BotRegistration> registrationOpt = registrationRepo.findById(user.getId());
             if (registrationOpt.isPresent()) {
                 BotRegistration registration = registrationOpt.get();
@@ -134,7 +135,7 @@ public class AppListener {
             CallbackQuery cq,
             Message message,
             @CallbackData String data,
-            @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
+            @TgAuth(throwUnautorized = false) Account marsAccount
     ) throws TelegramApiException {
         log.info("{}", gson.toJson(cq));
 
@@ -151,17 +152,17 @@ public class AppListener {
             User user,
             Message message,
             @CallbackData String data,
-            @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser
+            @TgAuth(throwUnautorized = false) Account marsAccount
     ) {
         switch (data) {
             case AppConstants.Telegram.REG_PAIR: {
-                if (marsUser != null) return null;
+                if (marsAccount != null) return null;
                 else if (authService.isUserInApproval(user.getId())) return null;
                 return userRegistrationBotService.pairAccount(user.getId(), user.getUserName());
             }
 
             case AppConstants.Telegram.REG_NEW: {
-                if (marsUser != null) return null;
+                if (marsAccount != null) return null;
                 else if (authService.isUserInApproval(user.getId())) return null;
                 return userRegistrationBotService.start(user.getId(), user.getUserName());
             }
@@ -185,7 +186,7 @@ public class AppListener {
     public SendMessage agreeDisagreeCallback(
             Message message,
             @CallbackData String data,
-            @TgAuth dev.scaraz.mars.core.domain.credential.User marsUser
+            @TgAuth Account marsAccount
     ) throws TelegramApiException {
         // Disini tiket bisa jadi kondisi status mau pending atau close
         boolean agree = AppConstants.Telegram.CONFIRM_AGREE.equals(data);
@@ -219,11 +220,11 @@ public class AppListener {
     public SendMessage start(
             @ChatId Long chatId,
             @UserId Long tgUserId,
-            @TgAuth(throwUnautorized = false) dev.scaraz.mars.core.domain.credential.User marsUser,
+            @TgAuth(throwUnautorized = false) Account marsAccount,
             Message message
     ) throws TelegramApiException {
         if (TelegramContextHolder.getChatSource() == ChatSource.PRIVATE) {
-            if (marsUser == null) return userListener.register(tgUserId, message);
+            if (marsAccount == null) return userListener.register(tgUserId, message);
             else return ticketBotService.instantForm_start(tgUserId);
         }
 

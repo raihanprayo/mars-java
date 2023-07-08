@@ -1,7 +1,8 @@
 package dev.scaraz.mars.core.web.telegram;
 
 import dev.scaraz.mars.common.tools.Translator;
-import dev.scaraz.mars.core.domain.credential.UserApproval;
+import dev.scaraz.mars.core.domain.credential.Account;
+import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
@@ -46,7 +47,7 @@ public class UserListener {
             log.info("Register New User");
 
             if (userApprovalService.existsByTelegramId(telegramId)) {
-                UserApproval approval = userApprovalService.findByTelegramId(telegramId);
+                AccountApproval approval = userApprovalService.findByTelegramId(telegramId);
                 return WAITING_APPROVAL(telegramId, approval);
             }
 
@@ -70,7 +71,7 @@ public class UserListener {
     }
 
     @TelegramCommand(commands = "/setting")
-    public SendMessage setting(@TgAuth dev.scaraz.mars.core.domain.credential.User user,
+    public SendMessage setting(@TgAuth Account account,
                                @Text String text
     ) {
         if (checkSettingFormat(text)) {
@@ -82,18 +83,18 @@ public class UserListener {
                 boolean isEn = value.equalsIgnoreCase("en");
                 boolean isIdn = value.equalsIgnoreCase("id");
                 if (isEn || isIdn) {
-                    if (isEn) user.getSetting().setLang(LANG_EN);
-                    else user.getSetting().setLang(LANG_ID);
+                    if (isEn) account.getSetting().setLang(LANG_EN);
+                    else account.getSetting().setLang(LANG_ID);
 
-                    userService.save(user.getSetting());
+                    userService.save(account.getSetting());
                     return SendMessage.builder()
-                            .chatId(user.getTg().getId())
+                            .chatId(account.getTg().getId())
                             .text("OK")
                             .build();
                 }
                 else {
                     return SendMessage.builder()
-                            .chatId(user.getTg().getId())
+                            .chatId(account.getTg().getId())
                             .text("Bahasa yangbisa digunakan en/id (ignore-case)")
                             .build();
                 }

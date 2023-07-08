@@ -6,7 +6,7 @@ import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
 import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
@@ -103,7 +103,7 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
     @Override
     public long countByProduct(Product product, boolean currentUser) {
         if (currentUser) {
-            User usr = SecurityUtil.getCurrentUser();
+            Account usr = SecurityUtil.getCurrentUser();
             if (usr != null) return repo.countByProductAndWipBy(product, usr.getId());
         }
         return repo.countByProductAndWipIsFalse(product);
@@ -122,8 +122,8 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
                 .build();
 
         if (currentUser) {
-            User user = SecurityUtil.getCurrentUser();
-            criteria.setWipBy(new StringFilter().setEq(user.getId()));
+            Account account = SecurityUtil.getCurrentUser();
+            criteria.setWipBy(new StringFilter().setEq(account.getId()));
         }
 
         return repo.exists(specBuilder.createSpec(criteria));

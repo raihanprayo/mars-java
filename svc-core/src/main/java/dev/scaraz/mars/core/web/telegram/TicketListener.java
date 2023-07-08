@@ -7,7 +7,7 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.query.TicketQueryService;
@@ -41,7 +41,7 @@ public class TicketListener {
     private final TicketQueryService queryService;
 
     @TelegramCommand("/tiket")
-    public SendMessage ticketInfo(@TgAuth User user, @Text String text) {
+    public SendMessage ticketInfo(@TgAuth Account account, @Text String text) {
         if (StringUtils.isBlank(text))
             throw new IllegalArgumentException("argument <no-tiket> tidak boleh kosong");
 
@@ -50,7 +50,7 @@ public class TicketListener {
 
     @TelegramCommand(commands = {"/report", "/lapor"}, description = "Register new ticker/order")
     public SendMessage registerReport(
-            @TgAuth User user,
+            @TgAuth Account account,
             @Text String text,
             Message message
     ) {
@@ -64,8 +64,8 @@ public class TicketListener {
             Ticket ticket = botService.registerForm(
                     form.toBuilder()
                             .source(TcSource.fromType(message.getChat().getType()))
-                            .senderId(user.getTg().getId())
-                            .senderName(user.getName())
+                            .senderId(account.getTg().getId())
+                            .senderName(account.getName())
                             .build(),
                     message.getPhoto()
             );
@@ -97,13 +97,13 @@ public class TicketListener {
     }
 
     @TelegramCommand(commands = {"/take", "/sayaambil"}, description = "take ticket by order no")
-    public SendMessage takeTicket(@TgAuth User user, @Text String text) {
+    public SendMessage takeTicket(@TgAuth Account account, @Text String text) {
         try {
-            log.info("TAKE ACTION BY {}", user.getTg().getId());
+            log.info("TAKE ACTION BY {}", account.getTg().getId());
             Ticket ticket = botService.take(text);
 
             return SendMessage.builder()
-                    .chatId(user.getTg().getId())
+                    .chatId(account.getTg().getId())
                     .text(TelegramUtil.esc(Translator.tr("tg.ticket.wip.agent", ticket.getNo())))
                     .parseMode(ParseMode.MARKDOWNV2)
                     .build();
@@ -111,7 +111,7 @@ public class TicketListener {
         catch (Exception ex) {
             log.error("Error at command /take", ex);
             return SendMessage.builder()
-                    .chatId(user.getTg().getId())
+                    .chatId(account.getTg().getId())
                     .text(TelegramUtil.exception(ex))
                     .parseMode(ParseMode.MARKDOWNV2)
                     .build();
@@ -119,7 +119,7 @@ public class TicketListener {
     }
 
     @TelegramCommand(commands = "/reopen", description = "close ticket")
-    public void reopen(@TgAuth User user, @Text String text, Message message) {
+    public void reopen(@TgAuth Account account, @Text String text, Message message) {
         // NOTE:
         // Parsing format: /close <ticket-no> [description]
         // required no tiket
@@ -138,7 +138,7 @@ public class TicketListener {
     }
 
     @TelegramCommand("/confirm")
-    public void resume(@TgAuth User user, @Text String text) {
+    public void resume(@TgAuth Account account, @Text String text) {
         // Melanjutkan tiket dengan status pending
 
         if (StringUtils.isNoneBlank(text)) {
@@ -146,7 +146,7 @@ public class TicketListener {
             if (confirmOpt.isPresent()) {
                 boolean ticketExist = queryService.exist(TicketCriteria.builder()
                         .no(new StringFilter().setEq(text))
-                        .senderId(new LongFilter().setEq(user.getTg().getId()))
+                        .senderId(new LongFilter().setEq(account.getTg().getId()))
                         .status(new TcStatusFilter().setEq(TcStatus.PENDING))
                         .build());
 

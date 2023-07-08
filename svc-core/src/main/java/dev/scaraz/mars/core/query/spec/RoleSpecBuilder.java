@@ -15,7 +15,6 @@ public class RoleSpecBuilder extends AuditableSpec<Role, RoleCriteria> {
         return chain()
                 .pick(Role_.id, criteria.getId())
                 .pick(Role_.name, criteria.getName())
-                .pick(Role_.order, criteria.getOrder())
                 .extend(s -> auditSpec(s, criteria))
                 .specification();
     }

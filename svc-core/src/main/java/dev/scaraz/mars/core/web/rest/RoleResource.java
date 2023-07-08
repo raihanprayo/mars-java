@@ -40,7 +40,7 @@ public class RoleResource {
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getRoleByUser(@PathVariable String userId) {
-        List<RoleDTO> roles = rolesRepo.findAllByUserId(userId).stream()
+        List<RoleDTO> roles = rolesRepo.findAllByAccountId(userId).stream()
                 .map(Roles::getRole)
                 .map(roleMapper::toDTO)
                 .collect(Collectors.toList());

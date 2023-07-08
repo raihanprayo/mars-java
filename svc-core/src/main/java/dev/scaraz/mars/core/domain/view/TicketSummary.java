@@ -1,20 +1,13 @@
 package dev.scaraz.mars.core.domain.view;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.*;
-import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.order.Issue;
-import dev.scaraz.mars.core.domain.order.LogTicket;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 @Getter
 @NoArgsConstructor

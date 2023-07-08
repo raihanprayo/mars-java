@@ -4,31 +4,29 @@ import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
-import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.credential.UserSetting;
+import dev.scaraz.mars.core.domain.credential.Account;
+import dev.scaraz.mars.core.domain.credential.AccountSetting;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-
 public interface UserService extends UserDetailsPasswordService {
 
     @Override
-    User updatePassword(UserDetails user, String newPassword);
+    Account updatePassword(UserDetails user, String newPassword);
 
-    User save(User user);
+    Account save(Account account);
 
-    UserSetting save(UserSetting credential);
+    AccountSetting save(AccountSetting credential);
 
-    User create(CreateUserDTO user);
+    Account create(CreateUserDTO user);
 
     void approval(String approvalId, boolean approved);
 
-    void pairing(User user, BotRegistration registration);
+    void pairing(Account account, BotRegistration registration);
 
     @Transactional
     void createFromBot(boolean needApproval, TelegramCreateUserDTO req);
 
-    User updatePartial(String userId, UpdateUserDashboardDTO dto);
+    Account updatePartial(String userId, UpdateUserDashboardDTO dto);
 }

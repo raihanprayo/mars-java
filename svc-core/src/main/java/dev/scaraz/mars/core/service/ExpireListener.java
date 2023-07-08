@@ -1,8 +1,8 @@
 package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
-import dev.scaraz.mars.core.domain.credential.UserApproval;
-import dev.scaraz.mars.core.repository.db.credential.UserApprovalRepo;
+import dev.scaraz.mars.core.domain.credential.AccountApproval;
+import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
@@ -24,7 +24,7 @@ public class ExpireListener {
 
     private final TicketFlowService ticketFlowService;
 
-    private final UserApprovalRepo userApprovalRepo;
+    private final AccountApprovalRepo accountApprovalRepo;
 
     private final TelegramBotService botService;
 
@@ -47,7 +47,7 @@ public class ExpireListener {
         if (!(event.getValue() instanceof RegistrationApproval)) return;
 
         RegistrationApproval data = (RegistrationApproval) event.getValue();
-        UserApproval approval = userApprovalRepo.findById(data.getId())
+        AccountApproval approval = accountApprovalRepo.findById(data.getId())
                 .orElseThrow();
 
         Long tgId = approval.getTg().getId();
@@ -58,7 +58,7 @@ public class ExpireListener {
                         "Maaf permintaan registrasimu sudah kadaluarsa, silahkan mengirim ulang registrasi"
                 ))
                 .build());
-        userApprovalRepo.delete(approval);
+        accountApprovalRepo.delete(approval);
     }
 
 }

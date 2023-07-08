@@ -1,10 +1,6 @@
 package dev.scaraz.mars.core.domain.order;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
-import dev.scaraz.mars.common.tools.enums.AgStatus;
-import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.core.domain.credential.User;
 import lombok.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;

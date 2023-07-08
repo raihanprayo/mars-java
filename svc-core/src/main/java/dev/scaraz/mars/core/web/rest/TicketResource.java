@@ -5,7 +5,7 @@ import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ResourceUtil;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.mapper.AgentMapper;
@@ -148,7 +148,7 @@ public class TicketResource {
 
     private void attachProductCountHeader(HttpHeaders headers, TicketSummaryCriteria criteria, boolean currentUser) {
         if (currentUser) {
-            User usr = SecurityUtil.getCurrentUser();
+            Account usr = SecurityUtil.getCurrentUser();
             if (usr != null) {
                 StringFilter userIdFilter = new StringFilter(usr.getId());
 

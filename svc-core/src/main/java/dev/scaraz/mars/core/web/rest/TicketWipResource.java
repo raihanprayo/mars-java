@@ -1,11 +1,10 @@
 package dev.scaraz.mars.core.web.rest;
 
-import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
@@ -52,8 +51,8 @@ public class TicketWipResource {
     public ResponseEntity<?> takeTicket(
             @PathVariable String ticketIdOrNo
     ) {
-        User user = SecurityUtil.getCurrentUser();
-        if (user.getTg().getId() == null)
+        Account account = SecurityUtil.getCurrentUser();
+        if (account.getTg().getId() == null)
             throw BadRequestException.args("Akun anda belum terintegrasi dengan akun telegram, silahkan melakukan \"Account Pairing\"");
 
         flowService.take(ticketIdOrNo);

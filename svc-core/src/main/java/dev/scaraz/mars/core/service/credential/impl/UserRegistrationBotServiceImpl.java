@@ -10,7 +10,7 @@ import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
@@ -100,7 +100,7 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
 
     @Override
     public SendMessage pairAccountAnsWitel(BotRegistration registration, Witel ansWitel) {
-        Optional<User> optUser = userQueryService.findOne(UserCriteria.builder()
+        Optional<Account> optUser = userQueryService.findOne(UserCriteria.builder()
                 .nik(new StringFilter().setEq(registration.getNik()))
                 .witel(new WitelFilter().setEq(ansWitel))
                 .build());

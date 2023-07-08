@@ -6,12 +6,12 @@ import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
 import dev.scaraz.mars.common.domain.response.UserDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.ResourceUtil;
-import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.credential.UserApproval;
+import dev.scaraz.mars.core.domain.credential.Account;
+import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
-import dev.scaraz.mars.core.repository.db.credential.UserApprovalRepo;
+import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +39,7 @@ public class UserResource {
 
     private final UserService userService;
     private final UserQueryService userQueryService;
-    private final UserApprovalRepo userApprovalRepo;
+    private final AccountApprovalRepo accountApprovalRepo;
 
     @GetMapping
     public ResponseEntity<?> findAll(
@@ -65,7 +65,7 @@ public class UserResource {
 
     @GetMapping("/approvals")
     public ResponseEntity<?> findAllApprovals(Pageable pageable) {
-        Page<UserApproval> page = userApprovalRepo.findAll(pageable);
+        Page<AccountApproval> page = accountApprovalRepo.findAll(pageable);
         return ResourceUtil.pagination(page, "/user/approvals");
     }
 
@@ -83,9 +83,9 @@ public class UserResource {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid CreateUserDTO req) {
         log.info("NEW USER DASHBOARD REGISTRATION -- {}", req);
-        User user = userService.create(req);
+        Account account = userService.create(req);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(credentialMapper.toDTO(user));
+                .body(credentialMapper.toDTO(account));
     }
 
     @PutMapping("/partial/{userId}")
@@ -93,17 +93,17 @@ public class UserResource {
             @PathVariable String userId,
             @RequestBody UpdateUserDashboardDTO req
     ) {
-        User user = userService.updatePartial(userId, req);
-        return ResponseEntity.ok(credentialMapper.toDTO(user));
+        Account account = userService.updatePartial(userId, req);
+        return ResponseEntity.ok(credentialMapper.toDTO(account));
     }
 
     @PutMapping("/partial")
     public ResponseEntity<?> updateUser(
             @RequestBody UpdateUserDashboardDTO req
     ) {
-        User currentUser = SecurityUtil.getCurrentUser();
-        User user = userService.updatePartial(currentUser.getId(), req);
-        return ResponseEntity.ok(credentialMapper.toDTO(user));
+        Account currentAccount = SecurityUtil.getCurrentUser();
+        Account account = userService.updatePartial(currentAccount.getId(), req);
+        return ResponseEntity.ok(credentialMapper.toDTO(account));
     }
 
     @PutMapping("/password/{userId}")
@@ -111,16 +111,16 @@ public class UserResource {
             @PathVariable String userId,
             @RequestBody UserPasswordUpdateDTO updatePassDTO
     ) {
-        User user = userQueryService.findById(userId);
-        boolean matches = passwordEncoder.matches(updatePassDTO.getOldPass(), user.getPassword());
+        Account account = userQueryService.findById(userId);
+        boolean matches = passwordEncoder.matches(updatePassDTO.getOldPass(), account.getPassword());
         if (!matches)
             throw new BadRequestException("Password lama tidak sama!");
 
-        boolean newPassEqOld = passwordEncoder.matches(updatePassDTO.getNewPass(), user.getPassword());
+        boolean newPassEqOld = passwordEncoder.matches(updatePassDTO.getNewPass(), account.getPassword());
         if (newPassEqOld)
             throw new BadRequestException("Password baru tidak boleh sama dengan password lama");
 
-        userService.updatePassword(user, updatePassDTO.getNewPass());
+        userService.updatePassword(account, updatePassDTO.getNewPass());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

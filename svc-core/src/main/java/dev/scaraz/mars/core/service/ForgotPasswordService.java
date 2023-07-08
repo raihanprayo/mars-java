@@ -1,16 +1,14 @@
 package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
-import dev.scaraz.mars.common.domain.response.ForgotResDTO;
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.cache.ForgotPassword;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.cache.ForgotPasswordRepo;
 import dev.scaraz.mars.core.service.credential.UserService;
-import dev.scaraz.mars.security.constants.AccessType;
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -19,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisKeyExpiredEvent;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +24,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.Objects;
 import java.util.Random;
 import java.util.UUID;
 
@@ -52,7 +48,7 @@ public class ForgotPasswordService {
 
     }
 
-    public ForgotPassword generate(ForgotReqDTO.Send send, User user) {
+    public ForgotPassword generate(ForgotReqDTO.Send send, Account account) {
         Duration expDuration = Duration.of(2, ChronoUnit.HOURS);
 
         Instant iss = Instant.now();
@@ -61,7 +57,7 @@ public class ForgotPasswordService {
         JwtResult ffs = JwtUtil.encode(Jwts.claims()
                 .setId(UUID.randomUUID().toString())
                 .setAudience("ffs")
-                .setSubject(user.getId())
+                .setSubject(account.getId())
                 .setIssuedAt(Date.from(iss))
                 .setExpiration(Date.from(expired))
         );
@@ -69,7 +65,7 @@ public class ForgotPasswordService {
 
         try {
             return repo.save(ForgotPassword.builder()
-                    .uid(user.getId())
+                    .uid(account.getId())
                     .token(ffs.getToken())
                     .otp(otp)
                     .ttl(expDuration.getSeconds())
@@ -77,7 +73,7 @@ public class ForgotPasswordService {
         }
         finally {
             if (send == ForgotReqDTO.Send.TELEGRAM)
-                sendViaTelegram(user.getTg().getId(), otp);
+                sendViaTelegram(account.getTg().getId(), otp);
         }
     }
 
@@ -91,7 +87,7 @@ public class ForgotPasswordService {
             ForgotPassword fp = repo
                     .findById(body.getSubject())
                     .orElseThrow(() -> new BadRequestException("invalid otp identity reset"));
-            User user = userQueryService.findById(fp.getUid());
+            Account account = userQueryService.findById(fp.getUid());
 
             repo.deleteById(fp.getUid());
             String otp = generateOtp();
@@ -104,7 +100,7 @@ public class ForgotPasswordService {
                         .build());
             }
             finally {
-                sendViaTelegram(user.getTg().getId(), otp);
+                sendViaTelegram(account.getTg().getId(), otp);
             }
         }
         throw new BadRequestException("invalid otp identity reset");
@@ -131,9 +127,9 @@ public class ForgotPasswordService {
 
     @Transactional
     public void reset(String userId, String newPassword) {
-        User user = userQueryService.findById(userId);
-        auditProvider.setName(user.getNik());
-        userService.updatePassword(user, newPassword);
+        Account account = userQueryService.findById(userId);
+        auditProvider.setName(account.getNik());
+        userService.updatePassword(account, newPassword);
 
         repo.deleteById(userId);
         auditProvider.clear();

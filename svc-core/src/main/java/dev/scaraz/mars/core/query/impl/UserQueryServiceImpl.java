@@ -1,11 +1,11 @@
 package dev.scaraz.mars.core.query.impl;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.query.spec.UserSpecBuilder;
-import dev.scaraz.mars.core.repository.db.credential.UserRepo;
+import dev.scaraz.mars.core.repository.db.credential.AccountRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,13 +22,13 @@ import java.util.Optional;
 @Service
 public class UserQueryServiceImpl implements UserQueryService {
 
-    private final UserRepo repo;
+    private final AccountRepo repo;
     private final UserSpecBuilder specBuilder;
 
     @Override
-    public User loadUserByUsername(String username) throws UsernameNotFoundException {
+    public Account loadUserByUsername(String username) throws UsernameNotFoundException {
         // bisa nik, telegramId, email, & username
-        Optional<User> user = repo.findByNik(username);
+        Optional<Account> user = repo.findByNik(username);
 
         // Cari dengan telegram id
         if (user.isEmpty()) {
@@ -53,22 +53,22 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
-    public List<User> findAll() {
+    public List<Account> findAll() {
         return repo.findAll();
     }
 
     @Override
-    public Page<User> findAll(Pageable pageable) {
+    public Page<Account> findAll(Pageable pageable) {
         return repo.findAll(pageable);
     }
 
     @Override
-    public List<User> findAll(UserCriteria criteria) {
+    public List<Account> findAll(UserCriteria criteria) {
         return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
-    public Page<User> findAll(UserCriteria criteria, Pageable pageable) {
+    public Page<Account> findAll(UserCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
 
@@ -83,33 +83,33 @@ public class UserQueryServiceImpl implements UserQueryService {
     }
 
     @Override
-    public Optional<User> findOne(UserCriteria criteria) {
+    public Optional<Account> findOne(UserCriteria criteria) {
         return repo.findOne(specBuilder.createSpec(criteria));
     }
 
     @Override
-    public User findById(String id) {
+    public Account findById(String id) {
         return repo.findById(id)
                 .orElseThrow(() -> NotFoundException.entity(
-                        User.class, "id", id));
+                        Account.class, "id", id));
     }
 
     @Override
-    public Optional<User> findByIdOpt(String id) {
+    public Optional<Account> findByIdOpt(String id) {
         return repo.findById(id);
     }
 
     @Override
-    public User findByTelegramId(long tgId) {
+    public Account findByTelegramId(long tgId) {
         return repo.findByTgId(tgId)
                 .orElseThrow(() -> NotFoundException.entity(
-                        User.class, "telegramId", tgId));
+                        Account.class, "telegramId", tgId));
     }
 
     @Override
-    public User findByNik(String nik) {
+    public Account findByNik(String nik) {
         return repo.findByNik(nik)
-                .orElseThrow(() -> NotFoundException.entity(User.class, "nik", nik));
+                .orElseThrow(() -> NotFoundException.entity(Account.class, "nik", nik));
     }
 
     @Override

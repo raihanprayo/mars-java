@@ -4,7 +4,7 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
@@ -63,24 +63,24 @@ public class AgentServiceImpl implements AgentService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AgentWorkspace getWorkspaceByCurrentUser(String ticketId) {
-        User user = SecurityUtil.getCurrentUser();
+        Account account = SecurityUtil.getCurrentUser();
 
-        if (user == null) throw InternalServerException.args("Data akses user tidak ada!");
-        else if (!user.hasAnyRole(AppConstants.Authority.AGENT_ROLE))
+        if (account == null) throw InternalServerException.args("Data akses user tidak ada!");
+        else if (!account.hasAnyRole(AppConstants.Authority.AGENT_ROLE))
             throw new BadRequestException("User tidak punya akses sebagai agent");
-        else if (user.getTg().getId() == null)
+        else if (account.getTg().getId() == null)
             throw new BadRequestException("Agent tidak punya telegram id, untuk melakukan notifikasi");
 
-        Agent agent = repo.findByUserId(user.getId())
+        Agent agent = repo.findByUserId(account.getId())
                 .map(a -> {
-                    if (!a.getNik().equals(user.getNik())) a.setNik(user.getNik());
-                    if (!a.getTelegramId().equals(user.getTg().getId())) a.setTelegramId(user.getTg().getId());
+                    if (!a.getNik().equals(account.getNik())) a.setNik(account.getNik());
+                    if (!a.getTelegramId().equals(account.getTg().getId())) a.setTelegramId(account.getTg().getId());
                     return save(a);
                 })
                 .orElseGet(() -> save(Agent.builder()
-                        .nik(user.getNik())
-                        .telegramId(user.getTg().getId())
-                        .userId(user.getId())
+                        .nik(account.getNik())
+                        .telegramId(account.getTg().getId())
+                        .userId(account.getId())
                         .build()));
 
         Supplier<AgentWorkspace> fn = () -> save(AgentWorkspace.builder()

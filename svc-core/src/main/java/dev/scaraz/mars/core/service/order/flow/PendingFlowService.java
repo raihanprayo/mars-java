@@ -5,7 +5,7 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AgentQueryService;
@@ -258,11 +258,11 @@ public class PendingFlowService {
             if (TelegramContextHolder.hasContext()) {
                 logMessage = LogTicketService.LOG_CONFIRMED_CLOSE;
 
-                Optional<User> userOpt = userQueryService.findByIdOpt(agent.getUserId());
+                Optional<Account> userOpt = userQueryService.findByIdOpt(agent.getUserId());
                 notifierService.sendRaw(ticket.getSenderId(),
                         "Tiket: *" + ticketNo + "*: telah selesai dikerjakan",
                         "",
-                        "Eksekutor: *" + userOpt.map(User::getName).orElse("_<Unknown User>_") + "*",
+                        "Eksekutor: *" + userOpt.map(Account::getName).orElse("_<Unknown User>_") + "*",
                         "Status: *" + ticket.getStatus() + "*",
                         "",
                         "_Terima Kasih telah menggunakan *MARS*_"

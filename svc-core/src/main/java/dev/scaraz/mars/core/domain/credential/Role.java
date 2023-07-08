@@ -27,9 +27,6 @@ public class Role extends AuditableEntity implements GrantedAuthority {
     @Column
     private String name;
 
-    @Column(name = "\"order\"")
-    private int order;
-
     @Override
     public String getAuthority() {
         return name;
@@ -50,7 +47,6 @@ public class Role extends AuditableEntity implements GrantedAuthority {
 
         return new EqualsBuilder()
                 .appendSuper(super.equals(o))
-                .append(getOrder(), role.getOrder())
                 .append(getId(), role.getId())
                 .append(getName(), role.getName())
                 .isEquals();
@@ -62,7 +58,6 @@ public class Role extends AuditableEntity implements GrantedAuthority {
                 .appendSuper(super.hashCode())
                 .append(getId())
                 .append(getName())
-                .append(getOrder())
                 .toHashCode();
     }
 }

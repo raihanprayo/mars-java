@@ -1,6 +1,6 @@
 package dev.scaraz.mars.core.config.security;
 
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.util.AuthSource;
 import dev.scaraz.mars.core.util.DelegateUser;
 import lombok.Getter;
@@ -13,13 +13,13 @@ public class CoreAuthenticationToken extends AbstractAuthenticationToken {
     private final DelegateUser principal;
     private final String credentials;
 
-    public CoreAuthenticationToken(AuthSource source, User user, String token) {
-        super(user.getRoles());
+    public CoreAuthenticationToken(AuthSource source, Account account, String token) {
+        super(account.getRoles());
         this.source = source;
-        this.principal = new DelegateUser(user);
+        this.principal = new DelegateUser(account);
         this.credentials = token;
 
-        if (user.isActive()) super.setAuthenticated(true);
+        if (account.isActive()) super.setAuthenticated(true);
     }
 
     @Override

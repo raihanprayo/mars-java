@@ -1,15 +1,11 @@
 package dev.scaraz.mars.core.config;
 
 import dev.scaraz.mars.common.config.DataSourceAuditor;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.util.DelegateUser;
 import dev.scaraz.mars.security.authentication.identity.MarsAuthentication;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -19,7 +15,6 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.persistence.EntityManagerFactory;
 import java.util.List;
-import java.util.Optional;
 
 @Configuration
 @EnableTransactionManagement
@@ -42,8 +37,8 @@ public class DataSourceConfiguration {
                 Object principal = authentication.getPrincipal();
                 if (principal instanceof DelegateUser)
                     return ((DelegateUser) principal).getNik();
-                else if (principal instanceof User)
-                    return ((User) principal).getNik();
+                else if (principal instanceof Account)
+                    return ((Account) principal).getNik();
                 else if (principal instanceof MarsAuthentication)
                     return ((MarsAuthentication) principal).getName();
             }

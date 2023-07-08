@@ -6,7 +6,7 @@ import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
@@ -81,7 +81,7 @@ public class TicketServiceImpl implements TicketService {
         Issue issue = issueQueryService.findById(form.getIssue())
                 .orElseThrow(() -> NotFoundException.entity(Issue.class, "id", form.getIssue()));
 
-        User user = SecurityUtil.getCurrentUser();
+        Account account = SecurityUtil.getCurrentUser();
 
         int totalGaul = queryService.countGaul(form.getIssue(), form.getServiceNo());
         Ticket ticket = save(Ticket.builder()
@@ -91,8 +91,8 @@ public class TicketServiceImpl implements TicketService {
                 .incidentNo(form.getIncidentNo())
                 .serviceNo(form.getServiceNo())
                 .source(TcSource.PRIVATE)
-                .senderId(user.getTg().getId())
-                .senderName(user.getName())
+                .senderId(account.getTg().getId())
+                .senderName(account.getName())
                 .note(form.getNote())
                 .gaul(totalGaul)
                 .build());

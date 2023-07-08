@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.config.telegram;
 
 import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
@@ -32,7 +32,7 @@ public class AuthArgResolver implements TelegramAnnotationArgResolver {
     }
 
     @Override
-    public User resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
+    public Account resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
         TgAuth md = mp.getParameterAnnotation(TgAuth.class);
         long id = getTelegramId(ctx.getScope(), update);
         try {

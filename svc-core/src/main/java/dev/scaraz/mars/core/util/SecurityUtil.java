@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.util;
 
 import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.security.authentication.identity.MarsAuthentication;
 import dev.scaraz.mars.security.authentication.token.MarsAuthenticationToken;
@@ -23,7 +23,7 @@ public class SecurityUtil {
         INSTANCE = this;
     }
 
-    public static User getCurrentUser() {
+    public static Account getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated()) {
             if (auth instanceof CoreAuthenticationToken) {

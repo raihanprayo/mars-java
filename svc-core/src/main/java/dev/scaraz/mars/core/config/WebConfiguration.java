@@ -4,7 +4,7 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.tools.converter.StringToLocalDateConverter;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.interceptor.LogInterceptor;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -101,10 +101,10 @@ public class WebConfiguration implements WebMvcConfigurer, LocaleResolver {
 
     @Override
     public Locale resolveLocale(HttpServletRequest request) {
-        User user = SecurityUtil.getCurrentUser();
+        Account account = SecurityUtil.getCurrentUser();
 
         Locale locale;
-        if (user != null) locale = user.getSetting().getLang();
+        if (account != null) locale = account.getSetting().getLang();
         else locale = headerLocaleResolver.resolveLocale(request);
         return locale;
     }

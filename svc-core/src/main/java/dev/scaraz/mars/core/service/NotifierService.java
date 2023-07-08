@@ -4,11 +4,11 @@ import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.credential.UserApproval;
+import dev.scaraz.mars.core.domain.credential.Account;
+import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.repository.db.credential.UserSettingRepo;
+import dev.scaraz.mars.core.repository.db.credential.AccountSettingRepo;
 import dev.scaraz.mars.core.repository.db.order.SolutionRepo;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
@@ -36,7 +36,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 public class NotifierService {
 
     private final TelegramBotService botService;
-    private final UserSettingRepo userSettingRepo;
+    private final AccountSettingRepo accountSettingRepo;
 
     @Lazy
     private final AppConfigService appConfigService;
@@ -44,16 +44,16 @@ public class NotifierService {
     @Lazy
     private final SolutionRepo solutionRepo;
 
-    public void sendTaken(Ticket ticket, User user) {
+    public void sendTaken(Ticket ticket, Account account) {
         send(ticket.getSenderId(), "tg.ticket.wip",
                 ticket.getNo(),
-                user.getName());
+                account.getName());
     }
 
-    public void sendRetaken(Ticket ticket, User user) {
+    public void sendRetaken(Ticket ticket, Account account) {
         send(ticket.getSenderId(), "tg.ticket.wip.retake",
                 ticket.getNo(),
-                user.getName());
+                account.getName());
     }
 
     public int sendCloseConfirmation(Ticket ticket, long closeDurationMinute, TicketStatusFormDTO form) {
@@ -257,7 +257,7 @@ public class NotifierService {
                     .build()
     );
 
-    public static SendMessage WAITING_APPROVAL(long telegramId, UserApproval approval) {
+    public static SendMessage WAITING_APPROVAL(long telegramId, AccountApproval approval) {
         return SendMessage.builder()
                 .chatId(telegramId)
                 .parseMode(ParseMode.MARKDOWNV2)

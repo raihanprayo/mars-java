@@ -18,7 +18,7 @@ import static dev.scaraz.mars.common.tools.Translator.LANG_ID;
 
 @Entity
 @Table(name = "t_user_setting")
-public class UserSetting extends AuditableEntity {
+public class AccountSetting extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,7 +28,7 @@ public class UserSetting extends AuditableEntity {
     @ToString.Exclude
     @JoinColumn(name = "ref_user_id")
     @OneToOne(fetch = FetchType.LAZY)
-    private User user;
+    private Account account;
 
     @Column(name = "language")
     @Builder.Default

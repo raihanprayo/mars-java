@@ -1,19 +1,19 @@
 package dev.scaraz.mars.core.service.credential;
 
-import dev.scaraz.mars.core.domain.credential.UserApproval;
+import dev.scaraz.mars.core.domain.credential.AccountApproval;
 
 public interface UserApprovalService {
-    UserApproval save(UserApproval o);
+    AccountApproval save(AccountApproval o);
 
     void delete(String idOrNo);
 
-    void delete(UserApproval approval);
+    void delete(AccountApproval approval);
 
     void deleteCache(String id);
 
-    UserApproval findByIdOrNo(String idOrNo);
+    AccountApproval findByIdOrNo(String idOrNo);
 
-    UserApproval findByTelegramId(long telegramId);
+    AccountApproval findByTelegramId(long telegramId);
 
     boolean existsByTelegramId(long telegramId);
 }

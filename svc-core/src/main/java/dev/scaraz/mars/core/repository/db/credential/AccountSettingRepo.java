@@ -1,13 +1,13 @@
 package dev.scaraz.mars.core.repository.db.credential;
 
-import dev.scaraz.mars.core.domain.credential.UserSetting;
+import dev.scaraz.mars.core.domain.credential.AccountSetting;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 @Repository
-public interface UserSettingRepo extends JpaRepository<UserSetting, String> {
+public interface AccountSettingRepo extends JpaRepository<AccountSetting, String> {
 
-    Optional<UserSetting> findByUserTgId(long telegramId);
+    Optional<AccountSetting> findByAccountTgId(long telegramId);
 }

@@ -16,7 +16,6 @@ public class RoleMapperImpl implements RoleMapper {
         return RoleDTO.builder()
                 .id(role.getId())
                 .name(role.getName())
-                .order(role.getOrder())
                 .build();
     }
 

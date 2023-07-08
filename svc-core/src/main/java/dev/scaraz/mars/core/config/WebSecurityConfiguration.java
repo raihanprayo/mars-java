@@ -1,10 +1,14 @@
 package dev.scaraz.mars.core.config;
 
 import dev.scaraz.mars.common.config.properties.MarsProperties;
+import dev.scaraz.mars.common.utils.ConfigConstants;
+import dev.scaraz.mars.core.service.ConfigService;
+import dev.scaraz.mars.security.MarsPasswordEncoder;
 import dev.scaraz.mars.security.MarsSecurityConfigurer;
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -38,12 +42,13 @@ public class WebSecurityConfiguration extends MarsSecurityConfigurer {
 //    private final JwtRequestFilter jwtRequestFilter;
 
     private final MarsProperties marsProperties;
+    private final ConfigService configService;
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) {
         JwtUtil.setSecret(marsProperties.getSecret());
-        JwtUtil.setAccessTokenExpiredDuration(Duration.ofHours(2));
-        JwtUtil.setRefreshTokenExpiredDuration(Duration.ofHours(24));
+        JwtUtil.setAccessTokenExpiredDuration(() -> configService.get(ConfigConstants.JWT_TOKEN_EXPIRED_DRT).getAsDuration());
+        JwtUtil.setRefreshTokenExpiredDuration(() -> configService.get(ConfigConstants.JWT_TOKEN_REFRESH_EXPIRED_DRT).getAsDuration());
     }
 
     @Override
@@ -71,42 +76,10 @@ public class WebSecurityConfiguration extends MarsSecurityConfigurer {
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(SALT);
+    public MarsPasswordEncoder passwordEncoder() {
+        MarsPasswordEncoder.setPasswordStrength(SALT);
+        return new MarsPasswordEncoder();
     }
-
-
-//    @Bean
-//    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-//        return authenticationConfiguration
-//                .getAuthenticationManager();
-//    }
-//
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        log.debug("CORS {}", marsProperties.getCors().getAllowedOrigins());
-//        return http
-//                .cors().and()
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .exceptionHandling(eh -> eh
-//                        .accessDeniedHandler(problemSupport)
-//                        .authenticationEntryPoint(problemSupport)
-//                )
-//                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .formLogin(AbstractHttpConfigurer::disable)
-//                .logout(AbstractHttpConfigurer::disable)
-//                .authorizeRequests(r -> r
-//                        .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-//                        .antMatchers(HttpMethod.GET, "/app/test").permitAll()
-//                        .antMatchers(
-//                                "/auth/token",
-//                                "/auth/refresh"
-//                        ).permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
-//                .build();
-//    }
 
     @Bean
     public GrantedAuthorityDefaults grantedAuthorityDefaults() {

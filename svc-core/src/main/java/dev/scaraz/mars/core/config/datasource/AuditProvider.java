@@ -1,6 +1,6 @@
 package dev.scaraz.mars.core.config.datasource;
 
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.util.DelegateUser;
 import dev.scaraz.mars.security.authentication.identity.MarsAuthentication;
 import org.springframework.data.auditing.DateTimeProvider;
@@ -8,7 +8,6 @@ import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.util.DigestUtils;
 
 import javax.annotation.Nullable;
 import java.time.Instant;
@@ -34,8 +33,8 @@ public class AuditProvider implements AuditorAware<String>, DateTimeProvider {
             Object principal = authentication.getPrincipal();
             if (principal instanceof DelegateUser)
                 return Optional.of(((DelegateUser) principal).getNik());
-            else if (principal instanceof User)
-                return Optional.of(((User) principal).getNik());
+            else if (principal instanceof Account)
+                return Optional.of(((Account) principal).getNik());
             else if (principal instanceof MarsAuthentication)
                 return Optional.of(((MarsAuthentication) principal).getName());
         }

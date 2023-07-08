@@ -15,5 +15,4 @@ import lombok.experimental.SuperBuilder;
 public class RoleCriteria extends AuditableCriteria {
     private StringFilter id;
     private StringFilter name;
-    private IntegerFilter order;
 }

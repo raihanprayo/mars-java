@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service.credential.impl;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.Roles;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.repository.db.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.db.credential.RolesRepo;
 import dev.scaraz.mars.core.service.credential.RoleService;
@@ -42,21 +42,20 @@ public class RoleServiceImpl implements RoleService {
         log.info("CREATE NEW ROLE {}", name);
         return save(Role.builder()
                 .name(name.toLowerCase())
-                .order(order)
                 .build());
     }
 
     @Override
     @Transactional
-    public List<Roles> addUserRoles(User user, Role... roles) {
+    public List<Roles> addUserRoles(Account account, Role... roles) {
         List<Roles> mappedRole = Stream.of(roles)
                 .map(role -> Roles.builder()
-                        .user(user)
+                        .account(account)
                         .role(role)
                         .build())
                 .collect(Collectors.toList());
 
-        log.info("ADD ROLE FOR USER {} -- {}", user.getId(), roles);
+        log.info("ADD ROLE FOR USER {} -- {}", account.getId(), roles);
         return rolesRepo.saveAll(mappedRole);
     }
 

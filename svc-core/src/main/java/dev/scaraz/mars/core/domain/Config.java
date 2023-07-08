@@ -11,6 +11,7 @@ import lombok.ToString;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Getter
 @Setter
@@ -57,6 +58,8 @@ public class Config extends AuditableEntity implements DynamicValue {
 
                 if (type == DynamicType.BOOLEAN)
                     this.value = DynamicValueSerializer.BOOL.get((Boolean) value);
+                else if (type == DynamicType.LIST)
+                    this.value = DynamicValueSerializer.LIST_STRING.get((List<?>) value);
                 else
                     this.value = value.toString();
             }

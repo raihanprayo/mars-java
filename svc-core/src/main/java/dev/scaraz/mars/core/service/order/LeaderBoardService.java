@@ -4,7 +4,7 @@ import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
 import dev.scaraz.mars.core.query.UserQueryService;
@@ -41,7 +41,7 @@ public class LeaderBoardService {
 //    private final TicketSummaryQueryService ticketSummaryQueryService;
 
     public List<LeaderBoardDTO> findAll(LeaderBoardCriteria criteria) {
-        List<User> users = userQueryService.findAll(UserCriteria.builder()
+        List<Account> accounts = userQueryService.findAll(UserCriteria.builder()
                 .name(criteria.getName())
                 .nik(criteria.getNik())
                 .roles(RoleCriteria.builder()
@@ -49,12 +49,12 @@ public class LeaderBoardService {
                         .build())
                 .build());
 
-        return users.stream()
+        return accounts.stream()
                 .map(this.getLeaderBoard(criteria))
                 .collect(Collectors.toList());
     }
 
-    private Function<User, LeaderBoardDTO> getLeaderBoard(LeaderBoardCriteria criteria) {
+    private Function<Account, LeaderBoardDTO> getLeaderBoard(LeaderBoardCriteria criteria) {
         return user -> {
             criteria.setUserId(new StringFilter().setEq(user.getId()));
             List<LeaderBoardFragment> fragments = repo.findAll(specBuilder.createSpec(criteria));

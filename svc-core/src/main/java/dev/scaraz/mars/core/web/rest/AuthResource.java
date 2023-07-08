@@ -6,7 +6,7 @@ import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.service.AuthService;
@@ -37,8 +37,8 @@ public class AuthResource {
 
     @GetMapping("/whoami")
     public ResponseEntity<?> whoami() {
-        User user = SecurityUtil.getCurrentUser();
-        return ResponseEntity.ok(credentialMapper.fromUser(user));
+        Account account = SecurityUtil.getCurrentUser();
+        return ResponseEntity.ok(credentialMapper.fromUser(account));
     }
 
     @PostMapping(value = "/token")
@@ -80,9 +80,9 @@ public class AuthResource {
         @GetMapping
         public ResponseEntity<?> forgotAccess(@RequestParam("u") String username) {
             try {
-                User user = userQueryService.loadUserByUsername(username);
-                boolean accessibleViaEmail = StringUtils.isNoneBlank(user.getEmail());
-                boolean accessibleViaTelegram = user.getTg().getId() != null;
+                Account account = userQueryService.loadUserByUsername(username);
+                boolean accessibleViaEmail = StringUtils.isNoneBlank(account.getEmail());
+                boolean accessibleViaTelegram = account.getTg().getId() != null;
                 return ResponseEntity.ok(Map.of(
                         "email", accessibleViaEmail,
                         "telegram", accessibleViaTelegram

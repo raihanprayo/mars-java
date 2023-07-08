@@ -2,10 +2,10 @@ package dev.scaraz.mars.core.mapper.impl;
 
 import dev.scaraz.mars.common.domain.response.UserDTO;
 import dev.scaraz.mars.common.domain.response.WhoamiDTO;
+import dev.scaraz.mars.core.domain.credential.AccountTg;
 import dev.scaraz.mars.core.domain.credential.Role;
-import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.credential.UserSetting;
-import dev.scaraz.mars.core.domain.credential.UserTg;
+import dev.scaraz.mars.core.domain.credential.Account;
+import dev.scaraz.mars.core.domain.credential.AccountSetting;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.mapper.RoleMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class CredentialMapperImpl implements CredentialMapper {
     private final RoleMapper roleMapper;
 
     @Override
-    public UserDTO toDTO(User o) {
+    public UserDTO toDTO(Account o) {
         if (o == null) return null;
         return UserDTO.builder()
                 .id(o.getId())
@@ -44,7 +44,7 @@ public class CredentialMapperImpl implements CredentialMapper {
     }
 
     @Override
-    public UserDTO.UserTgDTO toDTO(UserTg o) {
+    public UserDTO.UserTgDTO toDTO(AccountTg o) {
         if (o == null) return null;
         return UserDTO.UserTgDTO.builder()
                 .id(o.getId())
@@ -53,7 +53,7 @@ public class CredentialMapperImpl implements CredentialMapper {
     }
 
     @Override
-    public UserDTO.UserSettingDTO toDTO(UserSetting o) {
+    public UserDTO.UserSettingDTO toDTO(AccountSetting o) {
         if (o == null) return null;
         return UserDTO.UserSettingDTO.builder()
                 .lang(o.getLang())
@@ -61,22 +61,22 @@ public class CredentialMapperImpl implements CredentialMapper {
     }
 
     @Override
-    public WhoamiDTO fromUser(User user) {
-        if (user == null) return null;
+    public WhoamiDTO fromUser(Account account) {
+        if (account == null) return null;
 
-        List<String> appRole = user.getRoles().stream()
+        List<String> appRole = account.getRoles().stream()
                 .map(Role::toString)
                 .collect(Collectors.toList());
 
         WhoamiDTO.WhoamiDTOBuilder builder = WhoamiDTO.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .nik(user.getNik())
-                .email(user.getEmail())
-                .witel(user.getWitel())
-                .sto(user.getSto())
-                .telegramId(user.getTg().getId())
-                .username(user.getTg().getUsername())
+                .id(account.getId())
+                .name(account.getName())
+                .nik(account.getNik())
+                .email(account.getEmail())
+                .witel(account.getWitel())
+                .sto(account.getSto())
+                .telegramId(account.getTg().getId())
+                .username(account.getTg().getUsername())
                 .roles(appRole);
 
         return builder.build();

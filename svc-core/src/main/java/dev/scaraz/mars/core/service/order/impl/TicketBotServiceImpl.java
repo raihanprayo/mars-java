@@ -14,7 +14,7 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.order.*;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
@@ -145,7 +145,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .build();
 
         List<String> names = userQueryService.findAll(userCriteria).stream()
-                .map(User::getName)
+                .map(Account::getName)
                 .distinct()
                 .collect(Collectors.toList());
 
@@ -171,16 +171,16 @@ public class TicketBotServiceImpl implements TicketBotService {
 
         int totalGaul = queryService.countGaul(form.getIssueId(), form.getService());
 
-        User user = SecurityUtil.getCurrentUser();
+        Account account = SecurityUtil.getCurrentUser();
         Ticket ticket = service.save(Ticket.builder()
-                .witel(form.getWitel() == null ? user.getWitel() : form.getWitel())
-                .sto(form.getSto() == null ? user.getSto() : form.getSto())
+                .witel(form.getWitel() == null ? account.getWitel() : form.getWitel())
+                .sto(form.getSto() == null ? account.getSto() : form.getSto())
                 .issue(issue)
                 .incidentNo(form.getIncident())
                 .serviceNo(form.getService())
                 .source(form.getSource())
-                .senderId(user.getTg().getId())
-                .senderName(user.getName())
+                .senderId(account.getTg().getId())
+                .senderName(account.getName())
                 .note(form.getNote())
                 .gaul(totalGaul)
                 .build());
@@ -296,8 +296,8 @@ public class TicketBotServiceImpl implements TicketBotService {
                     .build();
         }
 
-        User user = SecurityUtil.getCurrentUser();
-        if (user.hasAnyRole(AppConstants.Authority.AGENT_ROLE)) {
+        Account account = SecurityUtil.getCurrentUser();
+        if (account.hasAnyRole(AppConstants.Authority.AGENT_ROLE)) {
             boolean allowedCreate = appConfigService.getAllowAgentCreateTicket_bool()
                     .getAsBoolean();
 
@@ -305,7 +305,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 throw new BadRequestException("Agen tidak diperbolehkan membuat tiket sendiri");
         }
 
-        String name = user.getName();
+        String name = account.getName();
         InlineKeyboardMarkup markUp = new InlineKeyboardMarkup();
         SendMessage toSend = SendMessage.builder()
                 .parseMode(ParseMode.MARKDOWNV2)
@@ -496,7 +496,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     @Override
     @Transactional
     public SendMessage instantForm_end(long messageId, String text, @Nullable Collection<PhotoSize> captures) {
-        User user = Objects.requireNonNull(SecurityUtil.getCurrentUser());
+        Account account = Objects.requireNonNull(SecurityUtil.getCurrentUser());
 
         TicketConfirm confirm = confirmService.findById(messageId);
         Issue issue = issueQueryService.findById(confirm.getIssueId())
@@ -512,8 +512,8 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .product(issue.getProduct())
                 .issueId(issue.getId())
                 .source(source)
-                .senderId(user.getTg().getId())
-                .senderName(user.getName())
+                .senderId(account.getTg().getId())
+                .senderName(account.getName())
                 .build();
 
         for (IssueParam param : issue.getParams()) {
@@ -541,7 +541,7 @@ public class TicketBotServiceImpl implements TicketBotService {
         confirmService.deleteById(messageId);
 
         return SendMessage.builder()
-                .chatId(user.getTg().getId())
+                .chatId(account.getTg().getId())
                 .parseMode(ParseMode.MARKDOWNV2)
                 .text(TelegramUtil.esc(
                         String.format(

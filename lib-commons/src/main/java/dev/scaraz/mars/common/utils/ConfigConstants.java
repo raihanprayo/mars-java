@@ -15,7 +15,9 @@ public final class ConfigConstants {
             APP_PENDING_CONFIRMATION_DRT = "confirmation-pending-duration";
     public static final String
             ACC_EXPIRED_BOOL = "account-expireable",
-            ACC_EXPIRED_DRT = "account-expired-duration";
+            ACC_EXPIRED_DRT = "account-expired-duration",
+            ACC_REGISTRATION_EMAILS_LIST = "account-registration-approval-email";
+
     public static final String
             CRD_DEFAULT_PASSWORD_ALGO_STR = "password-algo",
             CRD_DEFAULT_PASSWORD_SECRET_STR = "password-secret",
@@ -40,10 +42,20 @@ public final class ConfigConstants {
     public static class ConfigEntry<T> {
         private final String key;
         private final Supplier<T> value;
+        private final String description;
 
-        public ConfigEntry(String key, Supplier<T> value) {
+        public ConfigEntry(String key, Supplier<T> value, String description) {
             this.key = key;
             this.value = value;
+            this.description = description;
+        }
+
+        public ConfigEntry(String key, Supplier<T> value) {
+            this(key, value, null);
+        }
+
+        public ConfigEntry(String key, T value, String description) {
+            this(key, () -> value, description);
         }
 
         public ConfigEntry(String key, T value) {

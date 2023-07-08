@@ -15,7 +15,7 @@ import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.cache.ForgotPassword;
-import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
@@ -72,9 +72,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
-        User user = userQueryService.loadUserByUsername(authReq.getNik());
+        Account account = userQueryService.loadUserByUsername(authReq.getNik());
 
-        boolean allowedLogin = user.hasAnyRole(
+        boolean allowedLogin = account.hasAnyRole(
                 AppConstants.Authority.ADMIN_ROLE,
                 AppConstants.Authority.AGENT_ROLE
         );
@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
             throw AccessDeniedException.args("Kamu tidak punya akses login ke dashboard");
 
         try {
-            boolean hasPassword = user.getPassword() != null;
+            boolean hasPassword = account.getPassword() != null;
             if (!hasPassword) {
                 if (!authReq.isConfirmed()) {
                     return AuthResDTO.builder()
@@ -91,25 +91,25 @@ public class AuthServiceImpl implements AuthService {
                             .build();
                 }
                 else {
-                    auditProvider.setName(user.getNik());
-                    user.setPassword(passwordEncoder.encode(authReq.getPassword()));
+                    auditProvider.setName(account.getNik());
+//                    account.setPassword(passwordEncoder.encode(authReq.getPassword()));
                     if (authReq.getEmail() != null)
-                        user.setEmail(authReq.getEmail());
+                        account.setEmail(authReq.getEmail());
 
-                    userService.save(user);
+                    userService.save(account);
                 }
             }
             else {
-                boolean passwordMatch = passwordEncoder.matches(authReq.getPassword(), user.getPassword());
+                boolean passwordMatch = passwordEncoder.matches(authReq.getPassword(), account.getPassword());
                 if (!passwordMatch) {
                     throw new UnauthorizedException("auth.user.invalid.password");
                 }
-                else if (!user.isActive())
+                else if (!account.isActive())
                     throw new UnauthorizedException("Silahkan menghubungi tim admin untuk mengaktifkan akunmu");
             }
 
-            return generateWebToken(user)
-                    .user(user)
+            return generateWebToken(account)
+                    .user(account)
                     .code(SUCCESS)
                     .build();
         }
@@ -119,25 +119,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public User authenticateFromBot(long telegramId) {
+    public Account authenticateFromBot(long telegramId) {
         try {
-            User user = userQueryService.findByTelegramId(telegramId);
-            if (!user.isActive())
+            Account account = userQueryService.findByTelegramId(telegramId);
+            if (!account.isActive())
                 throw new TgUnauthorizedError("Your account is not active, try to contact your administrator");
 
 //            SecurityContextHolder.getContext().setAuthentication(
 //                    new CoreAuthenticationToken(AuthSource.TELEGRAM, user, null));
             SecurityContextHolder.getContext().setAuthentication(
                     new MarsTelegramAuthenticationToken(MarsTelegramToken.builder()
-                            .id(user.getId())
-                            .name(user.getNik())
-                            .phone(user.getPhone())
-                            .witel(user.getWitel())
-                            .sto(user.getSto())
-                            .roles(user.getRoles())
+                            .id(account.getId())
+                            .name(account.getNik())
+                            .phone(account.getPhone())
+                            .witel(account.getWitel())
+                            .sto(account.getSto())
+                            .roles(account.getRoles())
                             .build())
             );
-            return user;
+            return account;
         }
         catch (NotFoundException ex) {
             throw new TgUnauthorizedError(telegramId);
@@ -147,7 +147,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResDTO refresh(MarsJwtAuthenticationToken authentication) {
         MarsAccessToken accessToken = authentication.getPrincipal();
-        User account = userQueryService.findById(accessToken.getSub());
+        Account account = userQueryService.findById(accessToken.getSub());
         return generateWebToken(account)
                 .code(SUCCESS)
                 .build();
@@ -155,10 +155,10 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional(readOnly = true)
-    public void logout(User user, boolean confirmed) {
+    public void logout(Account account, boolean confirmed) {
         List<AgentWorklog> worklogs = agentQueryService.findAllWorklogs(AgentWorklogCriteria.builder()
                 .workspace(AgentWorkspaceCriteria.builder()
-                        .userId(new StringFilter().setEq(user.getId()))
+                        .userId(new StringFilter().setEq(account.getId()))
                         .build())
                 .closeStatus(new TcStatusFilter()
                         .setSpecified(false))
@@ -186,8 +186,8 @@ public class AuthServiceImpl implements AuthService {
             Assert.notNull(f.getWith(), "No selected option");
             Assert.isTrue(StringUtils.isNoneBlank(f.getUsername()), "invalid identity matcher");
 
-            User user = userQueryService.loadUserByUsername(f.getUsername());
-            ForgotPassword fp = forgotPasswordService.generate(f.getWith(), user);
+            Account account = userQueryService.loadUserByUsername(f.getUsername());
+            ForgotPassword fp = forgotPasswordService.generate(f.getWith(), account);
             return ForgotResDTO.builder()
                     .token(fp.getToken())
                     .length(fp.getOtp().length())
@@ -246,25 +246,25 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    private AuthResDTO.AuthResDTOBuilder generateWebToken(User user) {
-        log.info("GENERATE WEB TOKEN FOR USER -- {} | {}", user.getUsername(), user.getWitel());
+    private AuthResDTO.AuthResDTOBuilder generateWebToken(Account account) {
+        log.info("GENERATE WEB TOKEN FOR USER -- {} | {}", account.getUsername(), account.getWitel());
         final String issuer = "web";
         Instant now = Instant.now();
 
         JwtResult access_token = JwtUtil.encode(MarsAccessToken.access()
                 .iss(issuer)
-                .sub(user.getId())
+                .sub(account.getId())
                 .issuedAt(Date.from(now))
-                .nik(user.getUsername())
-                .telegram(user.getTg().getId())
-                .witel(user.getWitel())
-                .sto(user.getSto())
-                .roles(user.getRoles())
+                .nik(account.getUsername())
+                .telegram(account.getTg().getId())
+                .witel(account.getWitel())
+                .sto(account.getSto())
+                .roles(account.getRoles())
                 .build());
 
         JwtResult refresh_token = JwtUtil.encode(MarsAccessToken.refresh()
                 .iss(issuer)
-                .sub(user.getId())
+                .sub(account.getId())
                 .issuedAt(Date.from(now))
                 .build());
 

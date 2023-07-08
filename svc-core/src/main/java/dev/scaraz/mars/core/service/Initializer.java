@@ -5,8 +5,9 @@ import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.ConfigConstants;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.Role;
-import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.Sto;
@@ -31,19 +32,18 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.time.Duration;
+import java.util.*;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Authority.*;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
+import static dev.scaraz.mars.common.utils.ConfigConstants.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class InitializerService {
+public class Initializer {
 
     private final MarsProperties marsProperties;
 
@@ -60,6 +60,7 @@ public class InitializerService {
     private final StoRepo stoRepo;
 
     private final AppConfigService appConfigService;
+    private final ConfigService configService;
 
 
     public void checkWitel() {
@@ -69,15 +70,47 @@ public class InitializerService {
     }
 
     public void importConfig() {
-        appConfigService.getCloseConfirm_drt();
-        appConfigService.getAllowLogin_bool();
-        appConfigService.getRegistrationRequireApproval_bool();
-        appConfigService.getSendRegistrationApproval_bool();
-        appConfigService.getPostPending_drt();
-        appConfigService.getApprovalDurationHour_drt();
-        appConfigService.getApprovalAdminEmails_arr();
-        appConfigService.getAllowAgentCreateTicket_bool();
-        appConfigService.getTelegramStartIssueColumn_int();
+//        appConfigService.getCloseConfirm_drt();
+//        appConfigService.getAllowLogin_bool();
+//        appConfigService.getRegistrationRequireApproval_bool();
+//        appConfigService.getSendRegistrationApproval_bool();
+//        appConfigService.getPostPending_drt();
+//        appConfigService.getApprovalDurationHour_drt();
+//        appConfigService.getApprovalAdminEmails_arr();
+//        appConfigService.getAllowAgentCreateTicket_bool();
+//        appConfigService.getTelegramStartIssueColumn_int();
+        configService.bulkCreate(Tag.APPLICATION,
+                new ConfigEntry<>(APP_CONFIRMATION_DRT, Duration.ofMinutes(30), "Lama waktu yang diperlukan untuk menunggu requestor menjawab konfirmasi sebelum tiket close"),
+                new ConfigEntry<>(APP_PENDING_CONFIRMATION_DRT, Duration.ofHours(1)),
+                new ConfigEntry<>(APP_ALLOW_AGENT_CREATE_TICKET_BOOL, false, "Agent diperbolehkan membuat tiket sendiri"),
+                new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_BOOL, true, "Registrasi user melalui bot telegram diperlukan persetujuan dari admin")
+        );
+
+        configService.bulkCreate(Tag.ACCOUNT,
+                new ConfigEntry<>(ACC_EXPIRED_BOOL, true, "Akun disable secara otomatis"),
+                new ConfigEntry<>(ACC_EXPIRED_DRT, Duration.ofDays(365), "Durasi akun sebelum terblokir"),
+                new ConfigEntry<>(ACC_REGISTRATION_EMAILS_LIST, List.of(), "List email yang ditampilkan untuk keperluan persetujuan registrasi")
+        );
+
+        configService.bulkCreate(Tag.CREDENTIAL,
+                new ConfigEntry<>(CRD_DEFAULT_PASSWORD_ALGO_STR, "bcrypt"),
+                new ConfigEntry<>(CRD_DEFAULT_PASSWORD_ITERATION_INT, 24_200),
+                new ConfigEntry<>(CRD_DEFAULT_PASSWORD_SECRET_STR, () -> {
+                    Random random = new Random();
+                    byte[] randomSecret = new byte[16];
+                    random.nextBytes(randomSecret);
+                    return Base64.getEncoder().encodeToString(randomSecret);
+                })
+        );
+
+        configService.bulkCreate(Tag.JWT,
+                new ConfigEntry<>(JWT_TOKEN_EXPIRED_DRT, Duration.ofHours(2), "Durasi web token"),
+                new ConfigEntry<>(JWT_TOKEN_REFRESH_EXPIRED_DRT, Duration.ofHours(12), "Durasi refresh web token")
+        );
+
+        configService.bulkCreate(Tag.TELEGRAM,
+                new ConfigEntry<>(TG_START_CMD_ISSUE_COLUMN_INT, 3)
+        );
     }
 
     @Transactional
@@ -97,7 +130,7 @@ public class InitializerService {
 
         if (!userQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
             log.debug("CREATE DEFAULT ADMIN USER");
-            User admin = userService.create(CreateUserDTO.builder()
+            Account admin = userService.create(CreateUserDTO.builder()
                     .name("Administrator")
                     .phone("00000000000")
                     .nik(AppConstants.Authority.ADMIN_NIK)
@@ -111,7 +144,6 @@ public class InitializerService {
         }
     }
 
-    @Async
     @Transactional
     public void importIssue() {
         Map<String, Product> names = Map.of("lambat", Product.INTERNET,
@@ -132,7 +164,6 @@ public class InitializerService {
         createIssueInlineButton();
     }
 
-    @Async
     public void importSto() {
         try (InputStream is = getClass().getResourceAsStream("/list-sto.csv")) {
             String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);

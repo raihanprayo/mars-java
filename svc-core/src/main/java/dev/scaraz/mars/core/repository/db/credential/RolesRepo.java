@@ -8,10 +8,10 @@ import java.util.List;
 
 @Repository
 public interface RolesRepo extends JpaRepository<Roles, String> {
-    List<Roles> findAllByUserId(String userId);
+    List<Roles> findAllByAccountId(String userId);
 
-    boolean existsByUserIdAndRoleName(String userId, String role);
+    boolean existsByAccountIdAndRoleName(String userId, String role);
 
-    void deleteByUserIdAndRoleIdIn(String userId, List<String> roleId);
+    void deleteByAccountIdAndRoleIdIn(String userId, List<String> roleId);
 
 }

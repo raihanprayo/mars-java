@@ -7,6 +7,7 @@ import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
@@ -16,13 +17,15 @@ import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
 import dev.scaraz.mars.core.repository.db.credential.RolesRepo;
-import dev.scaraz.mars.core.repository.db.credential.UserRepo;
-import dev.scaraz.mars.core.repository.db.credential.UserSettingRepo;
+import dev.scaraz.mars.core.repository.db.credential.AccountRepo;
+import dev.scaraz.mars.core.repository.db.credential.AccountSettingRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
+import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.util.DelegateUser;
+import dev.scaraz.mars.security.MarsPasswordEncoder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
@@ -35,12 +38,8 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -50,50 +49,66 @@ public class UserServiceImpl implements UserService {
 
     private final MarsProperties marsProperties;
     private final AppConfigService appConfigService;
+    private final ConfigService configService;
     private final AuditProvider auditProvider;
     private final TelegramBotService botService;
 
 
-    private final UserRepo userRepo;
+    private final AccountRepo accountRepo;
     private final UserApprovalService userApprovalService;
     private final RegistrationApprovalRepo registrationApprovalRepo;
 
     private final UserQueryService userQueryService;
-    private final UserSettingRepo settingRepo;
+    private final AccountSettingRepo settingRepo;
 
     private final RoleQueryService roleQueryService;
     private final RoleService roleService;
 
-    private final PasswordEncoder passwordEncoder;
+    private final MarsPasswordEncoder passwordEncoder;
 
     private final RolesRepo rolesRepo;
 
     @Override
-    public User save(User user) {
-        return userRepo.save(user);
+    public Account save(Account account) {
+        return accountRepo.save(account);
     }
 
     @Override
-    public UserSetting save(UserSetting credential) {
+    public AccountSetting save(AccountSetting credential) {
         return settingRepo.save(credential);
     }
 
     @Override
-    public User updatePassword(UserDetails user, String newPassword) {
-        User account;
-        if (user instanceof User) account = (User) user;
-        else {
-            account = userQueryService.findById(((DelegateUser) user).getId());
-        }
+    @Transactional
+    public Account updatePassword(UserDetails user, String newPassword) {
+        Account account;
+        if (user instanceof Account) account = (Account) user;
+        else account = userQueryService.findById(((DelegateUser) user).getId());
 
-        account.setPassword(passwordEncoder.encode(newPassword));
+        String algo = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_ALGO_STR).getValue();
+        int hashIteration = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_ITERATION_INT).getAsInt();
+        String secret = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_SECRET_STR).getValue();
+
+
+        AccountCredential credential = AccountCredential.builder()
+                .account(account)
+                .priority(10)
+                .password(newPassword)
+                .hashIteration(hashIteration)
+                .algorithm(algo)
+                .secret(secret)
+                .build();
+
+        credential.setPassword(passwordEncoder.encode(credential));
+        account.getCredentials().clear();
+        account.getCredentials().add(credential);
         return save(account);
     }
 
     @Override
     @Transactional
-    public User create(CreateUserDTO req) {
-        User nuser = save(User.builder()
+    public Account create(CreateUserDTO req) {
+        Account nuser = save(Account.builder()
                 .name(req.getName())
                 .nik(req.getNik())
                 .phone(req.getPhone())
@@ -101,7 +116,7 @@ public class UserServiceImpl implements UserService {
                 .witel(req.getWitel())
                 .sto(req.getSto())
                 .email(req.getEmail())
-                .tg(UserTg.builder()
+                .tg(AccountTg.builder()
                         .username(req.getUsername())
                         .build())
 //                .credential(UserCredential.builder()
@@ -128,10 +143,10 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void approval(String approvalId, boolean approved) {
-        UserApproval approval = userApprovalService.findByIdOrNo(approvalId);
+        AccountApproval approval = userApprovalService.findByIdOrNo(approvalId);
 
         if (approved) {
-            User nuser = save(User.builder()
+            Account nuser = save(Account.builder()
                     .name(approval.getName())
                     .nik(approval.getNik())
                     .phone(approval.getPhone())
@@ -167,7 +182,7 @@ public class UserServiceImpl implements UserService {
             save(nuser);
         }
         else {
-            if (approval.getStatus().equals(UserApproval.REQUIRE_DOCUMENT)) {
+            if (approval.getStatus().equals(AccountApproval.REQUIRE_DOCUMENT)) {
                 userApprovalService.delete(approvalId);
 
                 try {
@@ -187,7 +202,7 @@ public class UserServiceImpl implements UserService {
             }
             else {
                 userApprovalService.deleteCache(approvalId);
-                approval.setStatus(UserApproval.REQUIRE_DOCUMENT);
+                approval.setStatus(AccountApproval.REQUIRE_DOCUMENT);
                 try {
                     List<String> emails = appConfigService.getApprovalAdminEmails_arr()
                             .getAsArray();
@@ -217,16 +232,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void pairing(User user, BotRegistration registration) {
-        user.setTg(UserTg.builder()
+    public void pairing(Account account, BotRegistration registration) {
+        account.setTg(AccountTg.builder()
                 .id(registration.getId())
                 .username(registration.getUsername())
                 .build());
 
-        if (!user.isActive())
-            user.setActive(true);
+        if (!account.isActive())
+            account.setActive(true);
 
-        save(user);
+        save(account);
     }
 
     @Override
@@ -236,14 +251,14 @@ public class UserServiceImpl implements UserService {
         try {
             if (needApproval) {
                 String regNo = "REG0" + req.getTgId();
-                UserApproval approval = userApprovalService.save(UserApproval.builder()
+                AccountApproval approval = userApprovalService.save(AccountApproval.builder()
                         .no(regNo)
-                        .status(UserApproval.WAIT_APPROVAL)
+                        .status(AccountApproval.WAIT_APPROVAL)
                         .name(req.getName())
                         .nik(req.getNik())
                         .witel(req.getWitel())
                         .sto(req.getSto())
-                        .tg(UserTg.builder()
+                        .tg(AccountTg.builder()
                                 .id(req.getTgId())
                                 .username(req.getTgUsername())
                                 .build())
@@ -268,27 +283,27 @@ public class UserServiceImpl implements UserService {
             }
             else {
                 auditProvider.setName(req.getNik());
-                User user = userRepo.saveAndFlush(User.builder()
+                Account account = accountRepo.saveAndFlush(Account.builder()
                         .nik(req.getNik())
                         .name(req.getName())
                         .phone(req.getPhone())
                         .active(true)
                         .witel(req.getWitel())
                         .sto(req.getSto())
-                        .tg(UserTg.builder()
+                        .tg(AccountTg.builder()
                                 .id(req.getTgId())
                                 .username(req.getTgUsername())
                                 .build())
                         .build());
 
                 Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
-                user.addRoles(roleUser);
-                if (marsProperties.getWitel() == user.getWitel()) {
+                account.addRoles(roleUser);
+                if (marsProperties.getWitel() == account.getWitel()) {
                     Role roleAgent = roleQueryService.findByIdOrName(AppConstants.Authority.AGENT_ROLE);
-                    user.addRoles(roleAgent);
+                    account.addRoles(roleAgent);
                 }
 
-                save(user);
+                save(account);
             }
         }
         catch (TelegramApiException e) {
@@ -301,49 +316,49 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public User updatePartial(String userId, UpdateUserDashboardDTO dto) {
+    public Account updatePartial(String userId, UpdateUserDashboardDTO dto) {
         log.info("PARTIAL DATA USER UPDATE {}", dto);
-        User user = userQueryService.findById(userId);
+        Account account = userQueryService.findById(userId);
 
-        if (dto.getNik() != null) user.setNik(dto.getNik());
-        if (dto.getPhone() != null) user.setPhone(dto.getPhone());
-        if (dto.getActive() != null) user.setActive(dto.getActive());
-        if (dto.getWitel() != null) user.setWitel(dto.getWitel());
-        if (dto.getSto() != null) user.setSto(dto.getSto());
-        if (dto.getEmail() != null) user.setEmail(dto.getEmail());
+        if (dto.getNik() != null) account.setNik(dto.getNik());
+        if (dto.getPhone() != null) account.setPhone(dto.getPhone());
+        if (dto.getActive() != null) account.setActive(dto.getActive());
+        if (dto.getWitel() != null) account.setWitel(dto.getWitel());
+        if (dto.getSto() != null) account.setSto(dto.getSto());
+        if (dto.getEmail() != null) account.setEmail(dto.getEmail());
 
         if (dto.getTg() != null) {
             UpdateUserDashboardDTO.UpdateTelegram tg = dto.getTg();
 
-            if (!Objects.equals(user.getTg().getUsername(), tg.getUsername()))
-                user.getTg().setUsername(tg.getUsername());
+            if (!Objects.equals(account.getTg().getUsername(), tg.getUsername()))
+                account.getTg().setUsername(tg.getUsername());
         }
 
         if (dto.getRoles() != null) {
             List<String> removedIds = dto.getRoles().getRemoved();
             List<String> selectedIds = dto.getRoles().getSelected();
 
-            rolesRepo.deleteByUserIdAndRoleIdIn(userId, removedIds);
+            rolesRepo.deleteByAccountIdAndRoleIdIn(userId, removedIds);
 
             List<Role> roles = new ArrayList<>();
             for (String roleId : selectedIds) {
                 Role role = roleQueryService.findByIdOrName(roleId);
-                if (rolesRepo.existsByUserIdAndRoleName(userId, role.getName())) {
+                if (rolesRepo.existsByAccountIdAndRoleName(userId, role.getName())) {
                     roles.add(role);
                     continue;
                 }
 
                 rolesRepo.save(Roles.builder()
-                        .user(user)
+                        .account(account)
                         .role(role)
                         .build());
                 roles.add(role);
             }
 
-            user.setRoles(roles);
+            account.setRoles(new LinkedHashSet<>(roles));
         }
 
-        return save(user);
+        return save(account);
     }
 
 }

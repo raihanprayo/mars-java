@@ -1,8 +1,9 @@
 package dev.scaraz.mars.core;
 
-import dev.scaraz.mars.core.service.InitializerService;
+import dev.scaraz.mars.core.service.Initializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,7 +22,7 @@ import java.net.UnknownHostException;
 @SpringBootApplication
 @EnableScheduling
 public class CoreApplication implements CommandLineRunner {
-    private final InitializerService initializer;
+    private final Initializer initializer;
 
     public static void main(String[] args) throws UnknownHostException {
         ConfigurableApplicationContext context = SpringApplication.run(CoreApplication.class, args);
@@ -50,11 +51,13 @@ public class CoreApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        initializer.importIssue();
-
-        initializer.importRolesAndAdminAccount();
-//        initializer.preInitGroups();
-        initializer.importConfig();
-        initializer.importSto();
+        String imports = System.getenv("MARS_IMPORT");
+        if (StringUtils.isNoneBlank(imports)) {
+            log.info("Import initialization");
+            initializer.importConfig();
+            initializer.importIssue();
+            initializer.importRolesAndAdminAccount();
+            initializer.importSto();
+        }
     }
 }

@@ -2,9 +2,9 @@ package dev.scaraz.mars.core.service.credential.impl;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
-import dev.scaraz.mars.core.domain.credential.UserApproval;
+import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
-import dev.scaraz.mars.core.repository.db.credential.UserApprovalRepo;
+import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.Cache.USR_APPROVAL_NS;
 @Service
 public class UserApprovalServiceImpl implements UserApprovalService {
 
-    private final UserApprovalRepo repo;
+    private final AccountApprovalRepo repo;
     private final RegistrationApprovalRepo cacheRepo;
     private final StringRedisTemplate stringRedisTemplate;
 
@@ -37,8 +37,8 @@ public class UserApprovalServiceImpl implements UserApprovalService {
     private final AppConfigService appConfigService;
 
     @Override
-    public UserApproval save(UserApproval o) {
-        UserApproval save = repo.save(o);
+    public AccountApproval save(AccountApproval o) {
+        AccountApproval save = repo.save(o);
         int duration = appConfigService.getApprovalDurationHour_drt()
                 .getAsNumber()
                 .intValue();
@@ -56,7 +56,7 @@ public class UserApprovalServiceImpl implements UserApprovalService {
     }
 
     @Override
-    public void delete(UserApproval approval) {
+    public void delete(AccountApproval approval) {
         repo.deleteById(approval.getId());
         cacheRepo.deleteById(approval.getId());
     }
@@ -67,15 +67,15 @@ public class UserApprovalServiceImpl implements UserApprovalService {
     }
 
     @Override
-    public UserApproval findByIdOrNo(String idOrNo) {
+    public AccountApproval findByIdOrNo(String idOrNo) {
         return repo.findByIdOrNo(idOrNo, idOrNo)
-                .orElseThrow(() -> NotFoundException.entity(UserApproval.class, "id/no", idOrNo));
+                .orElseThrow(() -> NotFoundException.entity(AccountApproval.class, "id/no", idOrNo));
     }
 
     @Override
-    public UserApproval findByTelegramId(long telegramId) {
+    public AccountApproval findByTelegramId(long telegramId) {
         return repo.findByTgId(telegramId)
-                .orElseThrow(() -> NotFoundException.entity(UserApproval.class, "telegramId", telegramId));
+                .orElseThrow(() -> NotFoundException.entity(AccountApproval.class, "telegramId", telegramId));
     }
 
     @Override

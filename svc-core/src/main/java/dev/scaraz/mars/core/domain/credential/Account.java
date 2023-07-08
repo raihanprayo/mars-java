@@ -23,7 +23,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "t_user")
-public class User extends AuditableEntity implements AuthenticatedPrincipal, UserDetails {
+public class Account extends AuditableEntity implements AuthenticatedPrincipal, UserDetails {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -42,9 +42,6 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     @Column(name = "email")
     private String email;
 
-//    @Column(name = "tg_id")
-//    private Long telegramId;
-
     @Column
     @Enumerated(EnumType.STRING)
     private Witel witel;
@@ -55,17 +52,21 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     @Column
     private boolean active;
 
-    @Column(name = "password")
-    private String password;
+//    @Column(name = "password")
+//    private String password;
 
     @Embedded
     @Builder.Default
-    private UserTg tg = new UserTg();
+    private AccountTg tg = new AccountTg();
 
     @ToString.Exclude
     @Builder.Default
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private UserSetting setting = new UserSetting();
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL)
+    private AccountSetting setting = new AccountSetting();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "account", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Set<AccountCredential> credentials = new LinkedHashSet<>();
 
     @ToString.Exclude
     @Builder.Default
@@ -75,33 +76,29 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
             schema = "mars",
             joinColumns = @JoinColumn(name = "ref_user_id"),
             inverseJoinColumns = @JoinColumn(name = "ref_role_id"))
-    private Set<Role> roles = new HashSet<>();
-
-    public void setRoles(Collection<Role> roles) {
-        this.roles = new HashSet<>(roles);
-    }
+    private Set<Role> roles = new LinkedHashSet<>();
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
 
-        if (!(o instanceof User)) return false;
+        if (!(o instanceof Account)) return false;
 
-        User user = (User) o;
+        Account account = (Account) o;
 
         return new EqualsBuilder()
                 .appendSuper(super.equals(o))
-                .append(isActive(), user.isActive())
-                .append(getId(), user.getId())
-                .append(getName(), user.getName())
-                .append(getNik(), user.getNik())
-                .append(getPhone(), user.getPhone())
-                .append(getWitel(), user.getWitel())
-                .append(getSto(), user.getSto())
-                .append(getEmail(), user.getEmail())
-                .append(getPassword(), user.getPassword())
-                .append(getTg(), user.getTg())
-                .append(getRoles(), user.getRoles())
+                .append(isActive(), account.isActive())
+                .append(getId(), account.getId())
+                .append(getName(), account.getName())
+                .append(getNik(), account.getNik())
+                .append(getPhone(), account.getPhone())
+                .append(getWitel(), account.getWitel())
+                .append(getSto(), account.getSto())
+                .append(getEmail(), account.getEmail())
+                .append(getPassword(), account.getPassword())
+                .append(getTg(), account.getTg())
+                .append(getRoles(), account.getRoles())
                 .isEquals();
     }
 
@@ -126,8 +123,8 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     @PreUpdate
     @PrePersist
     protected void prePersist() {
-        if (this.setting.getUser() == null)
-            this.setting.setUser(this);
+        if (this.setting.getAccount() == null)
+            this.setting.setAccount(this);
     }
 
     @Override
@@ -136,16 +133,23 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
         return getRoles();
     }
 
+    public AccountCredential getCredential() {
+        if (credentials == null || credentials.size() == 0) return null;
+        return new ArrayList<>(credentials).get(0);
+    }
+
     @Override
     @JsonIgnore
     public String getPassword() {
-        return password;
+        return Optional.ofNullable(getCredential())
+                .map(AccountCredential::format)
+                .orElse(null);
     }
 
     @Override
     @JsonIgnore
     public String getUsername() {
-        return getName();
+        return getNik();
     }
 
     @Override

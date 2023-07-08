@@ -4,11 +4,10 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
-import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.order.*;
@@ -50,8 +49,8 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         else if (agentQueryService.isWorkInProgress(ticket.getId()))
             throw new BadRequestException("Tidak dapat mengambil Order/Tiket yang sedang dalam pengerjaan");
 
-        User user = SecurityUtil.getCurrentUser();
-        if (user != null) {
+        Account account = SecurityUtil.getCurrentUser();
+        if (account != null) {
             TcStatus prevStatus = ticket.getStatus();
 
             AgentWorkspace workspace = agentService.getWorkspaceByCurrentUser(ticket.getId());
@@ -65,8 +64,8 @@ public class TicketFlowServiceImpl implements TicketFlowService {
             ticket.setStatus(TcStatus.PROGRESS);
 
             boolean isPreviousStatusOpen = prevStatus == TcStatus.OPEN;
-            if (isPreviousStatusOpen) notifierService.sendTaken(ticket, user);
-            else notifierService.sendRetaken(ticket, user);
+            if (isPreviousStatusOpen) notifierService.sendTaken(ticket, account);
+            else notifierService.sendRetaken(ticket, account);
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)
