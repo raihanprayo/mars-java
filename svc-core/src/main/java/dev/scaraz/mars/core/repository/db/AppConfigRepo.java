@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.repository;
+package dev.scaraz.mars.core.repository.db;
 
 import dev.scaraz.mars.core.domain.AppConfig;
 import org.springframework.data.jpa.repository.JpaRepository;

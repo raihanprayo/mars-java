@@ -67,12 +67,6 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private UserSetting setting = new UserSetting();
 
-    @JsonIgnore
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "ref_group_id")
-    private Group group;
-
     @ToString.Exclude
     @Builder.Default
     @ManyToMany(fetch = FetchType.EAGER)
@@ -107,7 +101,6 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
                 .append(getEmail(), user.getEmail())
                 .append(getPassword(), user.getPassword())
                 .append(getTg(), user.getTg())
-                .append(getGroup(), user.getGroup())
                 .append(getRoles(), user.getRoles())
                 .isEquals();
     }
@@ -126,7 +119,6 @@ public class User extends AuditableEntity implements AuthenticatedPrincipal, Use
                 .append(getEmail())
                 .append(getPassword())
                 .append(getTg())
-                .append(getGroup())
                 .append(getRoles())
                 .toHashCode();
     }

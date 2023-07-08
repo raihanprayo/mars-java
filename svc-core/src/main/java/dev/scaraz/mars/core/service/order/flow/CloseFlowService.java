@@ -10,7 +10,7 @@ import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
-import dev.scaraz.mars.core.repository.order.AgentRepo;
+import dev.scaraz.mars.core.repository.db.order.AgentRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
@@ -29,7 +29,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 import static dev.scaraz.mars.core.service.order.LogTicketService.*;
 

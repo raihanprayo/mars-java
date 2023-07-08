@@ -27,16 +27,4 @@ public class WhoamiDTO {
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 
-    @Builder.Default
-    private Group group = new Group();
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Group {
-        private String id;
-        private String name;
-    }
-
 }

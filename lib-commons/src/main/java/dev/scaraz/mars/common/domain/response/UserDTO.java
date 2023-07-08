@@ -38,8 +38,6 @@ public class UserDTO {
     @JsonDeserialize(using = InstantDeserializer.class)
     private Instant updatedAt;
 
-    private GroupDTO group;
-
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 

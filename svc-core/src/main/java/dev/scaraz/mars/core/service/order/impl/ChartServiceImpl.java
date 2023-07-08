@@ -2,11 +2,6 @@ package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
-import dev.scaraz.mars.core.query.AgentQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
-import dev.scaraz.mars.core.query.UserQueryService;
-import dev.scaraz.mars.core.repository.order.LogTicketRepo;
 import dev.scaraz.mars.core.service.order.ChartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

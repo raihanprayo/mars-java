@@ -2,7 +2,6 @@ package dev.scaraz.mars.core.service.credential.impl;
 
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
-import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
@@ -16,7 +15,7 @@ import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
-import dev.scaraz.mars.core.repository.order.StoRepo;
+import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
 import dev.scaraz.mars.core.service.credential.UserService;
@@ -287,7 +286,7 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
         boolean needApproval = appConfigService.getRegistrationRequireApproval_bool()
                 .getAsBoolean();
 
-        userService.createFromBot(null, needApproval, TelegramCreateUserDTO.builder()
+        userService.createFromBot(needApproval, TelegramCreateUserDTO.builder()
                 .tgId(registration.getId())
                 .tgUsername(registration.getUsername())
                 .phone(registration.getPhone())

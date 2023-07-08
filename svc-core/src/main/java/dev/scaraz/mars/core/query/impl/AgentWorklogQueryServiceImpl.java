@@ -4,7 +4,7 @@ import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.query.AgentWorklogQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 import dev.scaraz.mars.core.query.spec.AgentWorklogSpecBuilder;
-import dev.scaraz.mars.core.repository.order.AgentWorklogRepo;
+import dev.scaraz.mars.core.repository.db.order.AgentWorklogRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

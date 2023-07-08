@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service.impl;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.AppConfig;
-import dev.scaraz.mars.core.repository.AppConfigRepo;
+import dev.scaraz.mars.core.repository.db.AppConfigRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

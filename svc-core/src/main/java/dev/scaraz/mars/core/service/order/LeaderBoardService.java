@@ -1,40 +1,23 @@
 package dev.scaraz.mars.core.service.order;
 
-import dev.scaraz.mars.common.domain.response.AgentWorklogDTO;
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
-import dev.scaraz.mars.common.domain.response.TicketShortDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.core.domain.order.AgentWorklog;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
-import dev.scaraz.mars.core.domain.view.TicketSummary;
-import dev.scaraz.mars.core.mapper.AgentMapper;
-import dev.scaraz.mars.core.mapper.TicketMapper;
-import dev.scaraz.mars.core.query.AgentWorklogQueryService;
-import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.*;
 import dev.scaraz.mars.core.query.spec.LeaderBoardSpecBuilder;
-import dev.scaraz.mars.core.repository.view.LeaderBoardFragmentRepo;
+import dev.scaraz.mars.core.repository.db.view.LeaderBoardFragmentRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 

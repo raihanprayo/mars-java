@@ -5,7 +5,7 @@ import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.query.RoleQueryService;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.query.spec.RoleSpecBuilder;
-import dev.scaraz.mars.core.repository.credential.RoleRepo;
+import dev.scaraz.mars.core.repository.db.credential.RoleRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

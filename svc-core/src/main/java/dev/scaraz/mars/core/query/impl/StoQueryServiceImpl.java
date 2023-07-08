@@ -4,7 +4,7 @@ import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.StoQueryService;
 import dev.scaraz.mars.core.query.criteria.StoCriteria;
 import dev.scaraz.mars.core.query.spec.StoSpecBuilder;
-import dev.scaraz.mars.core.repository.order.StoRepo;
+import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

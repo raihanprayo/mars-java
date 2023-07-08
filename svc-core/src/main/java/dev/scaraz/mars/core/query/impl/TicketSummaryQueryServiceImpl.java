@@ -13,7 +13,7 @@ import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.query.spec.TicketSummarySpecBuilder;
-import dev.scaraz.mars.core.repository.order.TicketSummaryRepo;
+import dev.scaraz.mars.core.repository.db.order.TicketSummaryRepo;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

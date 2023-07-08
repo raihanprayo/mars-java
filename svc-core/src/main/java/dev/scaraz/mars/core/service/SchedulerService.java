@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
-import dev.scaraz.mars.core.repository.order.TicketConfirmRepo;
+import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
 import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
@@ -17,7 +17,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 

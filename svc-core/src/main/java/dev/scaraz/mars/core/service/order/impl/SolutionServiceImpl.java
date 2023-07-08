@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.core.domain.order.Solution;
-import dev.scaraz.mars.core.repository.order.SolutionRepo;
+import dev.scaraz.mars.core.repository.db.order.SolutionRepo;
 import dev.scaraz.mars.core.service.order.SolutionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

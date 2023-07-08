@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.core.domain.AppConfig;
-import dev.scaraz.mars.core.repository.AppConfigRepo;
+import dev.scaraz.mars.core.repository.db.AppConfigRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;

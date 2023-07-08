@@ -1,9 +1,11 @@
 package dev.scaraz.mars.core.mapper.impl;
 
-import dev.scaraz.mars.common.domain.response.GroupDTO;
 import dev.scaraz.mars.common.domain.response.UserDTO;
 import dev.scaraz.mars.common.domain.response.WhoamiDTO;
-import dev.scaraz.mars.core.domain.credential.*;
+import dev.scaraz.mars.core.domain.credential.Role;
+import dev.scaraz.mars.core.domain.credential.User;
+import dev.scaraz.mars.core.domain.credential.UserSetting;
+import dev.scaraz.mars.core.domain.credential.UserTg;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.mapper.RoleMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,6 @@ public class CredentialMapperImpl implements CredentialMapper {
                 .sto(o.getSto())
                 .tg(toDTO(o.getTg()))
                 .active(o.isActive())
-                .group(toPartialDTO(o.getGroup()))
                 .roles(o.getRoles().stream()
                         .map(Role::getName)
                         .collect(Collectors.toList()))
@@ -60,15 +61,6 @@ public class CredentialMapperImpl implements CredentialMapper {
     }
 
     @Override
-    public GroupDTO toPartialDTO(Group o) {
-        if (o == null) return null;
-        return GroupDTO.builder()
-                .id(o.getId())
-                .name(o.getName())
-                .build();
-    }
-
-    @Override
     public WhoamiDTO fromUser(User user) {
         if (user == null) return null;
 
@@ -86,14 +78,6 @@ public class CredentialMapperImpl implements CredentialMapper {
                 .telegramId(user.getTg().getId())
                 .username(user.getTg().getUsername())
                 .roles(appRole);
-
-        Group group = user.getGroup();
-        if (group != null) {
-            builder.group(WhoamiDTO.Group.builder()
-                    .id(group.getId())
-                    .name(group.getName())
-                    .build());
-        }
 
         return builder.build();
     }

@@ -15,9 +15,9 @@ import dev.scaraz.mars.core.query.RoleQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
-import dev.scaraz.mars.core.repository.credential.RolesRepo;
-import dev.scaraz.mars.core.repository.credential.UserRepo;
-import dev.scaraz.mars.core.repository.credential.UserSettingRepo;
+import dev.scaraz.mars.core.repository.db.credential.RolesRepo;
+import dev.scaraz.mars.core.repository.db.credential.UserRepo;
+import dev.scaraz.mars.core.repository.db.credential.UserSettingRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
@@ -231,7 +231,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void createFromBot(@Nullable Group group, boolean needApproval, TelegramCreateUserDTO req) {
+    public void createFromBot(boolean needApproval, TelegramCreateUserDTO req) {
         log.info("CREATE NEW USER FROM BOT -- REQUIRE APPROVAL={} DATA={}", needApproval, req);
         try {
             if (needApproval) {

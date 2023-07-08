@@ -1,19 +1,11 @@
-package dev.scaraz.mars.core.repository.order;
+package dev.scaraz.mars.core.repository.db.order;
 
-import dev.scaraz.mars.common.tools.enums.AgStatus;
-import dev.scaraz.mars.common.tools.enums.Product;
-import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.Optional;
 
 @Repository

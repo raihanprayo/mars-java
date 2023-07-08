@@ -5,7 +5,7 @@ import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.query.spec.UserSpecBuilder;
-import dev.scaraz.mars.core.repository.credential.UserRepo;
+import dev.scaraz.mars.core.repository.db.credential.UserRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

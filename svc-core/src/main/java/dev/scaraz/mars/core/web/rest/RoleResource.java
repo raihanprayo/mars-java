@@ -2,21 +2,17 @@ package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.domain.response.RoleDTO;
 import dev.scaraz.mars.common.utils.ResourceUtil;
-import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.credential.Roles;
 import dev.scaraz.mars.core.mapper.RoleMapper;
 import dev.scaraz.mars.core.query.RoleQueryService;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
-import dev.scaraz.mars.core.repository.credential.RolesRepo;
+import dev.scaraz.mars.core.repository.db.credential.RolesRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

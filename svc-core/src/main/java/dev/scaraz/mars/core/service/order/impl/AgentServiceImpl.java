@@ -9,9 +9,9 @@ import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.repository.order.AgentRepo;
-import dev.scaraz.mars.core.repository.order.AgentWorklogRepo;
-import dev.scaraz.mars.core.repository.order.AgentWorkspaceRepo;
+import dev.scaraz.mars.core.repository.db.order.AgentRepo;
+import dev.scaraz.mars.core.repository.db.order.AgentWorklogRepo;
+import dev.scaraz.mars.core.repository.db.order.AgentWorkspaceRepo;
 import dev.scaraz.mars.core.service.order.AgentService;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.function.Supplier;
 
 @Slf4j

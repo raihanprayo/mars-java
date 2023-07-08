@@ -12,9 +12,9 @@ import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.UserQueryService;
-import dev.scaraz.mars.core.repository.credential.RoleRepo;
-import dev.scaraz.mars.core.repository.order.IssueRepo;
-import dev.scaraz.mars.core.repository.order.StoRepo;
+import dev.scaraz.mars.core.repository.db.credential.RoleRepo;
+import dev.scaraz.mars.core.repository.db.order.IssueRepo;
+import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.service.order.IssueService;
@@ -29,7 +29,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -69,7 +68,7 @@ public class InitializerService {
             throw new IllegalStateException("Unknown Witel region, please set first from environtment 'MARS_WITEL'");
     }
 
-    public void initAppConfigs() {
+    public void importConfig() {
         appConfigService.getCloseConfirm_drt();
         appConfigService.getAllowLogin_bool();
         appConfigService.getRegistrationRequireApproval_bool();
@@ -82,7 +81,7 @@ public class InitializerService {
     }
 
     @Transactional
-    public void initRolesAndCreateAdmin() {
+    public void importRolesAndAdminAccount() {
         Role adminRole;
         if (roleRepo.existsByName(ADMIN_ROLE)) {
             adminRole = roleRepo.findByName(ADMIN_ROLE)
@@ -114,7 +113,7 @@ public class InitializerService {
 
     @Async
     @Transactional
-    public void initIssue() {
+    public void importIssue() {
         Map<String, Product> names = Map.of("lambat", Product.INTERNET,
                 "intermittent", Product.INTERNET,
                 "tbb", Product.INTERNET,
@@ -134,7 +133,7 @@ public class InitializerService {
     }
 
     @Async
-    public void initSto() {
+    public void importSto() {
         try (InputStream is = getClass().getResourceAsStream("/list-sto.csv")) {
             String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             String[] lines = content.split("\n");

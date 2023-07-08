@@ -4,7 +4,6 @@ import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
-import dev.scaraz.mars.core.domain.credential.Group;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.domain.credential.UserSetting;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,7 +28,7 @@ public interface UserService extends UserDetailsPasswordService {
     void pairing(User user, BotRegistration registration);
 
     @Transactional
-    void createFromBot(@Nullable Group group, boolean needApproval, TelegramCreateUserDTO req);
+    void createFromBot(boolean needApproval, TelegramCreateUserDTO req);
 
     User updatePartial(String userId, UpdateUserDashboardDTO dto);
 }

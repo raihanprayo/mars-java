@@ -9,7 +9,7 @@ import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.spec.TicketSpecBuilder;
-import dev.scaraz.mars.core.repository.order.TicketRepo;
+import dev.scaraz.mars.core.repository.db.order.TicketRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

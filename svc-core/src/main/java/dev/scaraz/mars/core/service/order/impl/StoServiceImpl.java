@@ -2,7 +2,7 @@ package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.core.domain.order.Sto;
-import dev.scaraz.mars.core.repository.order.StoRepo;
+import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import dev.scaraz.mars.core.service.order.StoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

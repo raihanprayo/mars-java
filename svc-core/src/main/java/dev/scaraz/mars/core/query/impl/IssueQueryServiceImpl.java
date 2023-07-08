@@ -5,7 +5,7 @@ import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.spec.IssueSpecBuilder;
-import dev.scaraz.mars.core.repository.order.IssueRepo;
+import dev.scaraz.mars.core.repository.db.order.IssueRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

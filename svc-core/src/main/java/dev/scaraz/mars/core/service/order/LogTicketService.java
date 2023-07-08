@@ -1,10 +1,7 @@
 package dev.scaraz.mars.core.service.order;
 
-import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.order.LogTicket;
-import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.domain.order.Agent;
-import dev.scaraz.mars.core.repository.order.LogTicketRepo;
+import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -12,7 +12,7 @@ import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
-import dev.scaraz.mars.core.repository.order.TicketConfirmRepo;
+import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketFormService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;

@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.repository.order;
+package dev.scaraz.mars.core.repository.db.order;
 
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.core.domain.order.Sto;

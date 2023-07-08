@@ -1,9 +1,8 @@
 package dev.scaraz.mars.core.service;
 
-import dev.scaraz.mars.core.domain.cache.PendingQueue;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
 import dev.scaraz.mars.core.domain.credential.UserApproval;
-import dev.scaraz.mars.core.repository.credential.UserApprovalRepo;
+import dev.scaraz.mars.core.repository.db.credential.UserApprovalRepo;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;

@@ -4,7 +4,7 @@ import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 import dev.scaraz.mars.core.query.spec.AgentWorkspaceSpecBuilder;
-import dev.scaraz.mars.core.repository.order.AgentWorkspaceRepo;
+import dev.scaraz.mars.core.repository.db.order.AgentWorkspaceRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

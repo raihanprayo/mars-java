@@ -4,7 +4,7 @@ import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
 import dev.scaraz.mars.core.domain.credential.UserApproval;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
-import dev.scaraz.mars.core.repository.credential.UserApprovalRepo;
+import dev.scaraz.mars.core.repository.db.credential.UserApprovalRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
 import lombok.RequiredArgsConstructor;
