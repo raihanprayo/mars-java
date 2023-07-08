@@ -5,7 +5,7 @@ import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.domain.response.ForgotResDTO;
 import dev.scaraz.mars.core.domain.credential.User;
-import dev.scaraz.mars.security.authentication.MarsJwtAuthenticationToken;
+import dev.scaraz.mars.security.authentication.token.MarsJwtAuthenticationToken;
 
 public interface AuthService {
 

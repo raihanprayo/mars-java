@@ -4,7 +4,7 @@ import dev.scaraz.mars.core.config.security.CoreAuthenticationToken;
 import dev.scaraz.mars.core.domain.credential.User;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.security.authentication.identity.MarsAuthentication;
-import dev.scaraz.mars.security.authentication.MarsAuthenticationToken;
+import dev.scaraz.mars.security.authentication.token.MarsAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

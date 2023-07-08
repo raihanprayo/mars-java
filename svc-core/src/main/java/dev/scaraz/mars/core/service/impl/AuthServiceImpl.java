@@ -26,8 +26,8 @@ import dev.scaraz.mars.core.service.ForgotPasswordService;
 import dev.scaraz.mars.core.service.credential.UserApprovalService;
 import dev.scaraz.mars.core.service.credential.UserService;
 import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
-import dev.scaraz.mars.security.authentication.MarsJwtAuthenticationToken;
-import dev.scaraz.mars.security.authentication.MarsTelegramAuthenticationToken;
+import dev.scaraz.mars.security.authentication.token.MarsJwtAuthenticationToken;
+import dev.scaraz.mars.security.authentication.token.MarsTelegramAuthenticationToken;
 import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
 import dev.scaraz.mars.security.authentication.identity.MarsTelegramToken;
 import dev.scaraz.mars.security.jwt.JwtUtil;
@@ -212,6 +212,9 @@ public class AuthServiceImpl implements AuthService {
 
             Claims body = JwtUtil.decodeToken(f.getToken()).getBody();
             forgotPasswordService.reset(body.getSubject(), f.getNewPassword());
+            return ForgotResDTO.builder()
+                    .next(ForgotReqDTO.State.DONE)
+                    .build();
         }
 
         throw new IllegalStateException("Invalid forgot-password flow");

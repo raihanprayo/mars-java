@@ -17,7 +17,7 @@ public class MarsTelegramToken implements MarsAuthentication {
     private Witel witel;
     private String sto;
     private String phone;
-    private long telegram;
+    private Long telegram;
 
     @Getter(AccessLevel.NONE)
     private Collection<? extends GrantedAuthority> roles;

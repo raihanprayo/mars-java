@@ -1,5 +1,6 @@
 package dev.scaraz.mars.security.authentication;
 
+import dev.scaraz.mars.security.authentication.token.MarsBearerAuthenticationToken;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;

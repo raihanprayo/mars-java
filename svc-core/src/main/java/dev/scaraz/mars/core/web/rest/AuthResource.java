@@ -4,7 +4,6 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
 import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
-import dev.scaraz.mars.common.domain.response.ForgotResDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.User;
@@ -12,7 +11,7 @@ import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.util.SecurityUtil;
-import dev.scaraz.mars.security.authentication.MarsJwtAuthenticationToken;
+import dev.scaraz.mars.security.authentication.token.MarsJwtAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.Map;
 
 @Slf4j

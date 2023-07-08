@@ -39,9 +39,6 @@ import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_CO
 public abstract class TelegramBotService implements AutoCloseable {
     protected final LinkedList<TelegramProcessor> telegramProcessors = new LinkedList<>();
 
-    protected boolean springApplicationReady = false;
-    private final Set<Update> incomingUpdatePreAppReady = new HashSet<>();
-
     @Autowired
     protected ConfigurableBeanFactory beanFactory;
 
@@ -82,29 +79,26 @@ public abstract class TelegramBotService implements AutoCloseable {
 //    }
 
     protected void onUpdateReceived(Update update) {
-        if (!springApplicationReady) incomingUpdatePreAppReady.add(update);
-        else {
-            TelegramProcessor processor = getProcessor(update);
+        TelegramProcessor processor = getProcessor(update);
 
-            try {
-                if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
-                else {
-                    InternalTelegram.update(b -> b.update(update).processor(processor).cycle(ProcessCycle.PROCESS));
-                    try {
-                        processor.process(this, update)
-                                .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
-                    }
-                    catch (Exception e) {
-                        log.warn("Fail to process update {}", update.getUpdateId(), e);
-                        processor.handleExceptions(this, update, e)
-                                .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
-                    }
+        try {
+            if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
+            else {
+                InternalTelegram.update(b -> b.update(update).processor(processor).cycle(ProcessCycle.PROCESS));
+                try {
+                    processor.process(this, update)
+                            .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
+                }
+                catch (Exception e) {
+                    log.warn("Fail to process update {}", update.getUpdateId(), e);
+                    processor.handleExceptions(this, update, e)
+                            .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
                 }
             }
-            catch (Exception ex) {
-                log.error("Error On Update Received", ex);
-                TelegramContextHolder.clear();
-            }
+        }
+        catch (Exception ex) {
+            log.error("Error On Update Received", ex);
+            TelegramContextHolder.clear();
         }
     }
 

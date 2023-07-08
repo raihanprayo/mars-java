@@ -12,9 +12,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AgentWorkspaceSpecBuilder extends TimestampSpec<AgentWorkspace, AgentWorkspaceCriteria> {
 
-    private final AgentSpecBuilder agentSpecBuilder;
-    private final TicketSpecBuilder ticketSpecBuilder;
-
     @Override
     public Specification<AgentWorkspace> createSpec(AgentWorkspaceCriteria criteria) {
         SpecChain<AgentWorkspace> chain = chain()

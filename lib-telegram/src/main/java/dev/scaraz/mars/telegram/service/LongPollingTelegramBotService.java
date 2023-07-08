@@ -58,27 +58,11 @@ public class LongPollingTelegramBotService extends TelegramBotService {
 
     @Override
     public void close() {
-        if (session == null) return;
-
-        if (session.isRunning()) {
-            log.info("Shutting down bot session");
-            session.stop();
-        }
-//        botExecutor.shutdown();
-//        boolean terminated = false;
-//        try {
-//            terminated = botExecutor.awaitTermination(5, TimeUnit.SECONDS);
-//            if (!terminated) {
-//                log.error("Bot executor did not terminated in 5 seconds");
-//            }
-//        }
-//        catch (InterruptedException e) {
-//            log.error("Bot executor service termination awaiting failed", e);
-//        }
+//        if (session == null) return;
 //
-//        if (!terminated) {
-//            int droppedTasks = botExecutor.shutdownNow().size();
-//            log.error("Executor was abruptly shut down. {} tasks will not be executed", droppedTasks);
+//        if (session.isRunning()) {
+//            log.info("Shutting down bot session");
+//            session.stop();
 //        }
     }
 

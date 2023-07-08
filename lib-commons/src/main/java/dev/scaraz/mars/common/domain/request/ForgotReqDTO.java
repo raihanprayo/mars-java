@@ -11,7 +11,8 @@ public class ForgotReqDTO {
     public enum State {
         GENERATE,
         VALIDATE,
-        ACCOUNT_RESET
+        ACCOUNT_RESET,
+        DONE
     }
 
     public enum Send {
@@ -23,13 +24,13 @@ public class ForgotReqDTO {
     @NotNull
     private State state;
 
-    // -- State: PICK_OPTION ------------------------------------
+    // -- State: GENERATE ------------------------------------
     private Send with;
 
     private String username;
 
 
-    // -- State: VALIDATE_OTP -------------------------------------
+    // -- State: VALIDATE -------------------------------------
     private String otp;
 
     private String token;

@@ -82,6 +82,11 @@ public class CacheConfiguration {
 //        return new StringRedisTemplate(factory);
 //    }
 
+//    @Bean
+//    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+//        return builder -> {};
+//    }
+
     @Bean
     public RedisMessageListenerContainer expiredListenerContainer(
             List<CacheExpireListener> listeners,
