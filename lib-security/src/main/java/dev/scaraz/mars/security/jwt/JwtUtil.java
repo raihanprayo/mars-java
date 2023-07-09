@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -39,7 +40,18 @@ public final class JwtUtil {
     private JwtUtil() {
     }
 
-    public static JwtResult encode(MarsWebToken claims) {
+    public static JwtResult encode(Claims c) {
+        return JwtResult.builder()
+                .id(c.getId())
+                .token(Jwts.builder()
+                        .signWith(secret.get())
+                        .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
+                        .setClaims(c)
+                        .compact())
+                .expiredAt(c.getExpiration().toInstant())
+                .build();
+    }
+    public static JwtResult encode(String tokenId, MarsWebToken claims) {
         Assert.notNull(secret.get(), "secret SigningKey is null");
         Assert.isTrue(StringUtils.isNoneBlank(claims.getSub()), "JWT Subject cannot be empty");
 
@@ -51,7 +63,7 @@ public final class JwtUtil {
 
         String audience = claims.getAud();
         Claims c = Jwts.claims()
-                .setId(UUID.randomUUID().toString())
+                .setId(Objects.requireNonNullElseGet(tokenId, () -> UUID.randomUUID().toString()))
                 .setSubject(claims.getSub())
                 .setIssuer(claims.getIss())
                 .setAudience(audience)
@@ -104,18 +116,10 @@ public final class JwtUtil {
 //                .build();
         return encode(c);
     }
-
-    public static JwtResult encode(Claims c) {
-        return JwtResult.builder()
-                .id(c.getId())
-                .token(Jwts.builder()
-                        .signWith(secret.get())
-                        .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-                        .setClaims(c)
-                        .compact())
-                .expiredAt(c.getExpiration().toInstant())
-                .build();
+    public static JwtResult encode(MarsWebToken claims) {
+        return encode(null, claims);
     }
+
 
     public static JwtParseResult decode(String bearer) {
         String token = "Bearer ".startsWith(bearer) ?

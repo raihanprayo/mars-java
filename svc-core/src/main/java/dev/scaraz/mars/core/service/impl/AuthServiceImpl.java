@@ -120,21 +120,15 @@ public class AuthServiceImpl implements AuthService {
                 }
             }
 
-            AuthResDTO result = generateWebToken(account)
-                    .user(account)
-                    .code(SUCCESS)
-                    .build();
-
-            AccountAccessEvent.details("WEB_LOGIN", account.getUsername())
-                    .source("web")
-                    .put("token_id", result.getAccessTokenResult().getId())
-                    .publish();
-
             if (request.getRequestedSessionId() != null) {
                 request.getSession(false).invalidate();
             }
 
             HttpSession session = request.getSession();
+            AuthResDTO result = generateWebToken(session.getId(), account)
+                    .user(account)
+                    .code(SUCCESS)
+                    .build();
             MarsWebAuthenticationToken authenticationToken = new MarsWebAuthenticationToken(
                     session.getId(),
                     result.getAccessToken(),
@@ -147,6 +141,11 @@ public class AuthServiceImpl implements AuthService {
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authenticationToken);
             SecurityContextHolder.setContext(context);
+
+            AccountAccessEvent.details("WEB_LOGIN", account.getUsername())
+                    .source("web")
+                    .put("token_id", result.getAccessTokenResult().getId())
+                    .publish();
             return result;
         }
         finally {
@@ -184,7 +183,7 @@ public class AuthServiceImpl implements AuthService {
         Account account = accountQueryService.findById(accessToken.getSub());
 
         try {
-            return generateWebToken(account)
+            return generateWebToken(null, account)
                     .code(SUCCESS)
                     .build();
         }
@@ -219,12 +218,12 @@ public class AuthServiceImpl implements AuthService {
                                 .note("(confirmed) agent logout")
                                 .build());
             }
-
-            AccountAccessEvent.details("WEB_LOGOUT", account.getUsername())
-                    .source("web")
-                    .put("ticket_dispatch_count", size)
-                    .publish();
         }
+
+        AccountAccessEvent.details("WEB_LOGOUT", account.getUsername())
+                .source("web")
+                .put("ticket_dispatch_count", size)
+                .publish();
 
         HttpSession session = request.getSession(false);
         if (session != null) session.invalidate();
@@ -307,7 +306,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    private AuthResDTO.AuthResDTOBuilder generateWebToken(Account account) {
+    private AuthResDTO.AuthResDTOBuilder generateWebToken(String sessionId, Account account) {
         log.info("GENERATE WEB TOKEN FOR USER -- {} | {}", account.getUsername(), account.getWitel());
         final String issuer = "web";
         Instant now = Instant.now();
@@ -324,7 +323,7 @@ public class AuthServiceImpl implements AuthService {
             marsAccessToken.telegram(account.getTg().getId());
 
         MarsWebToken webAccessToken = marsAccessToken.build();
-        JwtResult access_token = JwtUtil.encode(webAccessToken);
+        JwtResult access_token = JwtUtil.encode(sessionId, webAccessToken);
 
         MarsWebToken webRefreshToken = MarsWebToken.refresh()
                 .iss(issuer)
