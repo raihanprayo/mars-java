@@ -28,6 +28,7 @@ public class DataSourceConfiguration {
     @Bean(DataSourceAuditor.BEAN_NAME)
     public DataSourceAuditor dataSourceAuditor(List<DataSourceAuditor.AuditorResolver> resolvers) {
         DataSourceAuditor auditor = new DataSourceAuditor();
+
         resolvers.forEach(auditor::addAuditorResolver);
         return auditor.addAuditorResolver(() -> {
             Authentication authentication = SecurityContextHolder.getContext()

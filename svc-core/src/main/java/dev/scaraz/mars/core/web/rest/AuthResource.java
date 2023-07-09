@@ -4,6 +4,8 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
 import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
+import dev.scaraz.mars.common.domain.response.ForgotResDTO;
+import dev.scaraz.mars.common.domain.response.WhoamiDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -35,13 +37,12 @@ public class AuthResource {
     private final CredentialMapper credentialMapper;
 
     @GetMapping("/whoami")
-    public ResponseEntity<?> whoami() {
-        Account account = accountQueryService.findByCurrentAccess();
-        return ResponseEntity.ok(credentialMapper.fromUser(account));
+    public ResponseEntity<WhoamiDTO> whoami() {
+        return ResponseEntity.ok(credentialMapper.fromUser(accountQueryService.findByCurrentAccess()));
     }
 
     @PostMapping(value = "/token")
-    public ResponseEntity<?> token(@RequestBody AuthReqDTO authReq) {
+    public ResponseEntity<AuthResDTO> token(@RequestBody AuthReqDTO authReq) {
         AuthResDTO authResult = authService.authenticate(authReq, "mars-dashboard");
         if (!authResult.getCode().equals(AppConstants.Auth.SUCCESS)) {
             return ResponseEntity
@@ -52,7 +53,7 @@ public class AuthResource {
     }
 
     @PostMapping(path = "/refresh", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> refresh(Authentication authentication) {
+    public ResponseEntity<AuthResDTO> refresh(Authentication authentication) {
         if (!(authentication instanceof MarsJwtAuthenticationToken))
             throw new IllegalStateException("invalid authentication token");
 
@@ -65,7 +66,7 @@ public class AuthResource {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(
+    public ResponseEntity<Void> logout(
             @RequestParam(defaultValue = "false") boolean confirmeLogout
     ) {
         authService.logout(accountQueryService.findByCurrentAccess(), confirmeLogout);
@@ -77,7 +78,7 @@ public class AuthResource {
     public class AuthForgotResource {
 
         @GetMapping
-        public ResponseEntity<?> forgotAccess(@RequestParam("u") String username) {
+        public ResponseEntity<Map<String, Boolean>> forgotAccess(@RequestParam("u") String username) {
             try {
                 Account account = accountQueryService.loadUserByUsername(username);
                 boolean accessibleViaEmail = StringUtils.isNoneBlank(account.getEmail());
@@ -93,13 +94,13 @@ public class AuthResource {
         }
 
         @PostMapping("/generate")
-        public ResponseEntity<?> generateOtp(@RequestBody ForgotReqDTO req) {
+        public ResponseEntity<ForgotResDTO> generateOtp(@RequestBody ForgotReqDTO req) {
             req.setState(ForgotReqDTO.State.GENERATE);
             return ResponseEntity.ok(authService.forgotPasswordFlow(req));
         }
 
         @PutMapping("/regenerate")
-        public ResponseEntity<?> regenerateOtp(@RequestParam String token) {
+        public ResponseEntity<ForgotResDTO> regenerateOtp(@RequestParam String token) {
             return new ResponseEntity<>(
                     authService.forgotRegenerateOtp(token),
                     HttpStatus.OK
@@ -107,13 +108,13 @@ public class AuthResource {
         }
 
         @PostMapping("/validate")
-        public ResponseEntity<?> validateOtp(@RequestBody ForgotReqDTO forgot) {
+        public ResponseEntity<ForgotResDTO> validateOtp(@RequestBody ForgotReqDTO forgot) {
             forgot.setState(ForgotReqDTO.State.VALIDATE);
             return new ResponseEntity<>(authService.forgotPasswordFlow(forgot), HttpStatus.OK);
         }
 
         @PutMapping("/reset")
-        public ResponseEntity<?> resetAccount(@RequestBody ForgotReqDTO forgot) {
+        public ResponseEntity<ForgotResDTO> resetAccount(@RequestBody ForgotReqDTO forgot) {
             forgot.setState(ForgotReqDTO.State.ACCOUNT_RESET);
             return new ResponseEntity<>(authService.forgotPasswordFlow(forgot), HttpStatus.OK);
         }
