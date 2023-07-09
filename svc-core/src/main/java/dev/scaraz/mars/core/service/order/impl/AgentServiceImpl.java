@@ -9,11 +9,12 @@ import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.order.Ticket;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.repository.db.order.AgentRepo;
 import dev.scaraz.mars.core.repository.db.order.AgentWorklogRepo;
 import dev.scaraz.mars.core.repository.db.order.AgentWorkspaceRepo;
 import dev.scaraz.mars.core.service.order.AgentService;
-import dev.scaraz.mars.core.util.SecurityUtil;
+import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,8 @@ public class AgentServiceImpl implements AgentService {
     private final AgentRepo repo;
     private final AgentWorkspaceRepo workspaceRepo;
     private final AgentWorklogRepo worklogRepo;
+
+    private final AccountQueryService accountQueryService;
 
     @Override
     public Agent save(Agent agent) {
@@ -63,7 +66,7 @@ public class AgentServiceImpl implements AgentService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public AgentWorkspace getWorkspaceByCurrentUser(String ticketId) {
-        Account account = SecurityUtil.getCurrentUser();
+        Account account = accountQueryService.findById(MarsUserContext.getId());
 
         if (account == null) throw InternalServerException.args("Data akses user tidak ada!");
         else if (!account.hasAnyRole(AppConstants.Authority.AGENT_ROLE))

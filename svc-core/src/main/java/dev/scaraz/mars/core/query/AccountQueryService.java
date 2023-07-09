@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.util.Optional;
 
-public interface UserQueryService extends UserDetailsService, BaseQueryService<Account, UserCriteria> {
+public interface AccountQueryService extends UserDetailsService, BaseQueryService<Account, UserCriteria> {
 
     @Override
     Account loadUserByUsername(String username) throws UsernameNotFoundException;
@@ -15,6 +15,8 @@ public interface UserQueryService extends UserDetailsService, BaseQueryService<A
     Optional<Account> findOne(UserCriteria criteria);
 
     Account findById(String id);
+
+    Account findByCurrentAccess();
 
     Optional<Account> findByIdOpt(String id);
 

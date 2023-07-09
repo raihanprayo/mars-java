@@ -6,13 +6,13 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
 import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
 import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
-import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,6 +28,8 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/ticket/wip")
 public class TicketWipResource {
+
+    private final AccountQueryService accountQueryService;
 
     private final TicketService service;
 
@@ -51,7 +53,7 @@ public class TicketWipResource {
     public ResponseEntity<?> takeTicket(
             @PathVariable String ticketIdOrNo
     ) {
-        Account account = SecurityUtil.getCurrentUser();
+        Account account = accountQueryService.findByCurrentAccess();
         if (account.getTg().getId() == null)
             throw BadRequestException.args("Akun anda belum terintegrasi dengan akun telegram, silahkan melakukan \"Account Pairing\"");
 

@@ -18,7 +18,7 @@ import dev.scaraz.mars.core.service.order.AgentService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.service.order.TicketService;
-import dev.scaraz.mars.core.util.SecurityUtil;
+import dev.scaraz.mars.security.MarsUserContext;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +62,7 @@ public class CloseFlowService {
 
         if (!summary.isWip())
             throw BadRequestException.args("error.ticket.update.stat");
-        else if (!summary.getWipBy().equals(SecurityUtil.getCurrentUser().getId()))
+        else if (!summary.getWipBy().equals(MarsUserContext.getId()))
             throw BadRequestException.args("error.ticket.update.stat.agent");
 
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
@@ -111,9 +111,8 @@ public class CloseFlowService {
         if (ticket.getStatus() != TcStatus.CONFIRMATION)
             throw BadRequestException.args("error.ticket.illegal.confirm.state");
 
-        if (SecurityUtil.isUserPresent()) {
-            boolean isRequestor = SecurityUtil.getCurrentUser()
-                    .getTg().getId() == ticket.getSenderId();
+        if (MarsUserContext.isUserPresent()) {
+            boolean isRequestor = ticket.getSenderId() == MarsUserContext.getTelegram();
             if (!isRequestor)
                 throw BadRequestException.args("Invalid requestor owner");
         }

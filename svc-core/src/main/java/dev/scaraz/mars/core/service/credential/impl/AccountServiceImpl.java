@@ -12,8 +12,8 @@ import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
 import dev.scaraz.mars.core.domain.credential.*;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.RoleQueryService;
-import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
 import dev.scaraz.mars.core.repository.db.credential.RolesRepo;
@@ -57,7 +57,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountApprovalService accountApprovalService;
     private final RegistrationApprovalRepo registrationApprovalRepo;
 
-    private final UserQueryService userQueryService;
+    private final AccountQueryService accountQueryService;
     private final AccountSettingRepo settingRepo;
 
     private final RoleQueryService roleQueryService;
@@ -82,12 +82,11 @@ public class AccountServiceImpl implements AccountService {
     public Account updatePassword(UserDetails user, String newPassword) {
         Account account;
         if (user instanceof Account) account = (Account) user;
-        else account = userQueryService.findById(((DelegateUser) user).getId());
+        else account = accountQueryService.findById(((DelegateUser) user).getId());
 
         String algo = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_ALGO_STR).getValue();
         int hashIteration = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_ITERATION_INT).getAsInt();
         String secret = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_SECRET_STR).getValue();
-
 
         AccountCredential credential = AccountCredential.builder()
                 .account(account)
@@ -317,7 +316,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public Account updatePartial(String userId, UpdateUserDashboardDTO dto) {
         log.info("PARTIAL DATA USER UPDATE {}", dto);
-        Account account = userQueryService.findById(userId);
+        Account account = accountQueryService.findById(userId);
 
         if (dto.getNik() != null) account.setNik(dto.getNik());
         if (dto.getPhone() != null) account.setPhone(dto.getPhone());

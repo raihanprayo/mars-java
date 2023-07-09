@@ -14,13 +14,12 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
 import dev.scaraz.mars.core.domain.cache.ForgotPassword;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
-import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 import dev.scaraz.mars.core.service.AuthService;
@@ -39,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -60,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
 
     //    private final UserRepo userRepo;
     private final AccountService accountService;
-    private final UserQueryService userQueryService;
+    private final AccountQueryService accountQueryService;
     private final AccountApprovalService accountApprovalService;
 
     private final AgentQueryService agentQueryService;
@@ -73,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
-        Account account = userQueryService.loadUserByUsername(authReq.getNik());
+        Account account = accountQueryService.loadUserByUsername(authReq.getNik());
 
         boolean allowedLogin = account.hasAnyRole(
                 AppConstants.Authority.ADMIN_ROLE,
@@ -128,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Account authenticateFromBot(long telegramId) {
         try {
-            Account account = userQueryService.findByTelegramId(telegramId);
+            Account account = accountQueryService.findByTelegramId(telegramId);
             if (!account.isActive())
                 throw new TgUnauthorizedError("Akunmu tidak aktif, silahkan menghubungi administrator mars");
 
@@ -152,7 +150,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResDTO refresh(MarsJwtAuthenticationToken authentication) {
         MarsAccessToken accessToken = authentication.getPrincipal();
-        Account account = userQueryService.findById(accessToken.getSub());
+        Account account = accountQueryService.findById(accessToken.getSub());
 
         try {
             return generateWebToken(account)
@@ -204,7 +202,7 @@ public class AuthServiceImpl implements AuthService {
             Assert.notNull(f.getWith(), "No selected option");
             Assert.isTrue(StringUtils.isNoneBlank(f.getUsername()), "invalid identity matcher");
 
-            Account account = userQueryService.loadUserByUsername(f.getUsername());
+            Account account = accountQueryService.loadUserByUsername(f.getUsername());
             ForgotPassword fp = forgotPasswordService.generate(f.getWith(), account);
             return ForgotResDTO.builder()
                     .token(fp.getToken())
@@ -250,7 +248,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public boolean isUserRegistered(long telegramId) {
         try {
-            userQueryService.findByTelegramId(telegramId);
+            accountQueryService.findByTelegramId(telegramId);
             return true;
         }
         catch (Exception ex) {

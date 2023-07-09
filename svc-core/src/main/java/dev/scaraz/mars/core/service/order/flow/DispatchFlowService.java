@@ -1,14 +1,12 @@
 package dev.scaraz.mars.core.service.order.flow;
 
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
-import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.Agent;
-import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
@@ -17,7 +15,6 @@ import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.AgentService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketService;
-import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

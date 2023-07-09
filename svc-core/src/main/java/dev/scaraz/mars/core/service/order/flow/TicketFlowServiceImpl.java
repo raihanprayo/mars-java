@@ -8,10 +8,11 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.order.*;
-import dev.scaraz.mars.core.util.SecurityUtil;
+import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,10 +36,12 @@ public class TicketFlowServiceImpl implements TicketFlowService {
     private final NotifierService notifierService;
     private final LogTicketService logTicketService;
 
+    private final AccountQueryService accountQueryService;
+
     @Override
     @Transactional
     public Ticket take(String ticketIdOrNo) {
-        if (!SecurityUtil.getCurrentUser().hasAnyRole(AppConstants.Authority.AGENT_ROLE))
+        if (!MarsUserContext.hasAnyRole(AppConstants.Authority.AGENT_ROLE))
             throw BadRequestException.args("Anda tidak mempunyai akses untuk memproses tiket");
 
         // Pengambilan tiket dengan kondisi tiket belum dikerjakan
@@ -49,8 +52,8 @@ public class TicketFlowServiceImpl implements TicketFlowService {
         else if (agentQueryService.isWorkInProgress(ticket.getId()))
             throw new BadRequestException("Tidak dapat mengambil Order/Tiket yang sedang dalam pengerjaan");
 
-        Account account = SecurityUtil.getCurrentUser();
-        if (account != null) {
+        if (MarsUserContext.isUserPresent()) {
+            Account account = accountQueryService.findByCurrentAccess();
             TcStatus prevStatus = ticket.getStatus();
 
             AgentWorkspace workspace = agentService.getWorkspaceByCurrentUser(ticket.getId());
@@ -64,8 +67,8 @@ public class TicketFlowServiceImpl implements TicketFlowService {
             ticket.setStatus(TcStatus.PROGRESS);
 
             boolean isPreviousStatusOpen = prevStatus == TcStatus.OPEN;
-            if (isPreviousStatusOpen) notifierService.sendTaken(ticket, account);
-            else notifierService.sendRetaken(ticket, account);
+            if (isPreviousStatusOpen) notifierService.sendTaken(ticket, account.getName());
+            else notifierService.sendRetaken(ticket, account.getName());
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)
@@ -78,7 +81,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
             return service.save(ticket);
         }
 
-        throw InternalServerException.args("User info tidak ditemukan");
+        throw InternalServerException.args("akses akun tidak ditemukan");
     }
 
 }

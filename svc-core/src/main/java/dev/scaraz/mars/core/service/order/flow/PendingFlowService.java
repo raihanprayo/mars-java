@@ -8,10 +8,10 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
-import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
@@ -19,11 +19,12 @@ import dev.scaraz.mars.core.service.order.AgentService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.service.order.TicketService;
-import dev.scaraz.mars.core.util.SecurityUtil;
+import dev.scaraz.mars.security.MarsUserContext;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +49,7 @@ public class PendingFlowService {
     private final AgentService agentService;
     private final AgentQueryService agentQueryService;
 
-    private final UserQueryService userQueryService;
+    private final AccountQueryService accountQueryService;
 
     private final NotifierService notifierService;
     private final StorageService storageService;
@@ -62,7 +63,7 @@ public class PendingFlowService {
 
         if (!summary.isWip())
             throw BadRequestException.args("error.ticket.update.stat");
-        else if (!summary.getWipBy().equals(SecurityUtil.getCurrentUser().getId()))
+        else if (!summary.getWipBy().equals(MarsUserContext.getId()))
             throw BadRequestException.args("error.ticket.update.stat.agent");
 
         final TcStatus prevStatus = ticket.getStatus();
@@ -113,12 +114,13 @@ public class PendingFlowService {
         log.info("TICKET CLOSE CONFIRM REQUEST OF NO {} -- PENDING ? {}", ticketIdOrNo, doPending);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 
-        boolean isRequestor = SecurityUtil.getCurrentUser()
-                .getTg().getId() == ticket.getSenderId();
         if (ticket.getStatus() != TcStatus.CONFIRMATION)
             throw BadRequestException.args("error.ticket.illegal.confirm.state");
-        if (!isRequestor)
-            throw BadRequestException.args("Invalid requestor owner");
+        if (MarsUserContext.isUserPresent()) {
+            boolean isRequestor = ticket.getSenderId() == MarsUserContext.getTelegram();
+            if (!isRequestor)
+                throw BadRequestException.args("Invalid requestor owner");
+        }
 
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
 
@@ -185,6 +187,7 @@ public class PendingFlowService {
         return service.save(ticket);
     }
 
+    @Async
     public void confirmPendingAsync(String ticketIdOrNo, boolean doPending, TicketStatusFormDTO form) {
         confirmPending(ticketIdOrNo, doPending, form);
     }
@@ -258,7 +261,7 @@ public class PendingFlowService {
             if (TelegramContextHolder.hasContext()) {
                 logMessage = LogTicketService.LOG_CONFIRMED_CLOSE;
 
-                Optional<Account> userOpt = userQueryService.findByIdOpt(agent.getUserId());
+                Optional<Account> userOpt = accountQueryService.findByIdOpt(agent.getUserId());
                 notifierService.sendRaw(ticket.getSenderId(),
                         "Tiket: *" + ticketNo + "*: telah selesai dikerjakan",
                         "",

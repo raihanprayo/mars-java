@@ -5,7 +5,6 @@ import dev.scaraz.mars.common.tools.converter.StringToLocalDateConverter;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.interceptor.LogInterceptor;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.MessageSource;
@@ -34,18 +33,16 @@ import static dev.scaraz.mars.common.utils.AppConstants.MimeType.MAPPED_MIME_TYP
 @Configuration
 @EnableWebMvc
 @RequiredArgsConstructor
-public class WebConfiguration implements WebMvcConfigurer, LocaleResolver {
+public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebMvcConfigurer, LocaleResolver {
 
     private final MarsProperties marsProperties;
-
-    private final AcceptHeaderLocaleResolver headerLocaleResolver = new AcceptHeaderLocaleResolver();
 
     private final AuditProvider auditProvider;
 
     @PostConstruct
     private void init() {
-        headerLocaleResolver.setDefaultLocale(LANG_ID);
-        headerLocaleResolver.setSupportedLocales(List.of(LANG_EN, LANG_ID));
+        this.setDefaultLocale(LANG_ID);
+        this.setSupportedLocales(List.of(LANG_EN, LANG_ID));
     }
 
     @Override
@@ -99,18 +96,18 @@ public class WebConfiguration implements WebMvcConfigurer, LocaleResolver {
         return source;
     }
 
-    @Override
-    public Locale resolveLocale(HttpServletRequest request) {
-        Account account = SecurityUtil.getCurrentUser();
-
-        Locale locale;
-        if (account != null) locale = account.getSetting().getLang();
-        else locale = headerLocaleResolver.resolveLocale(request);
-        return locale;
-    }
-
-    @Override
-    public void setLocale(HttpServletRequest request, HttpServletResponse response, Locale locale) {
-        headerLocaleResolver.setLocale(request, response, locale);
-    }
+//    @Override
+//    public Locale resolveLocale(HttpServletRequest request) {
+//        Account account = SecurityUtil.getCurrentUser();
+//
+//        Locale locale;
+//        if (account != null) locale = account.getSetting().getLang();
+//        else locale = headerLocaleResolver.resolveLocale(request);
+//        return locale;
+//    }
+//
+//    @Override
+//    public void setLocale(HttpServletRequest request, HttpServletResponse response, Locale locale) {
+//        headerLocaleResolver.setLocale(request, response, locale);
+//    }
 }

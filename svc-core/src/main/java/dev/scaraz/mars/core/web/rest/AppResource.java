@@ -1,6 +1,6 @@
 package dev.scaraz.mars.core.web.rest;
 
-import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/app")
 public class AppResource {
 
-    private final UserQueryService queryService;
+    private final AccountQueryService queryService;
 
     @GetMapping("/test")
     public ResponseEntity<?> testRoute(UserCriteria criteria) {

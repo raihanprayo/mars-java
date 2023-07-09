@@ -10,8 +10,8 @@ import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.Sto;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.IssueQueryService;
-import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.db.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.db.order.IssueRepo;
 import dev.scaraz.mars.core.repository.db.order.StoRepo;
@@ -47,7 +47,7 @@ public class Initializer {
     private final MarsProperties marsProperties;
 
     private final AccountService accountService;
-    private final UserQueryService userQueryService;
+    private final AccountQueryService accountQueryService;
 
     private final RoleRepo roleRepo;
     private final RoleService roleService;
@@ -127,7 +127,7 @@ public class Initializer {
         if (!roleRepo.existsByName(USER_ROLE))
             roleService.create(AppConstants.Authority.USER_ROLE, 1);
 
-        if (!userQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
+        if (!accountQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
             log.debug("CREATE DEFAULT ADMIN USER");
             Account admin = accountService.create(CreateUserDTO.builder()
                     .name("Administrator")

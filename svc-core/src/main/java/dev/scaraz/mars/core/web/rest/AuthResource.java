@@ -8,9 +8,8 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
-import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.service.AuthService;
-import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.security.authentication.token.MarsJwtAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +31,12 @@ public class AuthResource {
 
     private final MarsProperties marsProperties;
     private final AuthService authService;
-    private final UserQueryService userQueryService;
+    private final AccountQueryService accountQueryService;
     private final CredentialMapper credentialMapper;
 
     @GetMapping("/whoami")
     public ResponseEntity<?> whoami() {
-        Account account = SecurityUtil.getCurrentUser();
+        Account account = accountQueryService.findByCurrentAccess();
         return ResponseEntity.ok(credentialMapper.fromUser(account));
     }
 
@@ -69,7 +68,7 @@ public class AuthResource {
     public ResponseEntity<?> logout(
             @RequestParam(defaultValue = "false") boolean confirmeLogout
     ) {
-        authService.logout(SecurityUtil.getCurrentUser(), confirmeLogout);
+        authService.logout(accountQueryService.findByCurrentAccess(), confirmeLogout);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -80,7 +79,7 @@ public class AuthResource {
         @GetMapping
         public ResponseEntity<?> forgotAccess(@RequestParam("u") String username) {
             try {
-                Account account = userQueryService.loadUserByUsername(username);
+                Account account = accountQueryService.loadUserByUsername(username);
                 boolean accessibleViaEmail = StringUtils.isNoneBlank(account.getEmail());
                 boolean accessibleViaTelegram = account.getTg().getId() != null;
                 return ResponseEntity.ok(Map.of(

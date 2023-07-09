@@ -1,12 +1,13 @@
 package dev.scaraz.mars.core.service.credential;
 
+import dev.scaraz.mars.common.config.DataSourceAuditor;
 import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.cache.ForgotPassword;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.repository.cache.ForgotPasswordRepo;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.security.jwt.JwtUtil;
@@ -37,7 +38,7 @@ public class ForgotPasswordService {
 
     private final AuditProvider auditProvider;
     private final AccountService accountService;
-    private final UserQueryService userQueryService;
+    private final AccountQueryService accountQueryService;
 
     private final NotifierService notifierService;
 
@@ -87,7 +88,7 @@ public class ForgotPasswordService {
             ForgotPassword fp = repo
                     .findById(body.getSubject())
                     .orElseThrow(() -> new BadRequestException("invalid otp identity reset"));
-            Account account = userQueryService.findById(fp.getUid());
+            Account account = accountQueryService.findById(fp.getUid());
 
             repo.deleteById(fp.getUid());
             String otp = generateOtp();
@@ -127,12 +128,12 @@ public class ForgotPasswordService {
 
     @Transactional
     public void reset(String userId, String newPassword) {
-        Account account = userQueryService.findById(userId);
-        auditProvider.setName(account.getNik());
+        Account account = accountQueryService.findById(userId);
+        DataSourceAuditor.setUsername(account.getUsername());
         accountService.updatePassword(account, newPassword);
 
         repo.deleteById(userId);
-        auditProvider.clear();
+        DataSourceAuditor.clear();
     }
 
     @Async

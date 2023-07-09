@@ -7,7 +7,7 @@ import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
-import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.*;
 import dev.scaraz.mars.core.query.spec.LeaderBoardSpecBuilder;
 import dev.scaraz.mars.core.repository.db.view.LeaderBoardFragmentRepo;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class LeaderBoardService {
 
-    private final UserQueryService userQueryService;
+    private final AccountQueryService accountQueryService;
 
     private final LeaderBoardFragmentRepo repo;
     private final LeaderBoardSpecBuilder specBuilder;
@@ -41,7 +41,7 @@ public class LeaderBoardService {
 //    private final TicketSummaryQueryService ticketSummaryQueryService;
 
     public List<LeaderBoardDTO> findAll(LeaderBoardCriteria criteria) {
-        List<Account> accounts = userQueryService.findAll(UserCriteria.builder()
+        List<Account> accounts = accountQueryService.findAll(UserCriteria.builder()
                 .name(criteria.getName())
                 .nik(criteria.getNik())
                 .roles(RoleCriteria.builder()

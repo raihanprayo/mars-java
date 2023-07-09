@@ -7,6 +7,8 @@ import dev.scaraz.mars.security.constants.AccessType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
+
 public final class MarsUserContext {
     private MarsUserContext() {
     }
@@ -54,6 +56,11 @@ public final class MarsUserContext {
 
     public static Long getTelegram() {
         return getAccessToken().getTelegram();
+    }
+
+    public static boolean hasAnyRole(String... predicate) {
+        List<String> roleList = List.of(predicate);
+        return getAccessToken().getAuthorities().stream().anyMatch(r -> roleList.contains(r.getAuthority()));
     }
 
 }

@@ -26,7 +26,7 @@ import dev.scaraz.mars.core.service.order.*;
 import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
 import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
 import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
-import dev.scaraz.mars.core.util.SecurityUtil;
+import dev.scaraz.mars.security.MarsUserContext;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
@@ -61,6 +61,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     private final AppConfigService appConfigService;
     private final TelegramBotService botService;
 
+    private final AccountQueryService accountQueryService;
     private final AgentQueryService agentQueryService;
 
     private final TicketService service;
@@ -69,7 +70,6 @@ public class TicketBotServiceImpl implements TicketBotService {
     private final TicketSummaryQueryService summaryQueryService;
     private final LogTicketRepo logTicketRepo;
 
-    private final UserQueryService userQueryService;
     private final IssueQueryService issueQueryService;
 
 
@@ -144,7 +144,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                         .collect(Collectors.toList())))
                 .build();
 
-        List<String> names = userQueryService.findAll(userCriteria).stream()
+        List<String> names = accountQueryService.findAll(userCriteria).stream()
                 .map(Account::getName)
                 .distinct()
                 .collect(Collectors.toList());
@@ -171,7 +171,7 @@ public class TicketBotServiceImpl implements TicketBotService {
 
         int totalGaul = queryService.countGaul(form.getIssueId(), form.getService());
 
-        Account account = SecurityUtil.getCurrentUser();
+        Account account = accountQueryService.findByCurrentAccess();
         Ticket ticket = service.save(Ticket.builder()
                 .witel(form.getWitel() == null ? account.getWitel() : form.getWitel())
                 .sto(form.getSto() == null ? account.getSto() : form.getSto())
@@ -296,7 +296,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                     .build();
         }
 
-        Account account = SecurityUtil.getCurrentUser();
+        Account account = accountQueryService.findByCurrentAccess();
         if (account.hasAnyRole(AppConstants.Authority.AGENT_ROLE)) {
             boolean allowedCreate = appConfigService.getAllowAgentCreateTicket_bool()
                     .getAsBoolean();
@@ -370,7 +370,7 @@ public class TicketBotServiceImpl implements TicketBotService {
         issueQueryService.findById(issueId)
                 .orElseThrow(() -> NotFoundException.entity(Issue.class, "id", issueId));
 
-        long userId = Objects.requireNonNull(SecurityUtil.getCurrentUser()).getTg().getId();
+        long userId = MarsUserContext.getTelegram();
         Message message = botService.getClient().execute(SendMessage.builder()
                 .chatId(userId)
                 .text("Mohon pastikan apakah jaringan terindikasi LOS dan/atau Unspec ?")
@@ -391,7 +391,7 @@ public class TicketBotServiceImpl implements TicketBotService {
 
     @Override
     public SendMessage instantForm_answerNetwork(long messageId, boolean agree) throws TelegramApiException {
-        Long userId = SecurityUtil.getCurrentUser().getTg().getId();
+        Long userId = MarsUserContext.getTelegram();
         if (agree) {
             return SendMessage.builder()
                     .chatId(userId)
@@ -496,7 +496,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     @Override
     @Transactional
     public SendMessage instantForm_end(long messageId, String text, @Nullable Collection<PhotoSize> captures) {
-        Account account = Objects.requireNonNull(SecurityUtil.getCurrentUser());
+        Account account = accountQueryService.findByCurrentAccess();
 
         TicketConfirm confirm = confirmService.findById(messageId);
         Issue issue = issueQueryService.findById(confirm.getIssueId())

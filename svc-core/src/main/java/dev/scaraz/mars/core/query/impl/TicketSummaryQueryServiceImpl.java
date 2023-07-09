@@ -6,15 +6,15 @@ import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
 import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.query.spec.TicketSummarySpecBuilder;
 import dev.scaraz.mars.core.repository.db.order.TicketSummaryRepo;
-import dev.scaraz.mars.core.util.SecurityUtil;
+import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,6 +36,7 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
 
     private final TicketSummaryRepo repo;
     private final TicketSummarySpecBuilder specBuilder;
+    private final AccountQueryService accountQueryService;
 
     @Override
     public List<TicketSummary> findAll() {
@@ -102,9 +103,8 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
 
     @Override
     public long countByProduct(Product product, boolean currentUser) {
-        if (currentUser) {
-            Account usr = SecurityUtil.getCurrentUser();
-            if (usr != null) return repo.countByProductAndWipBy(product, usr.getId());
+        if (currentUser && MarsUserContext.isUserPresent()) {
+            return repo.countByProductAndWipBy(product, MarsUserContext.getId());
         }
         return repo.countByProductAndWipIsFalse(product);
     }
@@ -121,9 +121,8 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
                 .wip(new BooleanFilter().setEq(true))
                 .build();
 
-        if (currentUser) {
-            Account account = SecurityUtil.getCurrentUser();
-            criteria.setWipBy(new StringFilter().setEq(account.getId()));
+        if (currentUser && MarsUserContext.isUserPresent()) {
+            criteria.setWipBy(new StringFilter().setEq(MarsUserContext.getId()));
         }
 
         return repo.exists(specBuilder.createSpec(criteria));

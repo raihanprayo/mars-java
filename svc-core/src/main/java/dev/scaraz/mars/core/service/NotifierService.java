@@ -44,16 +44,16 @@ public class NotifierService {
     @Lazy
     private final SolutionRepo solutionRepo;
 
-    public void sendTaken(Ticket ticket, Account account) {
+    public void sendTaken(Ticket ticket, String username) {
         send(ticket.getSenderId(), "tg.ticket.wip",
                 ticket.getNo(),
-                account.getName());
+                username);
     }
 
-    public void sendRetaken(Ticket ticket, Account account) {
+    public void sendRetaken(Ticket ticket, String username) {
         send(ticket.getSenderId(), "tg.ticket.wip.retake",
                 ticket.getNo(),
-                account.getName());
+                username);
     }
 
     public int sendCloseConfirmation(Ticket ticket, long closeDurationMinute, TicketStatusFormDTO form) {

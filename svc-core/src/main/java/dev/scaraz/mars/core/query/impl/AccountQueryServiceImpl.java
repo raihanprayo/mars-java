@@ -2,10 +2,11 @@ package dev.scaraz.mars.core.query.impl;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.query.spec.UserSpecBuilder;
 import dev.scaraz.mars.core.repository.db.credential.AccountRepo;
+import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,7 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 
 @Service
-public class UserQueryServiceImpl implements UserQueryService {
+public class AccountQueryServiceImpl implements AccountQueryService {
 
     private final AccountRepo repo;
     private final UserSpecBuilder specBuilder;
@@ -92,6 +93,11 @@ public class UserQueryServiceImpl implements UserQueryService {
         return repo.findById(id)
                 .orElseThrow(() -> NotFoundException.entity(
                         Account.class, "id", id));
+    }
+
+    @Override
+    public Account findByCurrentAccess() {
+        return findById(MarsUserContext.getId());
     }
 
     @Override

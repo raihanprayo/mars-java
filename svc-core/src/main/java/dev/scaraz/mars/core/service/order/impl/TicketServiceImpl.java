@@ -10,6 +10,7 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
@@ -17,7 +18,6 @@ import dev.scaraz.mars.core.repository.db.order.TicketRepo;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketService;
-import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +44,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 public class TicketServiceImpl implements TicketService {
 
     private final MarsProperties marsProperties;
+    private final AccountQueryService accountQueryService;
 
     private final TicketRepo repo;
 
@@ -81,7 +82,7 @@ public class TicketServiceImpl implements TicketService {
         Issue issue = issueQueryService.findById(form.getIssue())
                 .orElseThrow(() -> NotFoundException.entity(Issue.class, "id", form.getIssue()));
 
-        Account account = SecurityUtil.getCurrentUser();
+        Account account = accountQueryService.findByCurrentAccess();
 
         int totalGaul = queryService.countGaul(form.getIssue(), form.getServiceNo());
         Ticket ticket = save(Ticket.builder()

@@ -12,8 +12,8 @@ import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.repository.db.order.StoRepo;
-import dev.scaraz.mars.core.util.SecurityUtil;
 import dev.scaraz.mars.core.util.Util;
+import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -211,8 +211,8 @@ public class TicketFormService {
         final String FIELD_NAME = "sto";
         FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
 
-        Witel witel = Objects.requireNonNullElseGet(form.getWitel(), () -> SecurityUtil.getCurrentUser().getWitel());
-        String stoAlias = Objects.requireNonNullElseGet(form.getSto(), () -> SecurityUtil.getCurrentUser().getSto());
+        Witel witel = Objects.requireNonNullElseGet(form.getWitel(), () -> MarsUserContext.getAccessToken().getWitel());
+        String stoAlias = Objects.requireNonNullElseGet(form.getSto(), () -> MarsUserContext.getAccessToken().getSto());
 
         Optional<Sto> stoOpt = stoRepo.findByWitelAndAliasIgnoreCase(witel, stoAlias);
         if (stoOpt.isEmpty()) {

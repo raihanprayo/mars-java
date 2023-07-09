@@ -9,6 +9,7 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.mapper.AgentMapper;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
@@ -17,7 +18,7 @@ import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import dev.scaraz.mars.core.repository.db.order.TicketAssetRepo;
 import dev.scaraz.mars.core.service.order.TicketService;
-import dev.scaraz.mars.core.util.SecurityUtil;
+import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -41,6 +42,8 @@ import java.util.stream.Stream;
 @RequestMapping("/ticket")
 public class TicketResource {
 
+    private final AccountQueryService accountQueryService;
+
     private final TicketService service;
     private final TicketQueryService queryService;
     private final TicketSummaryQueryService summaryQueryService;
@@ -63,7 +66,7 @@ public class TicketResource {
             TicketSummaryCriteria criteria,
             Pageable pageable
     ) {
-        criteria.setWipBy(new StringFilter().setEq(SecurityUtil.getCurrentUser().getId()));
+        criteria.setWipBy(new StringFilter().setEq(MarsUserContext.getId()));
         if (counter) {
             long count = summaryQueryService.count(criteria);
             return ResponseEntity.ok(
@@ -148,7 +151,7 @@ public class TicketResource {
 
     private void attachProductCountHeader(HttpHeaders headers, TicketSummaryCriteria criteria, boolean currentUser) {
         if (currentUser) {
-            Account usr = SecurityUtil.getCurrentUser();
+            Account usr = accountQueryService.findByCurrentAccess();
             if (usr != null) {
                 StringFilter userIdFilter = new StringFilter(usr.getId());
 

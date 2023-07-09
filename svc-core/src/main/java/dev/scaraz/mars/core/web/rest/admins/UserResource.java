@@ -9,11 +9,10 @@ import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
-import dev.scaraz.mars.core.query.UserQueryService;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.credential.AccountService;
-import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -38,7 +37,7 @@ public class UserResource {
     private final CredentialMapper credentialMapper;
 
     private final AccountService accountService;
-    private final UserQueryService userQueryService;
+    private final AccountQueryService accountQueryService;
     private final AccountApprovalRepo accountApprovalRepo;
 
     @GetMapping
@@ -50,9 +49,9 @@ public class UserResource {
     ) {
         return ResourceUtil.plainMappedResponse(plain, mapped,
                 "/user",
-                () -> userQueryService.findAll(criteria, pageable)
+                () -> accountQueryService.findAll(criteria, pageable)
                         .map(credentialMapper::toDTO),
-                () -> userQueryService.findAll(criteria).stream()
+                () -> accountQueryService.findAll(criteria).stream()
                         .map(credentialMapper::toDTO)
                         .collect(Collectors.toList()),
                 UserDTO::getId);
@@ -60,7 +59,7 @@ public class UserResource {
 
     @GetMapping("/detail/{nik}")
     public ResponseEntity<?> findByNik(@PathVariable String nik) {
-        return ResponseEntity.ok(userQueryService.findByNik(nik));
+        return ResponseEntity.ok(accountQueryService.findByNik(nik));
     }
 
     @GetMapping("/approvals")
@@ -101,7 +100,7 @@ public class UserResource {
     public ResponseEntity<?> updateUser(
             @RequestBody UpdateUserDashboardDTO req
     ) {
-        Account currentAccount = SecurityUtil.getCurrentUser();
+        Account currentAccount = accountQueryService.findByCurrentAccess();
         Account account = accountService.updatePartial(currentAccount.getId(), req);
         return ResponseEntity.ok(credentialMapper.toDTO(account));
     }
@@ -111,7 +110,7 @@ public class UserResource {
             @PathVariable String userId,
             @RequestBody UserPasswordUpdateDTO updatePassDTO
     ) {
-        Account account = userQueryService.findById(userId);
+        Account account = accountQueryService.findById(userId);
         boolean matches = passwordEncoder.matches(updatePassDTO.getOldPass(), account.getPassword());
         if (!matches)
             throw new BadRequestException("Password lama tidak sama!");
