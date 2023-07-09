@@ -21,9 +21,9 @@ import dev.scaraz.mars.core.repository.db.credential.AccountRepo;
 import dev.scaraz.mars.core.repository.db.credential.AccountSettingRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.ConfigService;
+import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.service.credential.RoleService;
-import dev.scaraz.mars.core.service.credential.UserApprovalService;
-import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.service.credential.AccountApprovalService;
 import dev.scaraz.mars.core.util.DelegateUser;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
@@ -31,7 +31,6 @@ import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -45,7 +44,7 @@ import java.util.*;
 @RequiredArgsConstructor
 
 @Service
-public class UserServiceImpl implements UserService {
+public class AccountServiceImpl implements AccountService {
 
     private final MarsProperties marsProperties;
     private final AppConfigService appConfigService;
@@ -55,7 +54,7 @@ public class UserServiceImpl implements UserService {
 
 
     private final AccountRepo accountRepo;
-    private final UserApprovalService userApprovalService;
+    private final AccountApprovalService accountApprovalService;
     private final RegistrationApprovalRepo registrationApprovalRepo;
 
     private final UserQueryService userQueryService;
@@ -143,7 +142,7 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     public void approval(String approvalId, boolean approved) {
-        AccountApproval approval = userApprovalService.findByIdOrNo(approvalId);
+        AccountApproval approval = accountApprovalService.findByIdOrNo(approvalId);
 
         if (approved) {
             Account nuser = save(Account.builder()
@@ -178,12 +177,12 @@ public class UserServiceImpl implements UserService {
             catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
-            userApprovalService.delete(approvalId);
+            accountApprovalService.delete(approvalId);
             save(nuser);
         }
         else {
             if (approval.getStatus().equals(AccountApproval.REQUIRE_DOCUMENT)) {
-                userApprovalService.delete(approvalId);
+                accountApprovalService.delete(approvalId);
 
                 try {
                     botService.getClient().execute(SendMessage.builder()
@@ -201,7 +200,7 @@ public class UserServiceImpl implements UserService {
                 }
             }
             else {
-                userApprovalService.deleteCache(approvalId);
+                accountApprovalService.deleteCache(approvalId);
                 approval.setStatus(AccountApproval.REQUIRE_DOCUMENT);
                 try {
                     List<String> emails = appConfigService.getApprovalAdminEmails_arr()
@@ -226,7 +225,7 @@ public class UserServiceImpl implements UserService {
                 catch (TelegramApiException e) {
                     throw new RuntimeException(e);
                 }
-                userApprovalService.save(approval);
+                accountApprovalService.save(approval);
             }
         }
     }
@@ -251,7 +250,7 @@ public class UserServiceImpl implements UserService {
         try {
             if (needApproval) {
                 String regNo = "REG0" + req.getTgId();
-                AccountApproval approval = userApprovalService.save(AccountApproval.builder()
+                AccountApproval approval = accountApprovalService.save(AccountApproval.builder()
                         .no(regNo)
                         .status(AccountApproval.WAIT_APPROVAL)
                         .name(req.getName())

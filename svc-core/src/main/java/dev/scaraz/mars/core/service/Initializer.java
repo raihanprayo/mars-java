@@ -5,7 +5,6 @@ import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
-import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
@@ -17,7 +16,7 @@ import dev.scaraz.mars.core.repository.db.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.db.order.IssueRepo;
 import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import dev.scaraz.mars.core.service.credential.RoleService;
-import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.service.order.IssueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +46,7 @@ public class Initializer {
 
     private final MarsProperties marsProperties;
 
-    private final UserService userService;
+    private final AccountService accountService;
     private final UserQueryService userQueryService;
 
     private final RoleRepo roleRepo;
@@ -130,7 +129,7 @@ public class Initializer {
 
         if (!userQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
             log.debug("CREATE DEFAULT ADMIN USER");
-            Account admin = userService.create(CreateUserDTO.builder()
+            Account admin = accountService.create(CreateUserDTO.builder()
                     .name("Administrator")
                     .nik("admin")
                     .active(true)
@@ -138,7 +137,7 @@ public class Initializer {
                     .roles(List.of(adminRole.getId()))
                     .build());
 
-            userService.updatePassword(admin, "admin");
+            accountService.updatePassword(admin, "admin");
         }
     }
 

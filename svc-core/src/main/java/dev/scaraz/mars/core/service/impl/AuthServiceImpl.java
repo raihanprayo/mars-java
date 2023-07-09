@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.service.impl;
 
+import dev.scaraz.mars.common.config.DataSourceAuditor;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.AuthReqDTO;
 import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
@@ -14,6 +15,7 @@ import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
+import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
 import dev.scaraz.mars.core.domain.cache.ForgotPassword;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
@@ -22,10 +24,11 @@ import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 import dev.scaraz.mars.core.service.AuthService;
-import dev.scaraz.mars.core.service.ForgotPasswordService;
-import dev.scaraz.mars.core.service.credential.UserApprovalService;
-import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.service.credential.ForgotPasswordService;
+import dev.scaraz.mars.core.service.credential.AccountApprovalService;
+import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
+import dev.scaraz.mars.security.MarsPasswordEncoder;
 import dev.scaraz.mars.security.authentication.token.MarsJwtAuthenticationToken;
 import dev.scaraz.mars.security.authentication.token.MarsTelegramAuthenticationToken;
 import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
@@ -55,17 +58,15 @@ public class AuthServiceImpl implements AuthService {
 
     private final MarsProperties marsProperties;
 
-    private final AuditProvider auditProvider;
-
-//    private final UserRepo userRepo;
-    private final UserService userService;
+    //    private final UserRepo userRepo;
+    private final AccountService accountService;
     private final UserQueryService userQueryService;
-    private final UserApprovalService userApprovalService;
+    private final AccountApprovalService accountApprovalService;
 
     private final AgentQueryService agentQueryService;
     private final DispatchFlowService dispatchFlowService;
 
-    private final PasswordEncoder passwordEncoder;
+    private final MarsPasswordEncoder passwordEncoder;
 
     private final ForgotPasswordService forgotPasswordService;
 
@@ -91,30 +92,36 @@ public class AuthServiceImpl implements AuthService {
                             .build();
                 }
                 else {
-                    auditProvider.setName(account.getNik());
-//                    account.setPassword(passwordEncoder.encode(authReq.getPassword()));
+                    DataSourceAuditor.setUsername(account.getNik());
                     if (authReq.getEmail() != null)
                         account.setEmail(authReq.getEmail());
 
-                    userService.save(account);
+                    accountService.save(account);
                 }
             }
             else {
-                boolean passwordMatch = passwordEncoder.matches(authReq.getPassword(), account.getPassword());
+                if (!account.isActive())
+                    throw new UnauthorizedException("Silahkan menghubungi tim admin untuk mengaktifkan akunmu");
+
+                boolean passwordMatch = passwordEncoder.matches(authReq.getPassword(), account.getCredential());
                 if (!passwordMatch) {
                     throw new UnauthorizedException("auth.user.invalid.password");
                 }
-                else if (!account.isActive())
-                    throw new UnauthorizedException("Silahkan menghubungi tim admin untuk mengaktifkan akunmu");
             }
 
-            return generateWebToken(account)
+            AuthResDTO result = generateWebToken(account)
                     .user(account)
                     .code(SUCCESS)
                     .build();
+
+            AccountAccessEvent.details("WEB_LOGIN", account.getUsername())
+                    .source("web")
+                    .put("token_id", result.getAccessTokenResult().getId())
+                    .publish();
+            return result;
         }
         finally {
-            auditProvider.clear();
+            DataSourceAuditor.clear();
         }
     }
 
@@ -123,10 +130,8 @@ public class AuthServiceImpl implements AuthService {
         try {
             Account account = userQueryService.findByTelegramId(telegramId);
             if (!account.isActive())
-                throw new TgUnauthorizedError("Your account is not active, try to contact your administrator");
+                throw new TgUnauthorizedError("Akunmu tidak aktif, silahkan menghubungi administrator mars");
 
-//            SecurityContextHolder.getContext().setAuthentication(
-//                    new CoreAuthenticationToken(AuthSource.TELEGRAM, user, null));
             SecurityContextHolder.getContext().setAuthentication(
                     new MarsTelegramAuthenticationToken(MarsTelegramToken.builder()
                             .id(account.getId())
@@ -148,9 +153,17 @@ public class AuthServiceImpl implements AuthService {
     public AuthResDTO refresh(MarsJwtAuthenticationToken authentication) {
         MarsAccessToken accessToken = authentication.getPrincipal();
         Account account = userQueryService.findById(accessToken.getSub());
-        return generateWebToken(account)
-                .code(SUCCESS)
-                .build();
+
+        try {
+            return generateWebToken(account)
+                    .code(SUCCESS)
+                    .build();
+        }
+        finally {
+            AccountAccessEvent.details("WEB_CODE_TO_TOKEN", account.getUsername())
+                    .source("web")
+                    .publish();
+        }
     }
 
     @Override
@@ -178,6 +191,11 @@ public class AuthServiceImpl implements AuthService {
                             .note("(confirmed) agent logout")
                             .build());
         }
+
+        AccountAccessEvent.details("WEB_LOGOUT", account.getUsername())
+                .source("web")
+                .put("ticket_dispatch_count", size)
+                .publish();
     }
 
     @Override
@@ -242,7 +260,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public boolean isUserInApproval(long telegramId) {
-        return userApprovalService.existsByTelegramId(telegramId);
+        return accountApprovalService.existsByTelegramId(telegramId);
     }
 
 
@@ -273,7 +291,10 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refresh_token.getToken())
                 .issuedAt(now.toEpochMilli())
                 .expiredAt(access_token.getExpiredAt().toEpochMilli())
-                .refreshExpiredAt(refresh_token.getExpiredAt().toEpochMilli());
+                .refreshExpiredAt(refresh_token.getExpiredAt().toEpochMilli())
+
+                .accessTokenResult(access_token)
+                .refreshTokenResult(refresh_token);
     }
 
 }

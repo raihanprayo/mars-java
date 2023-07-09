@@ -6,7 +6,7 @@ import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
 import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
-import dev.scaraz.mars.core.service.credential.UserApprovalService;
+import dev.scaraz.mars.core.service.credential.AccountApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -27,7 +27,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.Cache.USR_APPROVAL_NS;
 @RequiredArgsConstructor
 
 @Service
-public class UserApprovalServiceImpl implements UserApprovalService {
+public class AccountApprovalServiceImpl implements AccountApprovalService {
 
     private final AccountApprovalRepo repo;
     private final RegistrationApprovalRepo cacheRepo;

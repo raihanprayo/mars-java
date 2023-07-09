@@ -10,7 +10,7 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
-import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
+import dev.scaraz.mars.core.service.credential.AccountRegistrationBotService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
@@ -51,7 +51,7 @@ public class AppListener {
 
     private final AuthService authService;
 
-    private final UserRegistrationBotService userRegistrationBotService;
+    private final AccountRegistrationBotService accountRegistrationBotService;
     private final TicketBotService ticketBotService;
 
     private final ConfirmService confirmService;
@@ -78,15 +78,15 @@ public class AppListener {
                 BotRegistration registration = registrationOpt.get();
                 switch (registration.getState()) {
                     case NAME:
-                        return userRegistrationBotService.answerNameThenAskNik(registration, text.trim());
+                        return accountRegistrationBotService.answerNameThenAskNik(registration, text.trim());
                     case NIK:
-                        return userRegistrationBotService.answerNikThenAskPhone(registration, text.trim());
+                        return accountRegistrationBotService.answerNikThenAskPhone(registration, text.trim());
                     case PHONE:
-                        return userRegistrationBotService.answerPhoneThenAskWitel(registration, text.trim());
+                        return accountRegistrationBotService.answerPhoneThenAskWitel(registration, text.trim());
                     case WITEL:
                         try {
                             Witel witel = Witel.valueOf(text.toUpperCase());
-                            return userRegistrationBotService.answerWitelThenAskSubregion(registration, witel);
+                            return accountRegistrationBotService.answerWitelThenAskSubregion(registration, witel);
                         }
                         catch (IllegalArgumentException ex) {
                             return SendMessage.builder()
@@ -95,13 +95,13 @@ public class AppListener {
                                     .build();
                         }
                     case REGION:
-                        return userRegistrationBotService.answerSubregionThenEnd(registration, text.trim());
+                        return accountRegistrationBotService.answerSubregionThenEnd(registration, text.trim());
                     case PAIR_NIK:
-                        return userRegistrationBotService.pairAccountAnsNik(registration, text.trim());
+                        return accountRegistrationBotService.pairAccountAnsNik(registration, text.trim());
                     case PAIR_WITEL:
                         try {
                             Witel witel = Witel.valueOf(text.toUpperCase());
-                            return userRegistrationBotService.pairAccountAnsWitel(registration, witel);
+                            return accountRegistrationBotService.pairAccountAnsWitel(registration, witel);
                         }
                         catch (IllegalArgumentException ex) {
                             return SendMessage.builder()
@@ -158,13 +158,13 @@ public class AppListener {
             case AppConstants.Telegram.REG_PAIR: {
                 if (marsAccount != null) return null;
                 else if (authService.isUserInApproval(user.getId())) return null;
-                return userRegistrationBotService.pairAccount(user.getId(), user.getUserName());
+                return accountRegistrationBotService.pairAccount(user.getId(), user.getUserName());
             }
 
             case AppConstants.Telegram.REG_NEW: {
                 if (marsAccount != null) return null;
                 else if (authService.isUserInApproval(user.getId())) return null;
-                return userRegistrationBotService.start(user.getId(), user.getUserName());
+                return accountRegistrationBotService.start(user.getId(), user.getUserName());
             }
             case AppConstants.Telegram.REG_IGNORE_WITEL: {
                 if (!registrationRepo.existsById(user.getId())) return null;
@@ -173,7 +173,7 @@ public class AppListener {
 
                 RegisterState state = registration.getState();
                 if (state == RegisterState.WITEL)
-                    return userRegistrationBotService.answerWitelThenAskSubregion(registration, marsProperties.getWitel());
+                    return accountRegistrationBotService.answerWitelThenAskSubregion(registration, marsProperties.getWitel());
 
                 throw new IllegalStateException("Invalid registration state");
             }

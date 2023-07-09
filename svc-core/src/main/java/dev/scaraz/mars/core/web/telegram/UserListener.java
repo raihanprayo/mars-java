@@ -5,9 +5,9 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
-import dev.scaraz.mars.core.service.credential.UserApprovalService;
-import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
-import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.service.credential.AccountApprovalService;
+import dev.scaraz.mars.core.service.credential.AccountRegistrationBotService;
+import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
@@ -35,10 +35,10 @@ public class UserListener {
 
     private final AuthService authService;
 
-    private final UserService userService;
-    private final UserApprovalService userApprovalService;
+    private final AccountService accountService;
+    private final AccountApprovalService accountApprovalService;
 
-    private final UserRegistrationBotService userRegistrationBotService;
+    private final AccountRegistrationBotService accountRegistrationBotService;
     private final BotRegistrationRepo registrationRepo;
 
     @TelegramCommand(commands = {"/register", "/reg"})
@@ -46,8 +46,8 @@ public class UserListener {
         if (!authService.isUserRegistered(telegramId)) {
             log.info("Register New User");
 
-            if (userApprovalService.existsByTelegramId(telegramId)) {
-                AccountApproval approval = userApprovalService.findByTelegramId(telegramId);
+            if (accountApprovalService.existsByTelegramId(telegramId)) {
+                AccountApproval approval = accountApprovalService.findByTelegramId(telegramId);
                 return WAITING_APPROVAL(telegramId, approval);
             }
 
@@ -86,7 +86,7 @@ public class UserListener {
                     if (isEn) account.getSetting().setLang(LANG_EN);
                     else account.getSetting().setLang(LANG_ID);
 
-                    userService.save(account.getSetting());
+                    accountService.save(account.getSetting());
                     return SendMessage.builder()
                             .chatId(account.getTg().getId())
                             .text("OK")
@@ -107,7 +107,7 @@ public class UserListener {
     @TelegramCommand(commands = "/reg_reset")
     public SendMessage registrationReset(User user) {
         if (registrationRepo.existsById(user.getId()))
-            return userRegistrationBotService.start(user.getId(), user.getUserName());
+            return accountRegistrationBotService.start(user.getId(), user.getUserName());
 
         return null;
     }

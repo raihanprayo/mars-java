@@ -12,7 +12,7 @@ import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
-import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ public class UserResource {
     private final PasswordEncoder passwordEncoder;
     private final CredentialMapper credentialMapper;
 
-    private final UserService userService;
+    private final AccountService accountService;
     private final UserQueryService userQueryService;
     private final AccountApprovalRepo accountApprovalRepo;
 
@@ -75,7 +75,7 @@ public class UserResource {
             @RequestBody Collection<String> approvalIds
     ) {
         log.info("ACCEPTING APPROVALS -- APPROVED={} DATA={}", approved, approvalIds);
-        approvalIds.forEach(id -> userService.approval(id, approved));
+        approvalIds.forEach(id -> accountService.approval(id, approved));
         return ResponseEntity.ok().build();
     }
 
@@ -83,7 +83,7 @@ public class UserResource {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Valid CreateUserDTO req) {
         log.info("NEW USER DASHBOARD REGISTRATION -- {}", req);
-        Account account = userService.create(req);
+        Account account = accountService.create(req);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(credentialMapper.toDTO(account));
     }
@@ -93,7 +93,7 @@ public class UserResource {
             @PathVariable String userId,
             @RequestBody UpdateUserDashboardDTO req
     ) {
-        Account account = userService.updatePartial(userId, req);
+        Account account = accountService.updatePartial(userId, req);
         return ResponseEntity.ok(credentialMapper.toDTO(account));
     }
 
@@ -102,7 +102,7 @@ public class UserResource {
             @RequestBody UpdateUserDashboardDTO req
     ) {
         Account currentAccount = SecurityUtil.getCurrentUser();
-        Account account = userService.updatePartial(currentAccount.getId(), req);
+        Account account = accountService.updatePartial(currentAccount.getId(), req);
         return ResponseEntity.ok(credentialMapper.toDTO(account));
     }
 
@@ -120,7 +120,7 @@ public class UserResource {
         if (newPassEqOld)
             throw new BadRequestException("Password baru tidak boleh sama dengan password lama");
 
-        userService.updatePassword(account, updatePassDTO.getNewPass());
+        accountService.updatePassword(account, updatePassDTO.getNewPass());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

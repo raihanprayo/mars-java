@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.service;
+package dev.scaraz.mars.core.service.credential;
 
 import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.JwtResult;
@@ -8,7 +8,7 @@ import dev.scaraz.mars.core.domain.cache.ForgotPassword;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.query.UserQueryService;
 import dev.scaraz.mars.core.repository.cache.ForgotPasswordRepo;
-import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -36,7 +36,7 @@ public class ForgotPasswordService {
     private final ForgotPasswordRepo repo;
 
     private final AuditProvider auditProvider;
-    private final UserService userService;
+    private final AccountService accountService;
     private final UserQueryService userQueryService;
 
     private final NotifierService notifierService;
@@ -129,7 +129,7 @@ public class ForgotPasswordService {
     public void reset(String userId, String newPassword) {
         Account account = userQueryService.findById(userId);
         auditProvider.setName(account.getNik());
-        userService.updatePassword(account, newPassword);
+        accountService.updatePassword(account, newPassword);
 
         repo.deleteById(userId);
         auditProvider.clear();

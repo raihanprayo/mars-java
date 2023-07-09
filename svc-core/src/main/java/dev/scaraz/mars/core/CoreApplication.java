@@ -1,5 +1,7 @@
 package dev.scaraz.mars.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
 import dev.scaraz.mars.core.service.Initializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -44,13 +47,14 @@ public class CoreApplication implements CommandLineRunner {
         );
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void onReady() {
-        initializer.checkWitel();
-    }
+    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ObjectMapper objectMapper;
 
     @Override
     public void run(String... args) {
+        AccountAccessEvent.setObectMapper(objectMapper);
+        AccountAccessEvent.setApplicationEventPublisher(applicationEventPublisher);
+
         String imports = System.getenv("MARS_IMPORT");
         if (StringUtils.isNoneBlank(imports)) {
             log.info("Import initialization");

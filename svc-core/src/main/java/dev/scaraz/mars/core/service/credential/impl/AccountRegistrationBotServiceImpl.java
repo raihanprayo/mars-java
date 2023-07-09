@@ -17,8 +17,8 @@ import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import dev.scaraz.mars.core.service.AppConfigService;
-import dev.scaraz.mars.core.service.credential.UserRegistrationBotService;
-import dev.scaraz.mars.core.service.credential.UserService;
+import dev.scaraz.mars.core.service.credential.AccountRegistrationBotService;
+import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
@@ -39,12 +39,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 
 @Service
-public class UserRegistrationBotServiceImpl implements UserRegistrationBotService {
+public class AccountRegistrationBotServiceImpl implements AccountRegistrationBotService {
 
     private final AppConfigService appConfigService;
     private final MarsProperties marsProperties;
 
-    private final UserService userService;
+    private final AccountService accountService;
     private final UserQueryService userQueryService;
 
     private final StoRepo stoRepo;
@@ -107,7 +107,7 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
 
         if (optUser.isPresent()) {
             registration.setWitel(ansWitel);
-            userService.pairing(optUser.get(), registration);
+            accountService.pairing(optUser.get(), registration);
             registrationRepo.deleteById(registration.getId());
             return SendMessage.builder()
                     .chatId(registration.getId())
@@ -286,7 +286,7 @@ public class UserRegistrationBotServiceImpl implements UserRegistrationBotServic
         boolean needApproval = appConfigService.getRegistrationRequireApproval_bool()
                 .getAsBoolean();
 
-        userService.createFromBot(needApproval, TelegramCreateUserDTO.builder()
+        accountService.createFromBot(needApproval, TelegramCreateUserDTO.builder()
                 .tgId(registration.getId())
                 .tgUsername(registration.getUsername())
                 .phone(registration.getPhone())

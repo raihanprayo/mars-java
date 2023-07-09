@@ -27,4 +27,8 @@ public class AuthResDTO implements Serializable {
     @JsonIgnore
     private long issuedAt;
 
+    @JsonIgnore
+    private JwtResult accessTokenResult;
+    @JsonIgnore
+    private JwtResult refreshTokenResult;
 }

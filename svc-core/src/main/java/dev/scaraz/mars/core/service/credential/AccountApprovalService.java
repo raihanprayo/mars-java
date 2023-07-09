@@ -2,7 +2,7 @@ package dev.scaraz.mars.core.service.credential;
 
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 
-public interface UserApprovalService {
+public interface AccountApprovalService {
     AccountApproval save(AccountApproval o);
 
     void delete(String idOrNo);

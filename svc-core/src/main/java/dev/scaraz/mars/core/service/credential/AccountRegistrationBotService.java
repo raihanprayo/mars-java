@@ -4,7 +4,7 @@ import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
-public interface UserRegistrationBotService {
+public interface AccountRegistrationBotService {
 
     SendMessage pairAccount(long telegramId, String username);
 

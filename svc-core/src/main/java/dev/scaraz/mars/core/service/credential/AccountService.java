@@ -10,7 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.transaction.annotation.Transactional;
 
-public interface UserService extends UserDetailsPasswordService {
+public interface AccountService extends UserDetailsPasswordService {
 
     @Override
     Account updatePassword(UserDetails user, String newPassword);
