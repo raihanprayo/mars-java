@@ -1,6 +1,6 @@
 package dev.scaraz.mars.security.jwt;
 
-import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
+import dev.scaraz.mars.security.authentication.identity.MarsWebToken;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,5 +28,5 @@ public final class JwtParseResult {
     private String message;
 
     private String rawToken;
-    private MarsAccessToken claims;
+    private MarsWebToken claims;
 }

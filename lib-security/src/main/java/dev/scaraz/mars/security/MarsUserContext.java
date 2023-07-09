@@ -4,11 +4,13 @@ import dev.scaraz.mars.common.exception.web.AccessDeniedException;
 import dev.scaraz.mars.security.authentication.identity.MarsAuthentication;
 import dev.scaraz.mars.security.authentication.token.MarsAuthenticationToken;
 import dev.scaraz.mars.security.constants.AccessType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
+@Slf4j
 public final class MarsUserContext {
     private MarsUserContext() {
     }
@@ -16,8 +18,10 @@ public final class MarsUserContext {
     public static MarsAuthenticationToken<MarsAuthentication> getAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MarsAuthenticationToken) {
-            if (authentication.isAuthenticated())
+            log.debug("Identity Token: {} ? {}", authentication, authentication.isAuthenticated());
+            if (authentication.isAuthenticated()) {
                 return (MarsAuthenticationToken<MarsAuthentication>) authentication;
+            }
         }
 
         throw AccessDeniedException.args("Invalid authentication token");

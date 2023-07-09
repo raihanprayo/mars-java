@@ -31,4 +31,9 @@ public class AuthResDTO implements Serializable {
     private JwtResult accessTokenResult;
     @JsonIgnore
     private JwtResult refreshTokenResult;
+
+    @JsonIgnore
+    @Builder.Default
+    private Object[] webTokenPayloads = new Object[2];
+
 }

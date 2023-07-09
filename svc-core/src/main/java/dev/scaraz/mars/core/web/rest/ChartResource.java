@@ -66,10 +66,10 @@ public class ChartResource {
         chart.setActionAge(chartService.pieTicketByActionAge(all.getContent()));
         chart.setResponseAge(chartService.pieTicketByResponseAge(all.getContent()));
 
-        HttpHeaders headers = ResourceUtil.generatePaginationHeader(all, "/chart/ticket.report");
+        HttpHeaders headers = ResourceUtil.generatePaginationHeader(all, "/chart/ticket/report");
         return new ResponseEntity<>(Map.of(
                 "chart", chart,
-                "raw", all
+                "raw", all.getContent()
         ), headers, HttpStatus.OK);
     }
 

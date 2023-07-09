@@ -1,6 +1,6 @@
 package dev.scaraz.mars.security;
 
-import dev.scaraz.mars.security.authentication.provider.MarsBearerAuthenticationProvider;
+import dev.scaraz.mars.security.authentication.provider.MarsAuthenticationProvider;
 import dev.scaraz.mars.security.authentication.MarsBearerFilter;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -38,16 +38,19 @@ public abstract class MarsSecurityConfigurer {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        configure(http.addFilterBefore(marsBearerFilter(), UsernamePasswordAuthenticationFilter.class));
+        http.addFilterBefore(marsBearerFilter(), UsernamePasswordAuthenticationFilter.class);
+//        http.addFilterBefore(marsSessionFilter(), MarsBearerFilter.class);
+        configure(http);
         return http.build();
     }
 
-    protected MarsBearerAuthenticationProvider marsBearerAuthenticationProvider() {
-        return new MarsBearerAuthenticationProvider();
+    protected MarsAuthenticationProvider marsBearerAuthenticationProvider() {
+        return new MarsAuthenticationProvider();
     }
 
     protected MarsBearerFilter marsBearerFilter() {
         return new MarsBearerFilter();
     }
+
 
 }

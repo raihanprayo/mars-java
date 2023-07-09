@@ -1,15 +1,25 @@
 package dev.scaraz.mars.security.authentication.token;
 
+import dev.scaraz.mars.security.authentication.identity.MarsWebToken;
 import dev.scaraz.mars.security.constants.AccessType;
-import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
+import lombok.Getter;
 
-public class MarsJwtAuthenticationToken extends MarsAuthenticationToken<MarsAccessToken> {
+public class MarsWebAuthenticationToken extends MarsAuthenticationToken<MarsWebToken> {
 
+    @Getter
+    private final String sessionId;
+
+    @Getter
     private final String rawToken;
 
-    public MarsJwtAuthenticationToken(String rawToken, MarsAccessToken token) {
+    public MarsWebAuthenticationToken(String sessionId, String rawToken, MarsWebToken token) {
         super(AccessType.WEB, token);
         this.rawToken = rawToken;
+        this.sessionId = sessionId;
+    }
+
+    public MarsWebAuthenticationToken(String rawToken, MarsWebToken token) {
+        this(null, rawToken, token);
     }
 
     public boolean isRefreshToken() {
@@ -23,7 +33,7 @@ public class MarsJwtAuthenticationToken extends MarsAuthenticationToken<MarsAcce
 
     @Override
     public Object getCredentials() {
-        return rawToken;
+        return null;
     }
 
     @Override

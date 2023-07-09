@@ -75,9 +75,10 @@ public class CredentialMapperImpl implements CredentialMapper {
                 .email(account.getEmail())
                 .witel(account.getWitel())
                 .sto(account.getSto())
-                .telegramId(account.getTg().getId())
-                .username(account.getTg().getUsername())
                 .roles(appRole);
+
+        if (account.getTg() != null)
+            builder.telegramId(account.getTg().getId());
 
         return builder.build();
     }

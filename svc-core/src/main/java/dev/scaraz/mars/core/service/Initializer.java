@@ -119,15 +119,15 @@ public class Initializer {
             adminRole = roleRepo.findByName(ADMIN_ROLE)
                     .orElseThrow();
         }
-        else adminRole = roleService.create(ADMIN_ROLE, 100);
+        else adminRole = roleService.create(ADMIN_ROLE);
 
         if (!roleRepo.existsByName(AGENT_ROLE))
-            roleService.create(AGENT_ROLE, 2);
+            roleService.create(AGENT_ROLE);
 
         if (!roleRepo.existsByName(USER_ROLE))
-            roleService.create(AppConstants.Authority.USER_ROLE, 1);
+            roleService.create(AppConstants.Authority.USER_ROLE);
 
-        if (!accountQueryService.existByNik(AppConstants.Authority.ADMIN_NIK)) {
+        if (!accountQueryService.existByNik("admin")) {
             log.debug("CREATE DEFAULT ADMIN USER");
             Account admin = accountService.create(CreateUserDTO.builder()
                     .name("Administrator")

@@ -37,8 +37,6 @@ public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebM
 
     private final MarsProperties marsProperties;
 
-    private final AuditProvider auditProvider;
-
     @PostConstruct
     private void init() {
         this.setDefaultLocale(LANG_ID);
@@ -47,7 +45,7 @@ public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebM
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LogInterceptor(auditProvider));
+        registry.addInterceptor(new LogInterceptor());
     }
 
     @Override

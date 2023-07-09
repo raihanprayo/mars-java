@@ -2,7 +2,7 @@ package dev.scaraz.mars.security.jwt;
 
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.tools.enums.Witel;
-import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
+import dev.scaraz.mars.security.authentication.identity.MarsWebToken;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
@@ -26,11 +26,11 @@ public final class JwtUtil {
     private static final Duration DEFAULT_EXPIRED_RFS = Duration.ofHours(12);
 
     private static final List<String> ISSUERS = List.of(
-            MarsAccessToken.ISSUER_WEB,
-            MarsAccessToken.ISSUER_API);
+            MarsWebToken.ISSUER_WEB,
+            MarsWebToken.ISSUER_API);
     private static final List<String> AUDIENCES = List.of(
-            MarsAccessToken.ACS,
-            MarsAccessToken.RFS);
+            MarsWebToken.ACS,
+            MarsWebToken.RFS);
 
     private static final AtomicReference<Key> secret = new AtomicReference<>();
     private static final AtomicReference<Supplier<Duration>> accessExpired = new AtomicReference<>(() -> DEFAULT_EXPIRED_ACS);
@@ -39,7 +39,7 @@ public final class JwtUtil {
     private JwtUtil() {
     }
 
-    public static JwtResult encode(MarsAccessToken claims) {
+    public static JwtResult encode(MarsWebToken claims) {
         Assert.notNull(secret.get(), "secret SigningKey is null");
         Assert.isTrue(StringUtils.isNoneBlank(claims.getSub()), "JWT Subject cannot be empty");
 
@@ -57,7 +57,7 @@ public final class JwtUtil {
                 .setAudience(audience)
                 .setIssuedAt(claims.getIssuedAt());
 
-        if (audience.equalsIgnoreCase(MarsAccessToken.ACS)) {
+        if (audience.equalsIgnoreCase(MarsWebToken.ACS)) {
             Assert.isTrue(StringUtils.isNoneBlank(claims.getNik()), "NIK claims cannot be empty/null");
             Assert.notNull(claims.getWitel(), "WITEL claims cannot be null");
 
@@ -82,7 +82,7 @@ public final class JwtUtil {
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()));
         }
-        else if (audience.equalsIgnoreCase(MarsAccessToken.RFS)) {
+        else if (audience.equalsIgnoreCase(MarsWebToken.RFS)) {
 
             if (claims.getExpiredAt() != null)
                 c.setExpiration(claims.getExpiredAt());
@@ -130,7 +130,7 @@ public final class JwtUtil {
             if (!ISSUERS.contains(claims.getIssuer()))
                 throw new IllegalStateException("unknown issuer");
 
-            MarsAccessToken.MarsAccessTokenBuilder cb = MarsAccessToken.builder()
+            MarsWebToken.MarsWebTokenBuilder cb = MarsWebToken.builder()
                     .sub(claims.getSubject())
                     .iss(claims.getIssuer())
                     .aud(claims.getAudience())
@@ -141,7 +141,7 @@ public final class JwtUtil {
                 throw new IllegalStateException("invalid audience");
             }
             else {
-                if (claims.getAudience().equals(MarsAccessToken.ACS)) {
+                if (claims.getAudience().equals(MarsWebToken.ACS)) {
                     List<String> roles = claims.get("roles", List.class);
 
                     cb.nik(claims.get("nik", String.class))

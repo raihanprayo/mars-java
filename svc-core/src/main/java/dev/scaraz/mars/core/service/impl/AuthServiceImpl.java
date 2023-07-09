@@ -14,6 +14,7 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
 import dev.scaraz.mars.core.domain.cache.ForgotPassword;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -23,30 +24,36 @@ import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 import dev.scaraz.mars.core.service.AuthService;
-import dev.scaraz.mars.core.service.credential.ForgotPasswordService;
+import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.credential.AccountApprovalService;
 import dev.scaraz.mars.core.service.credential.AccountService;
+import dev.scaraz.mars.core.service.credential.ForgotPasswordService;
 import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
-import dev.scaraz.mars.security.authentication.token.MarsJwtAuthenticationToken;
-import dev.scaraz.mars.security.authentication.token.MarsTelegramAuthenticationToken;
-import dev.scaraz.mars.security.authentication.identity.MarsAccessToken;
 import dev.scaraz.mars.security.authentication.identity.MarsTelegramToken;
+import dev.scaraz.mars.security.authentication.identity.MarsWebToken;
+import dev.scaraz.mars.security.authentication.token.MarsTelegramAuthenticationToken;
+import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 
-import static dev.scaraz.mars.common.utils.AppConstants.Auth.*;
+import static dev.scaraz.mars.common.utils.AppConstants.Auth.PASSWORD_CONFIRMATION;
+import static dev.scaraz.mars.common.utils.AppConstants.Auth.SUCCESS;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -57,6 +64,8 @@ public class AuthServiceImpl implements AuthService {
     private final MarsProperties marsProperties;
 
     //    private final UserRepo userRepo;
+    private final ConfigService configService;
+
     private final AccountService accountService;
     private final AccountQueryService accountQueryService;
     private final AccountApprovalService accountApprovalService;
@@ -70,7 +79,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthResDTO authenticate(AuthReqDTO authReq, String application) {
+    public AuthResDTO authenticate(
+            HttpServletRequest request,
+            AuthReqDTO authReq,
+            String application
+    ) {
         Account account = accountQueryService.loadUserByUsername(authReq.getNik());
 
         boolean allowedLogin = account.hasAnyRole(
@@ -116,6 +129,24 @@ public class AuthServiceImpl implements AuthService {
                     .source("web")
                     .put("token_id", result.getAccessTokenResult().getId())
                     .publish();
+
+            if (request.getRequestedSessionId() != null) {
+                request.getSession(false).invalidate();
+            }
+
+            HttpSession session = request.getSession();
+            MarsWebAuthenticationToken authenticationToken = new MarsWebAuthenticationToken(
+                    session.getId(),
+                    result.getAccessToken(),
+                    (MarsWebToken) result.getWebTokenPayloads()[0]
+            );
+
+            Duration timeout = configService.get(ConfigConstants.JWT_TOKEN_EXPIRED_DRT).getAsDuration();
+            session.setMaxInactiveInterval((int) timeout.toSeconds());
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authenticationToken);
+            SecurityContextHolder.setContext(context);
             return result;
         }
         finally {
@@ -148,8 +179,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResDTO refresh(MarsJwtAuthenticationToken authentication) {
-        MarsAccessToken accessToken = authentication.getPrincipal();
+    public AuthResDTO refresh(MarsWebAuthenticationToken authentication) {
+        MarsWebToken accessToken = authentication.getPrincipal();
         Account account = accountQueryService.findById(accessToken.getSub());
 
         try {
@@ -166,7 +197,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional(readOnly = true)
-    public void logout(Account account, boolean confirmed) {
+    public void logout(HttpServletRequest request, Account account, boolean confirmed) {
         List<AgentWorklog> worklogs = agentQueryService.findAllWorklogs(AgentWorklogCriteria.builder()
                 .workspace(AgentWorkspaceCriteria.builder()
                         .userId(new StringFilter().setEq(account.getId()))
@@ -176,24 +207,27 @@ public class AuthServiceImpl implements AuthService {
                 .build());
 
         int size = worklogs.size();
-        if (size == 0) return;
+        if (size != 0) {
+            if (!confirmed)
+                throw new LogoutException("wip", String.format("Found %s unsaved process", size));
 
-        if (!confirmed)
-            throw new LogoutException("wip", String.format("Found %s unsaved process", size));
+            for (AgentWorklog worklog : worklogs) {
+                dispatchFlowService.dispatch(
+                        worklog.getWorkspace().getTicket().getNo(),
+                        TicketStatusFormDTO.builder()
+                                .status(TcStatus.DISPATCH)
+                                .note("(confirmed) agent logout")
+                                .build());
+            }
 
-        for (AgentWorklog worklog : worklogs) {
-            dispatchFlowService.dispatch(
-                    worklog.getWorkspace().getTicket().getNo(),
-                    TicketStatusFormDTO.builder()
-                            .status(TcStatus.DISPATCH)
-                            .note("(confirmed) agent logout")
-                            .build());
+            AccountAccessEvent.details("WEB_LOGOUT", account.getUsername())
+                    .source("web")
+                    .put("ticket_dispatch_count", size)
+                    .publish();
         }
 
-        AccountAccessEvent.details("WEB_LOGOUT", account.getUsername())
-                .source("web")
-                .put("ticket_dispatch_count", size)
-                .publish();
+        HttpSession session = request.getSession(false);
+        if (session != null) session.invalidate();
     }
 
     @Override
@@ -212,6 +246,17 @@ public class AuthServiceImpl implements AuthService {
         }
         else if (f.getState() == ForgotReqDTO.State.VALIDATE) {
             Assert.isTrue(StringUtils.isNoneBlank(f.getOtp()), "OTP code cannot be null or empty");
+            Assert.isTrue(StringUtils.isNoneBlank(f.getToken()), "Invalid reset request");
+
+            boolean isValid = forgotPasswordService.validate(f.getToken(), f.getOtp());
+            if (isValid) {
+                return ForgotResDTO.builder()
+                        .next(ForgotReqDTO.State.ACCOUNT_RESET)
+                        .build();
+            }
+            else throw new BadRequestException("invalid otp");
+        }
+        else if (f.getState() == ForgotReqDTO.State.VALIDATE_TOKEN) {
             Assert.isTrue(StringUtils.isNoneBlank(f.getToken()), "Invalid reset request");
 
             boolean isValid = forgotPasswordService.validate(f.getToken(), f.getOtp());
@@ -267,22 +312,26 @@ public class AuthServiceImpl implements AuthService {
         final String issuer = "web";
         Instant now = Instant.now();
 
-        JwtResult access_token = JwtUtil.encode(MarsAccessToken.access()
+        MarsWebToken.MarsWebTokenBuilder marsAccessToken = MarsWebToken.access()
                 .iss(issuer)
                 .sub(account.getId())
                 .issuedAt(Date.from(now))
                 .nik(account.getUsername())
-                .telegram(account.getTg().getId())
                 .witel(account.getWitel())
                 .sto(account.getSto())
-                .roles(account.getRoles())
-                .build());
+                .roles(account.getRoles());
+        if (account.getTg() != null)
+            marsAccessToken.telegram(account.getTg().getId());
 
-        JwtResult refresh_token = JwtUtil.encode(MarsAccessToken.refresh()
+        MarsWebToken webAccessToken = marsAccessToken.build();
+        JwtResult access_token = JwtUtil.encode(webAccessToken);
+
+        MarsWebToken webRefreshToken = MarsWebToken.refresh()
                 .iss(issuer)
                 .sub(account.getId())
                 .issuedAt(Date.from(now))
-                .build());
+                .build();
+        JwtResult refresh_token = JwtUtil.encode(webRefreshToken);
 
         return AuthResDTO.builder()
                 .accessToken(access_token.getToken())
@@ -292,7 +341,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshExpiredAt(refresh_token.getExpiredAt().toEpochMilli())
 
                 .accessTokenResult(access_token)
-                .refreshTokenResult(refresh_token);
+                .refreshTokenResult(refresh_token)
+                .webTokenPayloads(new Object[]{webAccessToken, webRefreshToken});
     }
 
 }

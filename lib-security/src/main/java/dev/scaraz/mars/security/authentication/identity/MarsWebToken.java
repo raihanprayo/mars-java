@@ -1,7 +1,6 @@
 package dev.scaraz.mars.security.authentication.identity;
 
 import dev.scaraz.mars.common.tools.enums.Witel;
-import dev.scaraz.mars.security.authentication.identity.MarsAuthentication;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +16,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MarsAccessToken implements MarsAuthentication {
+public class MarsWebToken implements MarsAuthentication {
     public static final String
         ISSUER_WEB = "web",
         ISSUER_API = "api";
@@ -56,11 +55,11 @@ public class MarsAccessToken implements MarsAuthentication {
                 aud.equals(RFS);
     }
 
-    public static MarsAccessTokenBuilder refresh() {
+    public static MarsWebTokenBuilder refresh() {
         return builder().aud(RFS);
     }
 
-    public static MarsAccessTokenBuilder access() {
+    public static MarsWebTokenBuilder access() {
         return builder().aud(ACS);
     }
 

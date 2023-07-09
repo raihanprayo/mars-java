@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.config.DataSourceAuditor;
 import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.JwtResult;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.domain.cache.ForgotPassword;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -25,6 +26,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -50,31 +52,38 @@ public class ForgotPasswordService {
     }
 
     public ForgotPassword generate(ForgotReqDTO.Send send, Account account) {
-        Duration expDuration = Duration.of(2, ChronoUnit.HOURS);
+        Optional<ForgotPassword> fpOpt = repo.findById(account.getId());
+        if (fpOpt.isEmpty()) {
+            Duration expDuration = Duration.of(2, ChronoUnit.HOURS);
 
-        Instant iss = Instant.now();
-        Instant expired = iss.plus(expDuration);
+            Instant iss = Instant.now();
+            Instant expired = iss.plus(expDuration);
 
-        JwtResult ffs = JwtUtil.encode(Jwts.claims()
-                .setId(UUID.randomUUID().toString())
-                .setAudience("ffs")
-                .setSubject(account.getId())
-                .setIssuedAt(Date.from(iss))
-                .setExpiration(Date.from(expired))
-        );
-        String otp = generateOtp();
+            JwtResult ffs = JwtUtil.encode(Jwts.claims()
+                    .setId(UUID.randomUUID().toString())
+                    .setAudience("ffs")
+                    .setSubject(account.getId())
+                    .setIssuedAt(Date.from(iss))
+                    .setExpiration(Date.from(expired))
+            );
+            String otp = generateOtp();
 
-        try {
-            return repo.save(ForgotPassword.builder()
-                    .uid(account.getId())
-                    .token(ffs.getToken())
-                    .otp(otp)
-                    .ttl(expDuration.getSeconds())
-                    .build());
+            try {
+                return repo.save(ForgotPassword.builder()
+                        .uid(account.getId())
+                        .token(ffs.getToken())
+                        .otp(otp)
+                        .ttl(expDuration.getSeconds())
+                        .build());
+            }
+            finally {
+                if (send == ForgotReqDTO.Send.TELEGRAM)
+                    sendViaTelegram(account.getTg().getId(), otp);
+            }
         }
-        finally {
-            if (send == ForgotReqDTO.Send.TELEGRAM)
-                sendViaTelegram(account.getTg().getId(), otp);
+        else {
+            return fpOpt
+                    .orElseThrow(() -> NotFoundException.entity(ForgotPassword.class, "id", account.getId()));
         }
     }
 
@@ -125,6 +134,8 @@ public class ForgotPasswordService {
             return false;
         }
     }
+
+
 
     @Transactional
     public void reset(String userId, String newPassword) {

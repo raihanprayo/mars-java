@@ -12,7 +12,8 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.service.AuthService;
-import dev.scaraz.mars.security.authentication.token.MarsJwtAuthenticationToken;
+import dev.scaraz.mars.core.service.ConfigService;
+import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +24,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,6 +35,7 @@ import java.util.Map;
 public class AuthResource {
 
     private final MarsProperties marsProperties;
+    private final ConfigService configService;
     private final AuthService authService;
     private final AccountQueryService accountQueryService;
     private final CredentialMapper credentialMapper;
@@ -42,22 +46,25 @@ public class AuthResource {
     }
 
     @PostMapping(value = "/token")
-    public ResponseEntity<AuthResDTO> token(@RequestBody AuthReqDTO authReq) {
-        AuthResDTO authResult = authService.authenticate(authReq, "mars-dashboard");
+    public ResponseEntity<AuthResDTO> token(
+            HttpServletRequest request,
+            @RequestBody AuthReqDTO authReq) {
+        AuthResDTO authResult = authService.authenticate(request, authReq, "mars-dashboard");
         if (!authResult.getCode().equals(AppConstants.Auth.SUCCESS)) {
             return ResponseEntity
                     .status(400)
                     .body(authResult);
         }
+
         return ResponseEntity.ok(authResult);
     }
 
     @PostMapping(path = "/refresh", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResDTO> refresh(Authentication authentication) {
-        if (!(authentication instanceof MarsJwtAuthenticationToken))
+        if (!(authentication instanceof MarsWebAuthenticationToken))
             throw new IllegalStateException("invalid authentication token");
 
-        MarsJwtAuthenticationToken token = (MarsJwtAuthenticationToken) authentication;
+        MarsWebAuthenticationToken token = (MarsWebAuthenticationToken) authentication;
         if (!token.isRefreshToken())
             throw new IllegalStateException("format JWT tidak sesuai");
 
@@ -67,9 +74,10 @@ public class AuthResource {
 
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
+            HttpServletRequest request,
             @RequestParam(defaultValue = "false") boolean confirmeLogout
     ) {
-        authService.logout(accountQueryService.findByCurrentAccess(), confirmeLogout);
+        authService.logout(request, accountQueryService.findByCurrentAccess(), confirmeLogout);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -82,7 +90,10 @@ public class AuthResource {
             try {
                 Account account = accountQueryService.loadUserByUsername(username);
                 boolean accessibleViaEmail = StringUtils.isNoneBlank(account.getEmail());
-                boolean accessibleViaTelegram = account.getTg().getId() != null;
+//                boolean accessibleViaTelegram = account.getTg().getId() != null;
+                boolean accessibleViaTelegram = Optional.ofNullable(account.getTg())
+                        .map(tg -> tg.getId() != null)
+                        .orElse(false);
                 return ResponseEntity.ok(Map.of(
                         "email", accessibleViaEmail,
                         "telegram", accessibleViaTelegram

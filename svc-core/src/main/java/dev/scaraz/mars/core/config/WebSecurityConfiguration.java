@@ -8,10 +8,8 @@ import dev.scaraz.mars.security.MarsSecurityConfigurer;
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -20,26 +18,27 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionFixationProtectionStrategy;
+import org.springframework.session.FlushMode;
+import org.springframework.session.SaveMode;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
-
-import java.time.Duration;
 
 @Slf4j
 @RequiredArgsConstructor
 
 @Configuration
-@Import({SecurityProblemSupport.class})
 @EnableWebSecurity
+@EnableRedisHttpSession(
+        flushMode = FlushMode.IMMEDIATE,
+        saveMode = SaveMode.ALWAYS)
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfiguration extends MarsSecurityConfigurer {
 
     private static final int SALT = 14;
 
-    private final SecurityProblemSupport problemSupport;
-
-//    private final JwtRequestFilter jwtRequestFilter;
+    private final SecurityProblemSupport securityProblemSupport;
 
     private final MarsProperties marsProperties;
     private final ConfigService configService;
@@ -57,10 +56,12 @@ public class WebSecurityConfiguration extends MarsSecurityConfigurer {
                 .cors().and()
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(eh -> eh
-                        .accessDeniedHandler(problemSupport)
-                        .authenticationEntryPoint(problemSupport)
+                        .accessDeniedHandler(securityProblemSupport)
+                        .authenticationEntryPoint(securityProblemSupport)
                 )
-                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(s -> s
+                        .sessionAuthenticationStrategy(sessionAuthenticationStrategy())
+                        .sessionCreationPolicy(SessionCreationPolicy.NEVER))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
                 .authorizeRequests(r -> r
@@ -84,6 +85,13 @@ public class WebSecurityConfiguration extends MarsSecurityConfigurer {
     @Bean
     public GrantedAuthorityDefaults grantedAuthorityDefaults() {
         return new GrantedAuthorityDefaults("");
+    }
+
+    protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        SessionFixationProtectionStrategy sessionStrategy = new SessionFixationProtectionStrategy();
+        sessionStrategy.setMigrateSessionAttributes(true);
+        sessionStrategy.setAlwaysCreateSession(false);
+        return sessionStrategy;
     }
 
 }

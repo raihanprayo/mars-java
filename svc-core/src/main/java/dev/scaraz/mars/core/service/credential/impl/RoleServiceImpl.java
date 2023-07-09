@@ -29,13 +29,8 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Role create(String name) {
-        return create(name, 0);
-    }
-
-    @Override
     @Transactional
-    public Role create(String name, int order) {
+    public Role create(String name) {
         if (repo.existsByName(name))
             throw BadRequestException.duplicateEntity(Role.class, "name", name);
 

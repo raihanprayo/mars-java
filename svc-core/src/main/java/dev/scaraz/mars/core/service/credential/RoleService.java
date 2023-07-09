@@ -11,8 +11,5 @@ public interface RoleService {
     Role create(String name);
 
     @Transactional
-    Role create(String name, int order);
-
-    @Transactional
     List<Roles> addUserRoles(Account account, Role... roles);
 }

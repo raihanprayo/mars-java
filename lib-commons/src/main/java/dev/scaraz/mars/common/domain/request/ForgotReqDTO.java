@@ -11,6 +11,7 @@ public class ForgotReqDTO {
     public enum State {
         GENERATE,
         VALIDATE,
+        VALIDATE_TOKEN,
         ACCOUNT_RESET,
         DONE
     }

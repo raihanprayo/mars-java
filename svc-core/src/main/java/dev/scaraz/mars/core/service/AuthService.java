@@ -5,17 +5,26 @@ import dev.scaraz.mars.common.domain.request.ForgotReqDTO;
 import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.domain.response.ForgotResDTO;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.security.authentication.token.MarsJwtAuthenticationToken;
+import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletRequest;
 
 public interface AuthService {
 
-    AuthResDTO authenticate(AuthReqDTO authReq, String application);
+    @Transactional
+    AuthResDTO authenticate(
+            HttpServletRequest request,
+            AuthReqDTO authReq,
+            String application
+    );
 
     Account authenticateFromBot(long telegramId);
 
-    AuthResDTO refresh(MarsJwtAuthenticationToken authentication);
+    AuthResDTO refresh(MarsWebAuthenticationToken authentication);
 
-    void logout(Account account, boolean confirmed);
+    @Transactional(readOnly = true)
+    void logout(HttpServletRequest request, Account account, boolean confirmed);
 
     ForgotResDTO forgotPasswordFlow(ForgotReqDTO f);
 
