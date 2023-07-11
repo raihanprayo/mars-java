@@ -30,6 +30,7 @@ import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.service.credential.ForgotPasswordService;
 import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
+import dev.scaraz.mars.security.MarsUserContext;
 import dev.scaraz.mars.security.authentication.identity.MarsTelegramToken;
 import dev.scaraz.mars.security.authentication.identity.MarsWebToken;
 import dev.scaraz.mars.security.authentication.token.MarsTelegramAuthenticationToken;
@@ -197,6 +198,14 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(readOnly = true)
     public void logout(HttpServletRequest request, Account account, boolean confirmed) {
+        logout(account, confirmed);
+
+        HttpSession session = request.getSession(false);
+        if (session != null) session.invalidate();
+    }
+
+    @Override
+    public void logout(Account account, boolean confirmed) {
         List<AgentWorklog> worklogs = agentQueryService.findAllWorklogs(AgentWorklogCriteria.builder()
                 .workspace(AgentWorkspaceCriteria.builder()
                         .userId(new StringFilter().setEq(account.getId()))
@@ -210,6 +219,7 @@ public class AuthServiceImpl implements AuthService {
             if (!confirmed)
                 throw new LogoutException("wip", String.format("Found %s unsaved process", size));
 
+            DataSourceAuditor.setUsername(account.getNik());
             for (AgentWorklog worklog : worklogs) {
                 dispatchFlowService.dispatch(
                         worklog.getWorkspace().getTicket().getNo(),
@@ -220,13 +230,12 @@ public class AuthServiceImpl implements AuthService {
             }
         }
 
+        boolean userPresent = MarsUserContext.isUserPresent();
         AccountAccessEvent.details("WEB_LOGOUT", account.getUsername())
                 .source("web")
                 .put("ticket_dispatch_count", size)
+                .put("execution", userPresent ? "by-user" : "by-system")
                 .publish();
-
-        HttpSession session = request.getSession(false);
-        if (session != null) session.invalidate();
     }
 
     @Override

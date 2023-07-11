@@ -5,6 +5,10 @@ server:
     enabled: true
     min-response-size: 1024
     mime-types: text/html,text/xml,text/plain,text/css, application/javascript, application/json
+#  servlet:
+#    session:
+#      cookie:
+#        http-only: true
 
 spring:
   servlet:

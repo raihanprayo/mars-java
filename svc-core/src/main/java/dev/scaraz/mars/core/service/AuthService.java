@@ -26,6 +26,8 @@ public interface AuthService {
     @Transactional(readOnly = true)
     void logout(HttpServletRequest request, Account account, boolean confirmed);
 
+    void logout(Account account, boolean confirmed);
+
     ForgotResDTO forgotPasswordFlow(ForgotReqDTO f);
 
     ForgotResDTO forgotRegenerateOtp(String token);

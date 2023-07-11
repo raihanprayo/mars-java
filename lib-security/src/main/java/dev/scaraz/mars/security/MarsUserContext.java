@@ -10,7 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
-@Slf4j
+//@Slf4j
 public final class MarsUserContext {
     private MarsUserContext() {
     }
@@ -18,7 +18,7 @@ public final class MarsUserContext {
     public static MarsAuthenticationToken<MarsAuthentication> getAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication instanceof MarsAuthenticationToken) {
-            log.debug("Identity Token: {} ? {}", authentication, authentication.isAuthenticated());
+//            log.debug("Identity Token: {} ? {}", authentication, authentication.isAuthenticated());
             if (authentication.isAuthenticated()) {
                 return (MarsAuthenticationToken<MarsAuthentication>) authentication;
             }
