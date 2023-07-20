@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.domain.order.Solution;
@@ -38,8 +39,9 @@ public class NotifierService {
     private final TelegramBotService botService;
     private final AccountSettingRepo accountSettingRepo;
 
-    @Lazy
-    private final AppConfigService appConfigService;
+//    @Lazy
+//    private final AppConfigService appConfigService;
+    private final ConfigService configService;
 
     @Lazy
     private final SolutionRepo solutionRepo;
@@ -104,9 +106,12 @@ public class NotifierService {
 
             String replyDuration = pendingDurationMinute + " " + Translator.tr("date.minute");
 
-            long pendingMinute = appConfigService.getPostPending_drt()
+            long pendingMinute = configService.get(ConfigConstants.APP_PENDING_CONFIRMATION_DRT)
                     .getAsDuration()
                     .toMinutes();
+//            long pendingMinute = appConfigService.getPostPending_drt()
+//                    .getAsDuration()
+//                    .toMinutes();
 
             String pendingDuration = String.format("%s %s",
                     pendingMinute,

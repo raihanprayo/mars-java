@@ -16,14 +16,13 @@ import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.RoleQueryService;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
-import dev.scaraz.mars.core.repository.db.credential.RolesRepo;
 import dev.scaraz.mars.core.repository.db.credential.AccountRepo;
 import dev.scaraz.mars.core.repository.db.credential.AccountSettingRepo;
-import dev.scaraz.mars.core.service.AppConfigService;
+import dev.scaraz.mars.core.repository.db.credential.RolesRepo;
 import dev.scaraz.mars.core.service.ConfigService;
+import dev.scaraz.mars.core.service.credential.AccountApprovalService;
 import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.service.credential.RoleService;
-import dev.scaraz.mars.core.service.credential.AccountApprovalService;
 import dev.scaraz.mars.core.util.DelegateUser;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
@@ -47,7 +46,7 @@ import java.util.*;
 public class AccountServiceImpl implements AccountService {
 
     private final MarsProperties marsProperties;
-    private final AppConfigService appConfigService;
+//    private final AppConfigService appConfigService;
     private final ConfigService configService;
     private final AuditProvider auditProvider;
     private final TelegramBotService botService;
@@ -202,8 +201,10 @@ public class AccountServiceImpl implements AccountService {
                 accountApprovalService.deleteCache(approvalId);
                 approval.setStatus(AccountApproval.REQUIRE_DOCUMENT);
                 try {
-                    List<String> emails = appConfigService.getApprovalAdminEmails_arr()
-                            .getAsArray();
+//                    List<String> emails = appConfigService.getApprovalAdminEmails_arr()
+//                            .getAsArray();
+                    List<String> emails = configService.get(ConfigConstants.ACC_REGISTRATION_EMAILS_LIST)
+                            .getAsList();
 
                     String concatedEmails = emails.isEmpty() ? " - " : String.join("\n", emails);
 
@@ -265,7 +266,9 @@ public class AccountServiceImpl implements AccountService {
 
                 registrationApprovalRepo.save(new RegistrationApproval(approval.getId(), 24));
 
-                Duration hourDuration = appConfigService.getApprovalDurationHour_drt()
+//                Duration hourDuration = appConfigService.getApprovalDurationHour_drt()
+//                        .getAsDuration();
+                Duration hourDuration = configService.get(ConfigConstants.APP_USER_REGISTRATION_APPROVAL_DRT)
                         .getAsDuration();
 
                 botService.getClient().execute(SendMessage.builder()

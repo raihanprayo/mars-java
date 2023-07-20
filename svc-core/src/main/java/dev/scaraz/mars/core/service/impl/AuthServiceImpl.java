@@ -145,6 +145,7 @@ public class AuthServiceImpl implements AuthService {
 
             AccountAccessEvent.details("WEB_LOGIN", account.getUsername())
                     .source("web")
+                    .put("session_id", session.getId())
                     .put("token_id", result.getAccessTokenResult().getId())
                     .publish();
             return result;

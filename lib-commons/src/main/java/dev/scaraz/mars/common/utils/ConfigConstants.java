@@ -11,6 +11,7 @@ public final class ConfigConstants {
     public static final String
             APP_ALLOW_AGENT_CREATE_TICKET_BOOL = "agent-allowed-to-create-ticket",
             APP_USER_REGISTRATION_APPROVAL_BOOL = "user-registration-approval",
+            APP_USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration",
             APP_CONFIRMATION_DRT = "confirmation-duration",
             APP_PENDING_CONFIRMATION_DRT = "confirmation-pending-duration";
     public static final String

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class UserSpecBuilder extends AuditableSpec<Account, UserCriteria> {
+public class AccountSpecBuilder extends AuditableSpec<Account, UserCriteria> {
 
     @Override
     public Specification<Account> createSpec(UserCriteria criteria) {

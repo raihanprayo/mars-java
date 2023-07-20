@@ -5,18 +5,19 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.repository.db.order.AgentRepo;
-import dev.scaraz.mars.core.service.AppConfigService;
+import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.AgentService;
-import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.ConfirmService;
+import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.security.MarsUserContext;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
@@ -38,8 +39,9 @@ import static dev.scaraz.mars.core.service.order.LogTicketService.*;
 @Service
 public class CloseFlowService {
 
-    private final AppConfigService appConfigService;
+//    private final AppConfigService appConfigService;
 
+    private final ConfigService configService;
     private final TicketService service;
     private final TicketQueryService queryService;
     private final TicketSummaryQueryService summaryQueryService;
@@ -77,7 +79,9 @@ public class CloseFlowService {
             storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());
         });
 
-        Duration duration = appConfigService.getCloseConfirm_drt()
+//        Duration duration = appConfigService.getCloseConfirm_drt()
+//                .getAsDuration();
+        Duration duration = configService.get(ConfigConstants.APP_CONFIRMATION_DRT)
                 .getAsDuration();
 
         int messageId = notifierService.sendCloseConfirmation(ticket, duration.toMinutes(), form);

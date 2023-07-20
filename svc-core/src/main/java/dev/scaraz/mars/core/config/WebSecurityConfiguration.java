@@ -4,11 +4,12 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
-import dev.scaraz.mars.security.MarsSecurityConfigurer;
 import dev.scaraz.mars.security.authentication.MarsBearerFilter;
+import dev.scaraz.mars.security.authentication.provider.MarsAuthenticationProvider;
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,7 +23,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -35,9 +35,7 @@ import org.springframework.session.web.http.CookieSerializer;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.Duration;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -57,6 +55,13 @@ public class WebSecurityConfiguration {
 
     private final MarsProperties marsProperties;
     private final ConfigService configService;
+
+    @Autowired
+    private void configure(AuthenticationManagerBuilder auth) {
+//        CoreLoginAuthenticationProvider provider = new CoreLoginAuthenticationProvider(accountQueryService, passwordEncoder());
+//        auth.authenticationProvider(provider);
+        auth.authenticationProvider(new MarsAuthenticationProvider());
+    }
 
     @Bean
     public MethodInvokingFactoryBean setInheritableSecurityContextStrategy() {

@@ -18,7 +18,17 @@ public class DynamicJsonDeserializer extends JsonDeserializer<DynamicType> {
             TreeNode node = parser.getCodec().readTree(parser);
             TextNode classField = (TextNode) node.get("class");
 
-            return DynamicType.from(classField.asText());
+            try {
+                return DynamicType.of(getClass()
+                        .getClassLoader()
+                        .loadClass(classField.asText()));
+            }
+            catch (ClassNotFoundException e) {
+                throw InvalidFormatException.from(
+                        parser,
+                        "Invalid class type: " + e.getMessage()
+                );
+            }
         }
 
         throw InvalidFormatException.from(

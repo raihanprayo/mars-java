@@ -9,6 +9,7 @@ import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Sto;
@@ -16,7 +17,7 @@ import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.repository.db.order.StoRepo;
-import dev.scaraz.mars.core.service.AppConfigService;
+import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.credential.AccountRegistrationBotService;
 import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
@@ -41,7 +42,8 @@ import java.util.Optional;
 @Service
 public class AccountRegistrationBotServiceImpl implements AccountRegistrationBotService {
 
-    private final AppConfigService appConfigService;
+//    private final AppConfigService appConfigService;
+    private final ConfigService configService;
     private final MarsProperties marsProperties;
 
     private final AccountService accountService;
@@ -283,7 +285,9 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
             }
         }
 
-        boolean needApproval = appConfigService.getRegistrationRequireApproval_bool()
+//        boolean needApproval = appConfigService.getRegistrationRequireApproval_bool()
+//                .getAsBoolean();
+        boolean needApproval = configService.get(ConfigConstants.APP_USER_REGISTRATION_APPROVAL_BOOL)
                 .getAsBoolean();
 
         accountService.createFromBot(needApproval, TelegramCreateUserDTO.builder()

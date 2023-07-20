@@ -2,7 +2,6 @@ package dev.scaraz.mars.core.config.telegram;
 
 import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.model.TelegramAnnotationArgResolver;
@@ -21,8 +20,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class AuthArgResolver implements TelegramAnnotationArgResolver {
-
-    private final AppConfigService appConfigService;
 
     private final AuthService authService;
 

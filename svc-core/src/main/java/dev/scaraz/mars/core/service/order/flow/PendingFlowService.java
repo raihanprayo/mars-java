@@ -5,6 +5,7 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
@@ -12,12 +13,12 @@ import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
-import dev.scaraz.mars.core.service.AppConfigService;
+import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.AgentService;
-import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.ConfirmService;
+import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.security.MarsUserContext;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
@@ -38,7 +39,9 @@ import java.util.Optional;
 @Service
 public class PendingFlowService {
 
-    private final AppConfigService appConfigService;
+//    private final AppConfigService appConfigService;
+
+    private final ConfigService configService;
 
     private final TicketService service;
     private final TicketQueryService queryService;
@@ -83,7 +86,9 @@ public class PendingFlowService {
             throw BadRequestException.args("Pending worklog cannot be empty");
 
 
-        Duration duration = appConfigService.getCloseConfirm_drt()
+//        Duration duration = appConfigService.getCloseConfirm_drt()
+//                .getAsDuration();
+        Duration duration = configService.get(ConfigConstants.APP_CONFIRMATION_DRT)
                 .getAsDuration();
 
         int messageId = notifierService.sendPendingConfirmation(ticket, duration.toMinutes(), form);
@@ -128,9 +133,12 @@ public class PendingFlowService {
             ticket.setStatus(TcStatus.PENDING);
             ticket.setConfirmMessageId(null);
 
-            int minute = appConfigService.getPostPending_drt()
-                    .getAsNumber()
-                    .intValue();
+//            int minute = appConfigService.getPostPending_drt()
+//                    .getAsNumber()
+//                    .intValue();
+            long minute = configService.get(ConfigConstants.APP_PENDING_CONFIRMATION_DRT)
+                    .getAsDuration()
+                    .toMinutes();
 
             int messageId = notifierService.sendRaw(ticket.getSenderId(),
                     String.format("Tiket *%s*:", ticket.getNo()),
@@ -197,7 +205,9 @@ public class PendingFlowService {
         Ticket ticket = queryService.findByIdOrNo(ticketNo);
         ticket.setConfirmPendingMessageId(null);
 
-        Duration duration = appConfigService.getCloseConfirm_drt()
+//        Duration duration = appConfigService.getCloseConfirm_drt()
+//                .getAsDuration();
+        Duration duration = configService.get(ConfigConstants.APP_CONFIRMATION_DRT)
                 .getAsDuration();
 
         int messageId = notifierService.sendPostPendingConfirmation(ticket, duration.toMinutes());

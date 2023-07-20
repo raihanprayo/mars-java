@@ -4,7 +4,7 @@ import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
-import dev.scaraz.mars.core.query.spec.UserSpecBuilder;
+import dev.scaraz.mars.core.query.spec.AccountSpecBuilder;
 import dev.scaraz.mars.core.repository.db.credential.AccountRepo;
 import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.Optional;
 public class AccountQueryServiceImpl implements AccountQueryService {
 
     private final AccountRepo repo;
-    private final UserSpecBuilder specBuilder;
+    private final AccountSpecBuilder specBuilder;
 
     @Override
     public Account loadUserByUsername(String username) throws UsernameNotFoundException {

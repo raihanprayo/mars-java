@@ -1,16 +1,16 @@
 package dev.scaraz.mars.core.service.credential.impl;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.repository.cache.RegistrationApprovalRepo;
 import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
-import dev.scaraz.mars.core.service.AppConfigService;
+import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.credential.AccountApprovalService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -33,15 +33,20 @@ public class AccountApprovalServiceImpl implements AccountApprovalService {
     private final RegistrationApprovalRepo cacheRepo;
     private final StringRedisTemplate stringRedisTemplate;
 
-    @Lazy
-    private final AppConfigService appConfigService;
+//    @Lazy
+//    private final AppConfigService appConfigService;
+    private final ConfigService configService;
 
     @Override
     public AccountApproval save(AccountApproval o) {
         AccountApproval save = repo.save(o);
-        int duration = appConfigService.getApprovalDurationHour_drt()
-                .getAsNumber()
-                .intValue();
+//        int duration = appConfigService.getApprovalDurationHour_drt()
+//                .getAsNumber()
+//                .intValue();
+        long duration = configService.get(ConfigConstants.APP_USER_REGISTRATION_APPROVAL_DRT)
+                .getAsDuration()
+                .toHours();
+
         cacheRepo.save(new RegistrationApproval(save.getId(), duration));
         return save;
     }

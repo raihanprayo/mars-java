@@ -13,13 +13,15 @@ import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
-import dev.scaraz.mars.core.service.AppConfigService;
+//import dev.scaraz.mars.core.service.AppConfigService;
+import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.*;
@@ -58,7 +60,8 @@ import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 @Service
 public class TicketBotServiceImpl implements TicketBotService {
 
-    private final AppConfigService appConfigService;
+//    private final AppConfigService appConfigService;
+    private final ConfigService configService;
     private final TelegramBotService botService;
 
     private final AccountQueryService accountQueryService;
@@ -298,7 +301,9 @@ public class TicketBotServiceImpl implements TicketBotService {
 
         Account account = accountQueryService.findByCurrentAccess();
         if (account.hasAnyRole(AppConstants.Authority.AGENT_ROLE)) {
-            boolean allowedCreate = appConfigService.getAllowAgentCreateTicket_bool()
+//            boolean allowedCreate = appConfigService.getAllowAgentCreateTicket_bool()
+//                    .getAsBoolean();
+            boolean allowedCreate = configService.get(ConfigConstants.APP_ALLOW_AGENT_CREATE_TICKET_BOOL)
                     .getAsBoolean();
 
             if (!allowedCreate)
@@ -318,9 +323,11 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .build();
 
         synchronized (ISSUES_BUTTON_LIST) {
-            int colCount = appConfigService.getTelegramStartIssueColumn_int()
-                    .getAsNumber()
-                    .intValue();
+//            int colCount = appConfigService.getTelegramStartIssueColumn_int()
+//                    .getAsNumber()
+//                    .intValue();
+            int colCount = configService.get(ConfigConstants.TG_START_CMD_ISSUE_COLUMN_INT)
+                    .getAsInt();
 
             LinkedMultiValueMap<Product, InlineKeyboardButton> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
             List<List<InlineKeyboardButton>> buttons = new ArrayList<>();

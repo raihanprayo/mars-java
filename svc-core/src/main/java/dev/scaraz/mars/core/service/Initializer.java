@@ -58,7 +58,6 @@ public class Initializer {
 
     private final StoRepo stoRepo;
 
-    private final AppConfigService appConfigService;
     private final ConfigService configService;
 
 
@@ -82,7 +81,8 @@ public class Initializer {
                 new ConfigEntry<>(APP_CONFIRMATION_DRT, Duration.ofMinutes(30), "Lama waktu yang diperlukan untuk menunggu requestor menjawab konfirmasi sebelum tiket close"),
                 new ConfigEntry<>(APP_PENDING_CONFIRMATION_DRT, Duration.ofHours(1)),
                 new ConfigEntry<>(APP_ALLOW_AGENT_CREATE_TICKET_BOOL, false, "Agent diperbolehkan membuat tiket sendiri"),
-                new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_BOOL, true, "Registrasi user melalui bot telegram diperlukan persetujuan dari admin")
+                new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_BOOL, true, "Registrasi user melalui bot telegram diperlukan persetujuan dari admin"),
+                new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_DRT, Duration.ofDays(1), "Lama waktu/Durasi registrasi disetujui")
         );
 
         configService.bulkCreate(Tag.ACCOUNT,

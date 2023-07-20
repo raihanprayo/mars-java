@@ -6,8 +6,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.io.Serializable;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public final class DynamicType implements Serializable {
@@ -24,7 +24,7 @@ public final class DynamicType implements Serializable {
             FLOAT = new DynamicType(Float.class, Float.TYPE);
     public static final DynamicType
             DURATION = new DynamicType(Duration.class),
-            LIST = new DynamicType(Collection.class);
+            LIST = new DynamicType(List.class);
 
     @Getter
     private final Class<?> type;
