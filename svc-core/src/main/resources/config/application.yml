@@ -17,6 +17,10 @@ spring:
       max-request-size: 20MB
   application:
     name: mars-roc
+  data:
+    web:
+      pageable:
+        default-page-size: 50
   jpa:
     database: postgresql
     generate-ddl: false

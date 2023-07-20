@@ -1,8 +1,14 @@
 package dev.scaraz.mars.core.domain.credential;
 
-import lombok.*;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.scaraz.mars.common.tools.converter.InstantDeserializer;
+import dev.scaraz.mars.common.tools.converter.InstantSerializer;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
-import org.springframework.context.event.EventListener;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -37,6 +43,8 @@ public class AccountEvent {
 
     @CreatedDate
     @Column(name = "created_at")
+    @JsonSerialize(using = InstantSerializer.class)
+    @JsonDeserialize(using = InstantDeserializer.class)
     private Instant createdAt;
 
 }
