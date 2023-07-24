@@ -170,6 +170,7 @@ public class AuthServiceImpl implements AuthService {
                             .witel(account.getWitel())
                             .sto(account.getSto())
                             .roles(account.getRoles())
+                            .telegram(account.getTg().getId())
                             .build())
             );
             return account;
