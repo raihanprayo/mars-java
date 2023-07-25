@@ -52,19 +52,19 @@ public class LogInterceptor implements HandlerInterceptor {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        HandlerMethod method = (HandlerMethod) handler;
-        String methodName = String.format("%s.%s", method.getBeanType().getSimpleName(), method.getMethod().getName());
-
-        String url = request.getRequestURL().toString();
-        if (request.getQueryString() != null)
-            url += "?" + request.getQueryString();
-
-        log.info("[{}] ENDING REQUEST FROM {} {} TO {}",
-                methodName,
-                request.getMethod(),
-                url,
-                getClientIpAddress(request)
-        );
+//        HandlerMethod method = (HandlerMethod) handler;
+//        String methodName = String.format("%s.%s", method.getBeanType().getSimpleName(), method.getMethod().getName());
+//
+//        String url = request.getRequestURL().toString();
+//        if (request.getQueryString() != null)
+//            url += "?" + request.getQueryString();
+//
+//        log.info("[{}] ENDING REQUEST FROM {} {} TO {}",
+//                methodName,
+//                request.getMethod(),
+//                url,
+//                getClientIpAddress(request)
+//        );
     }
 
     private String getClientIpAddress(HttpServletRequest request) {

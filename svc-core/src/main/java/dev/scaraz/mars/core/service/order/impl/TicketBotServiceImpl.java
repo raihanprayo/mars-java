@@ -12,7 +12,7 @@ import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -300,7 +300,7 @@ public class TicketBotServiceImpl implements TicketBotService {
         }
 
         Account account = accountQueryService.findByCurrentAccess();
-        if (account.hasAnyRole(AppConstants.Authority.AGENT_ROLE)) {
+        if (account.hasAnyRole(AuthorityConstant.AGENT_ROLE)) {
 //            boolean allowedCreate = appConfigService.getAllowAgentCreateTicket_bool()
 //                    .getAsBoolean();
             boolean allowedCreate = configService.get(ConfigConstants.APP_ALLOW_AGENT_CREATE_TICKET_BOOL)

@@ -1,13 +1,12 @@
 package dev.scaraz.mars.core.service.impl;
 
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.AuthService;
-import dev.scaraz.mars.core.service.order.TicketFlowService;
 import dev.scaraz.mars.security.authentication.identity.MarsWebToken;
 import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
@@ -45,7 +44,7 @@ public class AppListenerService {
             MarsWebToken principal = ((MarsWebAuthenticationToken) authentication).getPrincipal();
             Account account = accountQueryService.findById(principal.getId());
 
-            if (account.hasAnyRole(AppConstants.Authority.AGENT_ROLE))
+            if (account.hasAnyRole(AuthorityConstant.AGENT_ROLE))
                 authService.logout(account, true);
         }
     }

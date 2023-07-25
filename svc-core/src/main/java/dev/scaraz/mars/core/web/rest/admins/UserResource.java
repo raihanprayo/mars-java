@@ -1,10 +1,11 @@
 package dev.scaraz.mars.core.web.rest.admins;
 
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
-import dev.scaraz.mars.common.domain.request.UserPasswordUpdateDTO;
 import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
+import dev.scaraz.mars.common.domain.request.UserPasswordUpdateDTO;
 import dev.scaraz.mars.common.domain.response.UserDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
+@PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
 public class UserResource {
 
     private final PasswordEncoder passwordEncoder;
@@ -59,7 +62,8 @@ public class UserResource {
 
     @GetMapping("/detail/{nik}")
     public ResponseEntity<?> findByNik(@PathVariable String nik) {
-        return ResponseEntity.ok(accountQueryService.findByNik(nik));
+        UserDTO userDTO = credentialMapper.toDTO(accountQueryService.findByNik(nik));
+        return ResponseEntity.ok(userDTO);
     }
 
     @GetMapping("/approvals")

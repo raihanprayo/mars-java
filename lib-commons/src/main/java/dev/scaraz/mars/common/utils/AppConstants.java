@@ -7,8 +7,6 @@ import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.ZoneId;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -41,14 +39,6 @@ public abstract class AppConstants {
         MultiValueMap<Product, InlineKeyboardButton> ISSUES_BUTTON_LIST = new LinkedMultiValueMap<>();
     }
 
-
-    public interface Authority {
-        String ADMIN_ROLE = "admin";
-        String AGENT_ROLE = "user_agent";
-        String USER_ROLE = "user";
-
-        String ADMIN_NIK = "000001413914";
-    }
 
     public interface Cache {
         String TC_CONFIRM_NS = "tc:confirm";

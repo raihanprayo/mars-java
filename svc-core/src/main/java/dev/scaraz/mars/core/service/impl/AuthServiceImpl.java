@@ -13,7 +13,7 @@ import dev.scaraz.mars.common.exception.web.*;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
 import dev.scaraz.mars.core.domain.cache.ForgotPassword;
@@ -88,8 +88,8 @@ public class AuthServiceImpl implements AuthService {
         Account account = accountQueryService.loadUserByUsername(authReq.getNik());
 
         boolean allowedLogin = account.hasAnyRole(
-                AppConstants.Authority.ADMIN_ROLE,
-                AppConstants.Authority.AGENT_ROLE
+                AuthorityConstant.ADMIN_ROLE,
+                AuthorityConstant.AGENT_ROLE
         );
 
         if (!allowedLogin)
@@ -117,7 +117,7 @@ public class AuthServiceImpl implements AuthService {
 
                 boolean passwordMatch = passwordEncoder.matches(authReq.getPassword(), account.getCredential());
                 if (!passwordMatch) {
-                    throw new UnauthorizedException("auth.user.invalid.password");
+                    throw new UnauthorizedException("auth.account.invalid.password");
                 }
             }
 

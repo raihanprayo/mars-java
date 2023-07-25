@@ -65,7 +65,10 @@ public class Account extends AuditableEntity implements AuthenticatedPrincipal, 
     private AccountSetting setting = new AccountSetting();
 
     @Builder.Default
-    @OneToMany(mappedBy = "account", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "account",
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
     private Set<AccountCredential> credentials = new LinkedHashSet<>();
 
     @ToString.Exclude

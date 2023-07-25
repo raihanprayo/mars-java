@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service.order;
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
@@ -45,7 +45,7 @@ public class LeaderBoardService {
                 .name(criteria.getName())
                 .nik(criteria.getNik())
                 .roles(RoleCriteria.builder()
-                        .name(new StringFilter().setEq(AppConstants.Authority.AGENT_ROLE))
+                        .name(new StringFilter().setEq(AuthorityConstant.AGENT_ROLE))
                         .build())
                 .build());
 
@@ -63,7 +63,8 @@ public class LeaderBoardService {
                     .map(LeaderBoardFragment::getActionDuration)
                     .map(Duration::toMillis)
                     .reduce(Long::sum)
-                    .orElse(0L) / fragments.size();
+                    .map(l -> l / fragments.size())
+                    .orElse(0L);
 
             long totalHandleDispatch = fragments.stream()
                     .filter(frg -> frg.getStart() == TcStatus.DISPATCH)

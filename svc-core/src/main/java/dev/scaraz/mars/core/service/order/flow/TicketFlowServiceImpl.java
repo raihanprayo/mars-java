@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service.order.flow;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.query.AccountQueryService;
@@ -43,7 +43,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
     @Override
     @Transactional
     public Ticket take(String ticketIdOrNo) {
-        if (!MarsUserContext.hasAnyRole(AppConstants.Authority.AGENT_ROLE))
+        if (!MarsUserContext.hasAnyRole(AuthorityConstant.AGENT_ROLE))
             throw BadRequestException.args("Anda tidak mempunyai akses untuk memproses tiket");
 
         // Pengambilan tiket dengan kondisi tiket belum dikerjakan

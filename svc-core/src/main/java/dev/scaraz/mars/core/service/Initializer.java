@@ -4,7 +4,7 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 
-import static dev.scaraz.mars.common.utils.AppConstants.Authority.*;
+import static dev.scaraz.mars.common.utils.AuthorityConstant.*;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 import static dev.scaraz.mars.common.utils.ConfigConstants.*;
@@ -125,7 +125,7 @@ public class Initializer {
             roleService.create(AGENT_ROLE);
 
         if (!roleRepo.existsByName(USER_ROLE))
-            roleService.create(AppConstants.Authority.USER_ROLE);
+            roleService.create(AuthorityConstant.USER_ROLE);
 
         if (!accountQueryService.existByNik("admin")) {
             log.debug("CREATE DEFAULT ADMIN USER");

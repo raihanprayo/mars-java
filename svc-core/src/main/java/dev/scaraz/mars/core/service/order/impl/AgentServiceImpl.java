@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service.order.impl;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
@@ -69,7 +69,7 @@ public class AgentServiceImpl implements AgentService {
         Account account = accountQueryService.findById(MarsUserContext.getId());
 
         if (account == null) throw InternalServerException.args("Data akses user tidak ada!");
-        else if (!account.hasAnyRole(AppConstants.Authority.AGENT_ROLE))
+        else if (!account.hasAnyRole(AuthorityConstant.AGENT_ROLE))
             throw new BadRequestException("User tidak punya akses sebagai agent");
         else if (account.getTg().getId() == null)
             throw new BadRequestException("Agent tidak punya telegram id, untuk melakukan notifikasi");

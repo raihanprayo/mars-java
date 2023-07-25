@@ -6,9 +6,10 @@ import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
+import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
 import dev.scaraz.mars.core.domain.credential.*;
@@ -25,6 +26,7 @@ import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.util.DelegateUser;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
+import dev.scaraz.mars.security.MarsUserContext;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
@@ -46,7 +48,7 @@ import java.util.*;
 public class AccountServiceImpl implements AccountService {
 
     private final MarsProperties marsProperties;
-//    private final AppConfigService appConfigService;
+    //    private final AppConfigService appConfigService;
     private final ConfigService configService;
     private final AuditProvider auditProvider;
     private final TelegramBotService botService;
@@ -99,7 +101,13 @@ public class AccountServiceImpl implements AccountService {
         credential.setPassword(passwordEncoder.encode(credential));
         account.getCredentials().clear();
         account.getCredentials().add(credential);
-        return save(account);
+        try {
+            return save(account);
+        }
+        finally {
+            AccountAccessEvent.details("PASSWORD_RESET", account.getNik())
+                    .publish();
+        }
     }
 
     @Override
@@ -129,7 +137,7 @@ public class AccountServiceImpl implements AccountService {
             roleService.addUserRoles(nuser, roles.toArray(new Role[0]));
         }
         else {
-            Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
+            Role roleUser = roleQueryService.findByIdOrName(AuthorityConstant.USER_ROLE);
             roleService.addUserRoles(nuser, roleUser);
         }
 
@@ -153,10 +161,10 @@ public class AccountServiceImpl implements AccountService {
                     .active(true)
                     .build());
 
-            Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
+            Role roleUser = roleQueryService.findByIdOrName(AuthorityConstant.USER_ROLE);
             nuser.addRoles(roleUser);
             if (marsProperties.getWitel() == nuser.getWitel()) {
-                Role roleAgent = roleQueryService.findByIdOrName(AppConstants.Authority.AGENT_ROLE);
+                Role roleAgent = roleQueryService.findByIdOrName(AuthorityConstant.AGENT_ROLE);
                 nuser.addRoles(roleAgent);
             }
 
@@ -177,6 +185,13 @@ public class AccountServiceImpl implements AccountService {
             }
             accountApprovalService.delete(approvalId);
             save(nuser);
+
+            AccountAccessEvent.details("WEB_ADMIN_APPROVAL", MarsUserContext.getUsername())
+                    .put("approval_no", approval.getNo())
+                    .put("approval_name", approval.getName())
+                    .put("approval_nik", approval.getNik())
+                    .put("message", "Approval request accepted")
+                    .publish();
         }
         else {
             if (approval.getStatus().equals(AccountApproval.REQUIRE_DOCUMENT)) {
@@ -297,10 +312,10 @@ public class AccountServiceImpl implements AccountService {
                                 .build())
                         .build());
 
-                Role roleUser = roleQueryService.findByIdOrName(AppConstants.Authority.USER_ROLE);
+                Role roleUser = roleQueryService.findByIdOrName(AuthorityConstant.USER_ROLE);
                 account.addRoles(roleUser);
                 if (marsProperties.getWitel() == account.getWitel()) {
-                    Role roleAgent = roleQueryService.findByIdOrName(AppConstants.Authority.AGENT_ROLE);
+                    Role roleAgent = roleQueryService.findByIdOrName(AuthorityConstant.AGENT_ROLE);
                     account.addRoles(roleAgent);
                 }
 
@@ -320,6 +335,9 @@ public class AccountServiceImpl implements AccountService {
     public Account updatePartial(String userId, UpdateUserDashboardDTO dto) {
         log.info("PARTIAL DATA USER UPDATE {}", dto);
         Account account = accountQueryService.findById(userId);
+
+        boolean selfUpdate = MarsUserContext.getId().equals(account.getId());
+        String accessType = selfUpdate ? "WEB_UPDATE_PROFILE" : "WEB_ADMIN_UPDATE_PROFILE";
 
         if (dto.getNik() != null) account.setNik(dto.getNik());
         if (dto.getPhone() != null) account.setPhone(dto.getPhone());
@@ -357,6 +375,13 @@ public class AccountServiceImpl implements AccountService {
             }
 
             account.setRoles(new LinkedHashSet<>(roles));
+        }
+
+        if (!selfUpdate) {
+            AccountAccessEvent.details(accessType, MarsUserContext.getUsername())
+                    .put("acc_id", account.getId())
+                    .put("acc_nik", account.getNik())
+                    .publish();
         }
 
         return save(account);
