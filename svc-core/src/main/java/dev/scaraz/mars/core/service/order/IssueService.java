@@ -21,4 +21,6 @@ public interface IssueService {
     Issue update(long id, UpdateIssueDTO dto);
 
     void deleteByIds(Iterable<Long> ids);
+
+    void restoreByIds(Iterable<Long> ids);
 }

@@ -229,10 +229,6 @@ public class AppListener {
         }
 
         return null;
-//        return SendMessage.builder()
-//                .chatId(chatId)
-//                .text("Maaf, command ini hanya bisa ditampilkan melalui private chat")
-//                .build();
     }
 
     @TelegramCommand(commands = "/help", isHelp = true)

@@ -13,4 +13,5 @@ public interface IssueQueryService extends BaseQueryService<Issue, IssueCriteria
 
     Optional<Issue> findOne(IssueCriteria criteria);
 
+    List<Issue> findAllNotDeleted();
 }

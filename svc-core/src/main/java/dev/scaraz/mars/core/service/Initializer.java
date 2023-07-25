@@ -201,7 +201,7 @@ public class Initializer {
 
         synchronized (ISSUES_BUTTON_LIST) {
             MultiValueMap<Product, Issue> issuesMap = new LinkedMultiValueMap<>();
-            for (Issue issue : issueQueryService.findAll()) {
+            for (Issue issue : issueQueryService.findAllNotDeleted()) {
                 issuesMap.putIfAbsent(issue.getProduct(), new ArrayList<>());
                 issuesMap.get(issue.getProduct()).add(issue);
             }
