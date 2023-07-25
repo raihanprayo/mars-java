@@ -42,6 +42,11 @@ public class IssueQueryServiceImpl implements IssueQueryService {
     }
 
     @Override
+    public List<Issue> findAllNotDeleted() {
+        return repo.findAllByDeletedIsFalse();
+    }
+
+    @Override
     public Page<Issue> findAll(Pageable pageable) {
         return repo.findAll(pageable);
     }

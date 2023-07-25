@@ -65,11 +65,21 @@ public class IssueResource {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PutMapping(
+            path = "/bulk",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> restoreBulk(@RequestBody List<Long> ids) {
+        service.restoreByIds(ids);
+        eventPublisher.publishEvent(new RefreshIssueInlineButtons());
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @DeleteMapping(
             path = "/bulk",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> deleteBulk(@RequestBody List<Long> ids) {
         service.deleteByIds(ids);
+        eventPublisher.publishEvent(new RefreshIssueInlineButtons());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

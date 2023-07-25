@@ -22,11 +22,9 @@ public class UpdateUserDashboardDTO {
     private Boolean active;
     private String email;
 
-    @Builder.Default
-    private UpdateTelegram tg = new UpdateTelegram();
+    private UpdateTelegram tg;
 
-    @Builder.Default
-    private UpdateRole roles = new UpdateRole();
+    private UpdateRole roles;
 
     @Data
     @Builder

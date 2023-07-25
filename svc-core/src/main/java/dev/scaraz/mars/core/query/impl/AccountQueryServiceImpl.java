@@ -119,6 +119,17 @@ public class AccountQueryServiceImpl implements AccountQueryService {
     }
 
     @Override
+    public Account findByNikOrTelegramId(String nikOrTelegramId) {
+        Optional<Account> account = repo.findByNik(nikOrTelegramId);
+        if (account.isEmpty())
+            account = repo.findByTgId(Long.parseLong(nikOrTelegramId));
+
+        if (account.isEmpty())
+            throw NotFoundException.entity(Account.class, "nik/telegram", nikOrTelegramId);
+        return account.get();
+    }
+
+    @Override
     public boolean existByNik(String nik) {
         return repo.findByNik(nik)
                 .isPresent();

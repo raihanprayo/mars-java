@@ -21,6 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -129,6 +132,13 @@ public class IssueServiceImpl implements IssueService {
     @Override
     public void deleteByIds(Iterable<Long> ids) {
         repo.deleteAllById(ids);
+    }
+
+    @Override
+    public void restoreByIds(Iterable<Long> ids) {
+        Set<Long> a = StreamSupport.stream(ids.spliterator(), true)
+                .collect(Collectors.toSet());
+        repo.findAllByDeletedIsTrueAndIdIn(a);
     }
 
 }

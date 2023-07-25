@@ -24,6 +24,8 @@ public interface AccountQueryService extends UserDetailsService, BaseQueryServic
 
     Account findByNik(String nik);
 
+    Account findByNikOrTelegramId(String nikOrTelegramId);
+
     boolean existByNik(String nik);
 
     boolean existByCriteria(UserCriteria criteria);
