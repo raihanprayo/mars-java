@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.telegram.telegrambots.meta.api.methods.send.SendContact;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.Objects;
+
 @Slf4j
 @RequiredArgsConstructor
 
@@ -35,12 +37,15 @@ public class TelegramResource {
 
         Account account = accountQueryService.findByNikOrTelegramId(nikOrTelegram);
 
+        if (Objects.equals(accessToken.getTelegram(), account.getTg().getId()))
+            throw new BadRequestException("Mengirim kontak diri sendiri");
+
         botService.getClient().executeAsync(SendContact.builder()
                 .chatId(accessToken.getTelegram())
                 .allowSendingWithoutReply(true)
                 .firstName(account.getName())
                 .phoneNumber(account.getPhone())
-                .protectContent(true)
+//                .protectContent(true)
                 .build());
 
         return new ResponseEntity<>(HttpStatus.OK);

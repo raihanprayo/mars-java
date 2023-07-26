@@ -81,7 +81,7 @@ public class CloseFlowService {
 
 //        Duration duration = appConfigService.getCloseConfirm_drt()
 //                .getAsDuration();
-        Duration duration = configService.get(ConfigConstants.APP_CONFIRMATION_DRT)
+        Duration duration = configService.get(ConfigConstants.TG_CONFIRMATION_DRT)
                 .getAsDuration();
 
         int messageId = notifierService.sendCloseConfirmation(ticket, duration.toMinutes(), form);

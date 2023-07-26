@@ -88,7 +88,7 @@ public class PendingFlowService {
 
 //        Duration duration = appConfigService.getCloseConfirm_drt()
 //                .getAsDuration();
-        Duration duration = configService.get(ConfigConstants.APP_CONFIRMATION_DRT)
+        Duration duration = configService.get(ConfigConstants.TG_CONFIRMATION_DRT)
                 .getAsDuration();
 
         int messageId = notifierService.sendPendingConfirmation(ticket, duration.toMinutes(), form);
@@ -136,7 +136,7 @@ public class PendingFlowService {
 //            int minute = appConfigService.getPostPending_drt()
 //                    .getAsNumber()
 //                    .intValue();
-            long minute = configService.get(ConfigConstants.APP_PENDING_CONFIRMATION_DRT)
+            long minute = configService.get(ConfigConstants.TG_PENDING_CONFIRMATION_DRT)
                     .getAsDuration()
                     .toMinutes();
 
@@ -207,7 +207,7 @@ public class PendingFlowService {
 
 //        Duration duration = appConfigService.getCloseConfirm_drt()
 //                .getAsDuration();
-        Duration duration = configService.get(ConfigConstants.APP_CONFIRMATION_DRT)
+        Duration duration = configService.get(ConfigConstants.TG_CONFIRMATION_DRT)
                 .getAsDuration();
 
         int messageId = notifierService.sendPostPendingConfirmation(ticket, duration.toMinutes());

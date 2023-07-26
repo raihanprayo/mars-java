@@ -25,6 +25,8 @@ public class ConfigDTO implements DynamicValue {
     @JsonSerialize(using = DynamicJsonSerializer.class)
     private DynamicType type;
 
+    private String description;
+
     @Override
     public String toString() {
         return "ConfigDTO{" +

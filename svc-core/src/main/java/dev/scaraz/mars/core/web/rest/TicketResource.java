@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.web.rest;
 
+import dev.scaraz.mars.common.domain.response.UserContactDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
@@ -86,6 +87,21 @@ public class TicketResource {
     public ResponseEntity<?> findById(@PathVariable String ticketIdOrNo) {
         TicketSummary ticket = summaryQueryService.findByIdOrNo(ticketIdOrNo);
         return new ResponseEntity<>(ticket, HttpStatus.OK);
+    }
+
+    @GetMapping("/detail/{ticketIdOrNo}/contact")
+    public ResponseEntity<?> getContact(@PathVariable String ticketIdOrNo) {
+        TicketSummary ticket = summaryQueryService.findByIdOrNo(ticketIdOrNo);
+        long telegramId = ticket.getSenderId();
+        Account account = accountQueryService.findByTelegramId(telegramId);
+        UserContactDTO contact = UserContactDTO.builder()
+                .nik(account.getNik())
+                .name(account.getName())
+                .phone(account.getPhone())
+                .telegram(account.getTg().getId())
+                .build();
+
+        return ResponseEntity.ok(contact);
     }
 
     @GetMapping("/detail/{ticketIdOrNo}/relation")

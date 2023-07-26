@@ -25,7 +25,7 @@ public class Config extends AuditableEntity implements DynamicValue {
     @Column(name = "id")
     private String key;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tag_id")
     private ConfigTag tag;
 

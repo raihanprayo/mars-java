@@ -78,8 +78,6 @@ public class Initializer {
 //        appConfigService.getAllowAgentCreateTicket_bool();
 //        appConfigService.getTelegramStartIssueColumn_int();
         configService.bulkCreate(Tag.APPLICATION,
-                new ConfigEntry<>(APP_CONFIRMATION_DRT, Duration.ofMinutes(30), "Lama waktu yang diperlukan untuk menunggu requestor menjawab konfirmasi sebelum tiket close"),
-                new ConfigEntry<>(APP_PENDING_CONFIRMATION_DRT, Duration.ofHours(1)),
                 new ConfigEntry<>(APP_ALLOW_AGENT_CREATE_TICKET_BOOL, false, "Agent diperbolehkan membuat tiket sendiri"),
                 new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_BOOL, true, "Registrasi user melalui bot telegram diperlukan persetujuan dari admin"),
                 new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_DRT, Duration.ofDays(1), "Lama waktu/Durasi registrasi disetujui")
@@ -92,14 +90,27 @@ public class Initializer {
         );
 
         configService.bulkCreate(Tag.CREDENTIAL,
-                new ConfigEntry<>(CRD_DEFAULT_PASSWORD_ALGO_STR, "bcrypt"),
-                new ConfigEntry<>(CRD_DEFAULT_PASSWORD_ITERATION_INT, 24_200),
-                new ConfigEntry<>(CRD_DEFAULT_PASSWORD_SECRET_STR, () -> {
+                new ConfigEntry<>(CRD_PASSWORD_ALGO_STR, "bcrypt"),
+                new ConfigEntry<>(CRD_PASSWORD_HASH_ITERATION_INT, 24_200),
+                new ConfigEntry<>(CRD_PASSWORD_SECRET_STR, () -> {
+                    byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
+                    byte[] bytes = new byte[16];
+
                     Random random = new Random();
-                    byte[] randomSecret = new byte[16];
-                    random.nextBytes(randomSecret);
-                    return Base64.getEncoder().encodeToString(randomSecret);
-                })
+                    random.nextBytes(bytes);
+
+                    byte[] hexChars = new byte[bytes.length * 2];
+                    for (int j = 0; j < bytes.length; j++) {
+                        int v = bytes[j] & 0xFF;
+                        hexChars[j * 2] = HEX_ARRAY[v >>> 4];
+                        hexChars[j * 2 + 1] = HEX_ARRAY[v & 0x0F];
+                    }
+                    return new String(hexChars, StandardCharsets.UTF_8);
+                }),
+                new ConfigEntry<>(CRD_PASSWORD_HISTORY_INT, 1,
+                        "Menyimpan password sebelumnya sebanyak %n termasuk password sekarang, saat user melakukan pergantian password, " +
+                                "sistem akan mengecek apakah password baru sama dengan password yang sebelumnya tersimpan"
+                )
         );
 
         configService.bulkCreate(Tag.JWT,
@@ -108,7 +119,15 @@ public class Initializer {
         );
 
         configService.bulkCreate(Tag.TELEGRAM,
-                new ConfigEntry<>(TG_START_CMD_ISSUE_COLUMN_INT, 3)
+                new ConfigEntry<>(TG_CONFIRMATION_DRT,
+                        Duration.ofMinutes(30),
+                        "Lama waktu yang diperlukan untuk menunggu requestor menjawab konfirmasi sebelum tiket close"),
+                new ConfigEntry<>(TG_PENDING_CONFIRMATION_DRT,
+                        Duration.ofHours(1),
+                        "Lama waktu menunggu untuk tiket dengan status PENDING"),
+                new ConfigEntry<>(TG_START_CMD_ISSUE_COLUMN_INT,
+                        3,
+                        "Jumlah kolom perbaris pada command /start")
         );
     }
 

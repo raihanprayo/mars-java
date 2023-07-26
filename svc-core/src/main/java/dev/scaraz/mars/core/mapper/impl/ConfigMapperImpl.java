@@ -29,6 +29,7 @@ public class ConfigMapperImpl implements ConfigMapper {
                 .value(config.getValue())
                 .type(config.getType())
                 .tag(toTagName(config.getTag()))
+                .description(config.getDescription())
                 .build();
     }
 

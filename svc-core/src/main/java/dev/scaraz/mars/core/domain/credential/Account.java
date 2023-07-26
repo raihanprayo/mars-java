@@ -65,6 +65,7 @@ public class Account extends AuditableEntity implements AuthenticatedPrincipal, 
     private AccountSetting setting = new AccountSetting();
 
     @Builder.Default
+    @OrderBy("priority ASC")
     @OneToMany(mappedBy = "account",
             fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,

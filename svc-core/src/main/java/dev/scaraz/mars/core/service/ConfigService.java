@@ -7,6 +7,7 @@ import dev.scaraz.mars.core.domain.ConfigTag;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public interface ConfigService {
@@ -18,13 +19,15 @@ public interface ConfigService {
 
     Config get(String key);
 
+    Map<String, Config> getBulkMap(String... keys);
+
     List<Config> getByTag(String tag);
 
     @Transactional
-    <T> void createIfNotExist(String key, T value, ConfigTag tag);
+    <T> void createIfNotExists(String key, T value, ConfigTag tag);
 
     @Transactional
-    <T> void createIfNotExist(String key, Supplier<T> value, ConfigTag tag);
+    <T> void createIfNotExists(String key, Supplier<T> value, ConfigTag tag);
 
     @Transactional
     void bulkCreate(String tagName, ConfigConstants.ConfigEntry<?>... entries);

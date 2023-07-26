@@ -220,7 +220,7 @@ public class AppListener {
     public SendMessage start(
             @ChatId Long chatId,
             @UserId Long tgUserId,
-            @TgAuth(throwUnautorized = false) Account marsAccount,
+            @TgAuth Account marsAccount,
             Message message
     ) throws TelegramApiException {
         if (TelegramContextHolder.getChatSource() == ChatSource.PRIVATE) {

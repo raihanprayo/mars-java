@@ -5,7 +5,6 @@ import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ConfigConstants;
-import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.domain.order.Ticket;
@@ -106,7 +105,7 @@ public class NotifierService {
 
             String replyDuration = pendingDurationMinute + " " + Translator.tr("date.minute");
 
-            long pendingMinute = configService.get(ConfigConstants.APP_PENDING_CONFIRMATION_DRT)
+            long pendingMinute = configService.get(ConfigConstants.TG_PENDING_CONFIRMATION_DRT)
                     .getAsDuration()
                     .toMinutes();
 //            long pendingMinute = appConfigService.getPostPending_drt()

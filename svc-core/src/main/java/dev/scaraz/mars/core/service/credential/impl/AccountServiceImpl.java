@@ -4,12 +4,15 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.domain.request.TelegramCreateUserDTO;
 import dev.scaraz.mars.common.domain.request.UpdateUserDashboardDTO;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.config.datasource.AuditProvider;
 import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
+import dev.scaraz.mars.core.config.event.app.ConfigUpdateEvent;
+import dev.scaraz.mars.core.domain.Config;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.cache.RegistrationApproval;
 import dev.scaraz.mars.core.domain.credential.*;
@@ -31,6 +34,7 @@ import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +44,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.Duration;
 import java.util.*;
+
+import static dev.scaraz.mars.common.utils.ConfigConstants.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -85,29 +91,75 @@ public class AccountServiceImpl implements AccountService {
         if (user instanceof Account) account = (Account) user;
         else account = accountQueryService.findById(((DelegateUser) user).getId());
 
-        String algo = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_ALGO_STR).getValue();
-        int hashIteration = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_ITERATION_INT).getAsInt();
-        String secret = configService.get(ConfigConstants.CRD_DEFAULT_PASSWORD_SECRET_STR).getValue();
+        if (account.getCredentials().size() > 0) {
+            for (AccountCredential credential : account.getCredentials()) {
+                boolean matches = passwordEncoder.matches(newPassword, credential);
+                if (matches) throw BadRequestException.args("Password baru tidak boleh sama dengan password lama");
+            }
+        }
 
-        AccountCredential credential = AccountCredential.builder()
+        Map<String, Config> configs = configService.getBulkMap(
+                CRD_PASSWORD_HISTORY_INT,
+                CRD_PASSWORD_ALGO_STR,
+                CRD_PASSWORD_HASH_ITERATION_INT,
+                CRD_PASSWORD_SECRET_STR
+        );
+
+        AccountCredential newCredential = AccountCredential.builder()
                 .account(account)
                 .priority(10)
                 .password(newPassword)
-                .hashIteration(hashIteration)
-                .algorithm(algo)
-                .secret(secret)
+                .algorithm(configs.get(CRD_PASSWORD_ALGO_STR).getValue())
+                .hashIteration(configs.get(CRD_PASSWORD_HASH_ITERATION_INT).getAsInt())
+                .secret(configs.get(CRD_PASSWORD_SECRET_STR).getValue())
                 .build();
 
-        credential.setPassword(passwordEncoder.encode(credential));
-        account.getCredentials().clear();
-        account.getCredentials().add(credential);
+        newCredential.setPassword(passwordEncoder.encode(newCredential));
+
+        int historyLen = configs.get(CRD_PASSWORD_HISTORY_INT).getAsInt();
+        if (historyLen <= 1) {
+            log.debug("Clearing all previous password");
+            account.getCredentials().clear();
+        }
+        else {
+            log.debug("Updating all previous password");
+            for (AccountCredential credential : account.getCredentials()) {
+                credential.setPriority(credential.getPriority() + 10);
+            }
+
+            updateAccountCredentials(historyLen, account, true);
+        }
+
+        Set<AccountCredential> credentials = new LinkedHashSet<>();
+        credentials.add(newCredential);
+        credentials.addAll(account.getCredentials());
+        account.setCredentials(credentials);
         try {
             return save(account);
         }
         finally {
-            AccountAccessEvent.details("PASSWORD_RESET", account.getNik())
+            AccountAccessEvent.details("UPDATE_PASSWORD", account.getNik())
                     .publish();
         }
+    }
+
+    private boolean updateAccountCredentials(int historyLen, Account account, boolean updatePass) {
+        int currentLen = account.getCredentials().size();
+        if (currentLen >= historyLen) {
+            ArrayList<AccountCredential> credentials = new ArrayList<>(account.getCredentials());
+            int totalRemoval = currentLen - historyLen - (updatePass ? 1 : 0);
+
+            if (totalRemoval > 0) {
+                log.debug("Removing {} old password", totalRemoval);
+                for (int i = 0; i < totalRemoval; i++) {
+                    credentials.remove(credentials.size() - 1);
+                }
+
+                account.setCredentials(new LinkedHashSet<>(credentials));
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -385,6 +437,21 @@ public class AccountServiceImpl implements AccountService {
         }
 
         return save(account);
+    }
+
+    @Transactional
+    @EventListener(ConfigUpdateEvent.class)
+    public void onAppConfigurationUpdate(ConfigUpdateEvent event) {
+        if (event.is(CRD_PASSWORD_HISTORY_INT) && event.isValueChanged()) {
+            Config config = event.getConfig();
+            int length = config.getAsInt();
+
+            List<Account> all = accountQueryService.findAll();
+            for (Account account : all) {
+                boolean updated = updateAccountCredentials(length, account, false);
+                if (updated) save(account);
+            }
+        }
     }
 
 }
