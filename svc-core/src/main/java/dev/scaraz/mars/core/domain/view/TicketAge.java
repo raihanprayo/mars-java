@@ -3,6 +3,8 @@ package dev.scaraz.mars.core.domain.view;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dev.scaraz.mars.common.tools.converter.DurationDeserializer;
+import dev.scaraz.mars.common.tools.converter.DurationSerializer;
 import dev.scaraz.mars.common.tools.converter.InstantDeserializer;
 import dev.scaraz.mars.common.tools.converter.InstantSerializer;
 import lombok.AllArgsConstructor;
@@ -13,6 +15,7 @@ import lombok.NoArgsConstructor;
 import javax.annotation.Nullable;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import java.time.Duration;
 import java.time.Instant;
 
 @Data
@@ -22,6 +25,11 @@ import java.time.Instant;
 
 @Embeddable
 public class TicketAge {
+
+    @Column(name = "age")
+    @JsonSerialize(using = DurationSerializer.class)
+    @JsonDeserialize(using = DurationDeserializer.class)
+    private Duration age;
 
     @Nullable
     @Column(name = "age_action")

@@ -1,3 +1,4 @@
+drop view v_ticket_summary;
 create or replace view v_ticket_summary as
 select tc.id                                           as id,
        tc.no                                           as no,
@@ -27,6 +28,8 @@ select tc.id                                           as id,
        ag_ws.id                                        as wip_id,
        ag_ws.status                                    as wip_status,
        ag.ref_user_id                                  as wip_by,
+
+       current_timestamp - tc.created_at               as age,
 
        (select distinct on (lc.ref_ticket_no) lc.created_at
         from t_log_ticket as lc

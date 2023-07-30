@@ -3,12 +3,14 @@ package dev.scaraz.mars.common.tools.converter;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class DurationSerializer extends JsonSerializer<Duration> {
 
     @Override
@@ -16,6 +18,8 @@ public class DurationSerializer extends JsonSerializer<Duration> {
         String s = duration.toString();
         List<Double> result = writeAsArray(s);
 
+        log.debug("Duration origin: {}", duration);
+        log.debug("Duration parsed: {}", result);
         jsonGenerator.writeArray(
                 result.stream()
                         .mapToDouble(d -> d)
@@ -43,30 +47,31 @@ public class DurationSerializer extends JsonSerializer<Duration> {
             switch (c) {
                 case 'd': {
                     String number = value.toString();
-                    result.add(0, Double.parseDouble(number));
+                    result.set(0, Double.parseDouble(number));
                     value = new StringBuilder();
                     break;
                 }
                 case 'h': {
                     String number = value.toString();
-                    result.add(1, Double.parseDouble(number));
+                    result.set(1, Double.parseDouble(number));
                     value = new StringBuilder();
                     break;
                 }
                 case 'm': {
                     String number = value.toString();
-                    result.add(2, Double.parseDouble(number));
+                    result.set(2, Double.parseDouble(number));
                     value = new StringBuilder();
                     break;
                 }
                 case 's': {
                     String number = value.toString();
-                    result.add(3, Double.parseDouble(number));
+                    result.set(3, Double.parseDouble(number));
                     value = new StringBuilder();
                     break;
                 }
                 default:
                     value.append(c);
+                    break;
             }
         }
 
