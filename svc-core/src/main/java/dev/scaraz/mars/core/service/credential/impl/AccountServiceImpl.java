@@ -44,6 +44,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static dev.scaraz.mars.common.utils.ConfigConstants.*;
 
@@ -394,7 +395,12 @@ public class AccountServiceImpl implements AccountService {
         if (dto.getNik() != null) account.setNik(dto.getNik());
         if (dto.getPhone() != null) account.setPhone(dto.getPhone());
         if (dto.getActive() != null) account.setActive(dto.getActive());
-        if (dto.getWitel() != null) account.setWitel(dto.getWitel());
+
+        if (dto.getWitel() != null && account.getWitel() != dto.getWitel()) {
+            log.debug("UPDATE USER WITEL TO {} FROM {}", dto.getWitel(), account.getWitel());
+            account.setWitel(dto.getWitel());
+        }
+
         if (dto.getSto() != null) account.setSto(dto.getSto());
         if (dto.getEmail() != null) account.setEmail(dto.getEmail());
 
@@ -406,27 +412,14 @@ public class AccountServiceImpl implements AccountService {
         }
 
         if (dto.getRoles() != null) {
-            List<String> removedIds = dto.getRoles().getRemoved();
-            List<String> selectedIds = dto.getRoles().getSelected();
+            if (dto.getRoles().isEmpty())
+                throw BadRequestException.args("sebuah akun setidaknya harus memiliki 1 role");
 
-            rolesRepo.deleteByAccountIdAndRoleIdIn(userId, removedIds);
-
-            List<Role> roles = new ArrayList<>();
-            for (String roleId : selectedIds) {
-                Role role = roleQueryService.findByIdOrName(roleId);
-                if (rolesRepo.existsByAccountIdAndRoleName(userId, role.getName())) {
-                    roles.add(role);
-                    continue;
-                }
-
-                rolesRepo.save(Roles.builder()
-                        .account(account)
-                        .role(role)
-                        .build());
-                roles.add(role);
-            }
-
-            account.setRoles(new LinkedHashSet<>(roles));
+            log.debug("DELETING ALL USER ROLE: {}", userId);
+            rolesRepo.deleteAllByAccountId(userId);
+            rolesRepo.saveAll(roleQueryService.findAllByNames(dto.getRoles()).stream()
+                    .map(r -> new Roles(account, r))
+                    .collect(Collectors.toList()));
         }
 
         if (!selfUpdate) {

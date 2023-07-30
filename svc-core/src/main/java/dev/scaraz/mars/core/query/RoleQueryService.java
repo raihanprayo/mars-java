@@ -10,4 +10,5 @@ import java.util.List;
 public interface RoleQueryService extends BaseQueryService<Role, RoleCriteria> {
     Role findByIdOrName(String idOrName);
 
+    List<Role> findAllByNames(List<String> roleNames);
 }

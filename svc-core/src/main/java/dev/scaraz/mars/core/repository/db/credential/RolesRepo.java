@@ -14,4 +14,6 @@ public interface RolesRepo extends JpaRepository<Roles, String> {
 
     void deleteByAccountIdAndRoleIdIn(String userId, List<String> roleId);
 
+    void deleteAllByAccountId(String userId);
+
 }

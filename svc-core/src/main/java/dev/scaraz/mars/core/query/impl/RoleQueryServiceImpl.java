@@ -50,6 +50,11 @@ public class RoleQueryServiceImpl implements RoleQueryService {
     }
 
     @Override
+    public List<Role> findAllByNames(List<String> roleNames) {
+        return repo.findAllByNameIgnoreCaseIn(roleNames);
+    }
+
+    @Override
     public long count() {
         return repo.count();
     }

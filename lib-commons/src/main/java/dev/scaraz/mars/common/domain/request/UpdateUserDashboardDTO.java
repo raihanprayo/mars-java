@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -24,19 +23,7 @@ public class UpdateUserDashboardDTO {
 
     private UpdateTelegram tg;
 
-    private UpdateRole roles;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class UpdateRole {
-        @Builder.Default
-        private List<String> removed = new ArrayList<>();
-
-        @Builder.Default
-        private List<String> selected = new ArrayList<>();
-    }
+    private List<String> roles;
 
     @Data
     @Builder

@@ -27,4 +27,9 @@ public class Roles extends TimestampEntity {
     @JoinColumn(name = "ref_role_id")
     private Role role;
 
+    public Roles(Account account, Role role) {
+        this.account = account;
+        this.role = role;
+    }
+
 }
