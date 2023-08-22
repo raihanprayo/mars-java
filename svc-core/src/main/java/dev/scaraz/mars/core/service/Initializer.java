@@ -72,8 +72,8 @@ public class Initializer {
                 new ConfigEntry<>(APP_ALLOW_AGENT_CREATE_TICKET_BOOL, false, "Agent diperbolehkan membuat tiket sendiri"),
                 new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_BOOL, true, "Registrasi user melalui bot telegram diperlukan persetujuan dari admin"),
                 new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_DRT, Duration.ofDays(1), "Lama waktu/Durasi registrasi disetujui"),
-                new ConfigEntry<>(APP_ISSUE_GAUL_EXCLUDE_LIST, new ArrayList<String>(), "Lama waktu/Durasi registrasi disetujui"),
-                new ConfigEntry<>(APP_SOLUTION_REPORT_EXCLUDE_LIST, new ArrayList<String>(), "Lama waktu/Durasi registrasi disetujui")
+                new ConfigEntry<>(APP_ISSUE_GAUL_EXCLUDE_LIST, new ArrayList<String>(), "List Issue yang tidak dihitung sebagai Gangguan Ulang"),
+                new ConfigEntry<>(APP_SOLUTION_REPORT_EXCLUDE_LIST, new ArrayList<String>(), "List Actual Solution yang dikeluarkan dari hitungan performance")
         );
 
         configService.bulkCreate(Tag.ACCOUNT,

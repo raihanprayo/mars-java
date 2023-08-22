@@ -12,7 +12,7 @@ public final class ConfigConstants {
             APP_ALLOW_AGENT_CREATE_TICKET_BOOL = "agent-allowed-to-create-ticket",
             APP_USER_REGISTRATION_APPROVAL_BOOL = "user-registration-approval",
             APP_USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration",
-            APP_ISSUE_GAUL_EXCLUDE_LIST = "issue-gaul-binding-exclusion",
+            APP_ISSUE_GAUL_EXCLUDE_LIST = "issue-gaul-exclusion",
             APP_SOLUTION_REPORT_EXCLUDE_LIST = "solution-report-exclusion";
 
     public static final String

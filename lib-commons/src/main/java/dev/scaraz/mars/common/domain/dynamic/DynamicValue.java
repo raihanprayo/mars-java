@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,7 +64,8 @@ public interface DynamicValue {
 
     @JsonIgnore
     default List<String> getAsList() {
-        return getAs(DynamicValueDeserializer.LIST_STRING);
+        return Optional.ofNullable(getAs(DynamicValueDeserializer.LIST_STRING))
+                .orElse(new ArrayList<>());
     }
 
     default <T> List<T> getAsList(Function<String, T> convert) {

@@ -6,10 +6,8 @@ import dev.scaraz.mars.core.domain.order.Issue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import java.util.Arrays;
 
 @Getter
 @NoArgsConstructor
@@ -86,14 +84,5 @@ public class TicketSummary extends AuditableEntity {
 
     @Embedded
     private TicketAge age;
-
-    @Column
-    @Type(type = "long-arr")
-    private Long[] solutions;
-
-    public boolean containSolution(long issue) {
-        if (solutions == null) return false;
-        return Arrays.asList(solutions).contains(issue);
-    }
 
 }

@@ -28,11 +28,13 @@ public class TelegramMessageCommand {
 
     public TelegramMessageCommand(Update update) {
         Message message = update.getMessage();
-        this.source = message.getPhoto() != null ?
+
+        boolean fromCaption = message.getPhoto() != null || message.getDocument() != null;
+        this.source = fromCaption ?
                 MessageSource.CAPTION :
                 MessageSource.TEXT;
 
-        String text = isFromCaption() ?
+        String text = fromCaption ?
                 message.getCaption() :
                 message.getText();
 

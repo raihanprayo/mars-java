@@ -4,12 +4,14 @@ import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.*;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.spec.TicketSpecBuilder;
 import dev.scaraz.mars.core.repository.db.order.TicketRepo;
+import dev.scaraz.mars.core.service.ConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,6 +32,8 @@ import java.util.Map;
 @Service
 @Transactional(readOnly = true)
 public class TicketQueryServiceImpl implements TicketQueryService {
+
+    private final ConfigService configService;
 
     private final TicketRepo repo;
     private final TicketSpecBuilder specBuilder;
@@ -116,6 +120,12 @@ public class TicketQueryServiceImpl implements TicketQueryService {
 
     @Override
     public int countGaul(long issueId, String serviceNo) {
+        List<Long> issues = configService.get(ConfigConstants.APP_ISSUE_GAUL_EXCLUDE_LIST)
+                .getAsLongList();
+
+        if (issues != null && issues.size() > 0)
+            if (issues.contains(issueId)) return 0;
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime weekAgo = now.minusDays(7);
         return repo.countByServiceNoAndIssueIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(

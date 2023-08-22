@@ -1,4 +1,3 @@
-drop view v_leader_board;
 drop view v_leader_board_fragment;
 
 create or replace view v_leader_board_fragment as

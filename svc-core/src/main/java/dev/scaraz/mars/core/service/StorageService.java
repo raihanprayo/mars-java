@@ -181,7 +181,7 @@ public class StorageService {
         log.info("ADDING TELEGRAM SHARED ASSET");
 
         String extension = FilenameUtils.getExtension(assets.getFileName());
-        String filename = assets.getFileUniqueId() + extension;
+        String filename = assets.getFileUniqueId() + "." + extension;
         try {
             InputStream is = botService.getClient().downloadFileAsStream(
                     botService.getClient()

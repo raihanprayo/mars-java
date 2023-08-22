@@ -2,8 +2,10 @@ package dev.scaraz.mars.core.service.order;
 
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
@@ -51,6 +53,14 @@ public class LeaderBoardService {
                         .name(new StringFilter().setEq(AuthorityConstant.AGENT_ROLE))
                         .build())
                 .build());
+
+        List<Long> solutionsId = configService.get(ConfigConstants.APP_SOLUTION_REPORT_EXCLUDE_LIST)
+                .getAsLongList();
+
+        if (solutionsId != null)
+            criteria.setSolution(new LongFilter()
+                    .setNegated(true)
+                    .setIn(solutionsId));
 
         return accounts.stream()
                 .map(this.getLeaderBoard(criteria))

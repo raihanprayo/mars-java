@@ -6,6 +6,11 @@ import java.util.Collection;
 
 public class LongFilter extends AbsRangeFilter<Long> {
     @Override
+    public LongFilter setNegated(boolean negated) {
+        return (LongFilter) super.setNegated(negated);
+    }
+
+    @Override
     public LongFilter setGt(Long greaterThan) {
         return (LongFilter) super.setGt(greaterThan);
     }
