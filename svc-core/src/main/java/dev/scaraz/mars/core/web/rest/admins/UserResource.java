@@ -9,11 +9,13 @@ import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
+import dev.scaraz.mars.core.domain.credential.AccountCredential;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.credential.AccountService;
+import dev.scaraz.mars.security.MarsPasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,7 +23,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -33,10 +34,9 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user")
-@PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
 public class UserResource {
 
-    private final PasswordEncoder passwordEncoder;
+    private final MarsPasswordEncoder passwordEncoder;
     private final CredentialMapper credentialMapper;
 
     private final AccountService accountService;
@@ -44,6 +44,7 @@ public class UserResource {
     private final AccountApprovalRepo accountApprovalRepo;
 
     @GetMapping
+    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "false") boolean plain,
             @RequestParam(defaultValue = "false") boolean mapped,
@@ -67,12 +68,14 @@ public class UserResource {
     }
 
     @GetMapping("/approvals")
+    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
     public ResponseEntity<?> findAllApprovals(Pageable pageable) {
         Page<AccountApproval> page = accountApprovalRepo.findAll(pageable);
         return ResourceUtil.pagination(page, "/user/approvals");
     }
 
     @PostMapping("/approvals")
+    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
     public ResponseEntity<?> approveUsersByApprovalIds(
             @RequestParam boolean approved,
             @RequestBody Collection<String> approvalIds
@@ -84,6 +87,7 @@ public class UserResource {
 
 
     @PostMapping("/register")
+    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
     public ResponseEntity<?> register(@RequestBody @Valid CreateUserDTO req) {
         log.info("NEW USER DASHBOARD REGISTRATION -- {}", req);
         Account account = accountService.create(req);
@@ -115,13 +119,17 @@ public class UserResource {
             @RequestBody UserPasswordUpdateDTO updatePassDTO
     ) {
         Account account = accountQueryService.findById(userId);
-        boolean matches = passwordEncoder.matches(updatePassDTO.getOldPass(), account.getPassword());
-        if (!matches)
-            throw new BadRequestException("Password lama tidak sama!");
 
-        boolean newPassEqOld = passwordEncoder.matches(updatePassDTO.getNewPass(), account.getPassword());
-        if (newPassEqOld)
-            throw new BadRequestException("Password baru tidak boleh sama dengan password lama");
+        log.debug("Account Credentials: {}", account.getCredentials().stream()
+                .map(AccountCredential::getPriority)
+                .collect(Collectors.toList()));
+        boolean matches = passwordEncoder.matches(updatePassDTO.getOldPass(), account.getCredential());
+        if (!matches)
+            throw new BadRequestException("Password lama tidak sesuai!");
+
+//        boolean newPassEqOld = passwordEncoder.matches(updatePassDTO.getNewPass(), account.getPassword());
+//        if (newPassEqOld)
+//            throw new BadRequestException("Password baru tidak boleh sama dengan password lama");
 
         accountService.updatePassword(account, updatePassDTO.getNewPass());
         return new ResponseEntity<>(HttpStatus.OK);

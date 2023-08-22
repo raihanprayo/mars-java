@@ -11,6 +11,7 @@ import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.*;
 import dev.scaraz.mars.core.query.spec.LeaderBoardSpecBuilder;
 import dev.scaraz.mars.core.repository.db.view.LeaderBoardFragmentRepo;
+import dev.scaraz.mars.core.service.ConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 public class LeaderBoardService {
+
+    private final ConfigService configService;
 
     private final AccountQueryService accountQueryService;
 

@@ -131,10 +131,10 @@ public class AccountServiceImpl implements AccountService {
             updateAccountCredentials(historyLen, account, true);
         }
 
-        Set<AccountCredential> credentials = new LinkedHashSet<>();
-        credentials.add(newCredential);
-        credentials.addAll(account.getCredentials());
-        account.setCredentials(credentials);
+        List<AccountCredential> credentials = new ArrayList<>(account.getCredentials());
+        account.getCredentials().clear();
+        account.getCredentials().add(newCredential);
+        account.getCredentials().addAll(credentials);
         try {
             return save(account);
         }
@@ -156,7 +156,8 @@ public class AccountServiceImpl implements AccountService {
                     credentials.remove(credentials.size() - 1);
                 }
 
-                account.setCredentials(new LinkedHashSet<>(credentials));
+                account.getCredentials().clear();
+                account.getCredentials().addAll(credentials);
                 return true;
             }
         }

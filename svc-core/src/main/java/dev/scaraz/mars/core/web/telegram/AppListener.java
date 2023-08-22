@@ -118,10 +118,17 @@ public class AppListener {
 
                 Message reply = message.getReplyToMessage();
                 if (confirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.POST_PENDING_CONFIRMATION)) {
-                    ticketBotService.confirmedPostPending(reply.getMessageId(), text, message.getPhoto());
+                    ticketBotService.confirmedPostPending(reply.getMessageId(),
+                            text,
+                            message.getPhoto()
+                    );
                 }
                 else if (confirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.INSTANT_FORM)) {
-                    return ticketBotService.instantForm_end(reply.getMessageId(), text, message.getPhoto());
+                    return ticketBotService.instantForm_end(reply.getMessageId(),
+                            text,
+                            message.getPhoto(),
+                            message.getDocument()
+                    );
                 }
             }
         }

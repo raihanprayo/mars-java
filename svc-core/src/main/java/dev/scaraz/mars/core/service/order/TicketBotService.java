@@ -6,6 +6,7 @@ import dev.scaraz.mars.core.domain.order.Ticket;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -19,6 +20,12 @@ public interface TicketBotService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     Ticket registerForm(TicketBotForm form, Collection<PhotoSize> photos);
+
+    @Transactional
+    Ticket registerForm(TicketBotForm form,
+                        @Nullable Collection<PhotoSize> photos,
+                        @Nullable Document document
+    );
 
     Ticket take(String ticketNo);
 
@@ -50,5 +57,8 @@ public interface TicketBotService {
     SendMessage instantForm_answerParamRequirement(long messageId, boolean agree) throws TelegramApiException;
 
     @Transactional
-    SendMessage instantForm_end(long messageId, String text, @Nullable Collection<PhotoSize> captures);
+    SendMessage instantForm_end(long messageId,
+                                String text,
+                                @Nullable Collection<PhotoSize> captures,
+                                @Nullable Document document);
 }

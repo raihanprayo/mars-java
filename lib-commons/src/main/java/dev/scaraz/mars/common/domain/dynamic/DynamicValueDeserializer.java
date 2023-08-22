@@ -1,6 +1,7 @@
 package dev.scaraz.mars.common.domain.dynamic;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @FunctionalInterface
 public interface DynamicValueDeserializer<T> {

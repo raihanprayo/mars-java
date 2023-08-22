@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -60,7 +61,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 @Service
 public class TicketBotServiceImpl implements TicketBotService {
 
-//    private final AppConfigService appConfigService;
+    //    private final AppConfigService appConfigService;
     private final ConfigService configService;
     private final TelegramBotService botService;
 
@@ -168,7 +169,18 @@ public class TicketBotServiceImpl implements TicketBotService {
 
     @Override
     @Transactional
-    public Ticket registerForm(TicketBotForm form, @Nullable Collection<PhotoSize> photos) {
+    public Ticket registerForm(TicketBotForm form,
+                               @Nullable Collection<PhotoSize> photos
+    ) {
+        return registerForm(form, photos, null);
+    }
+
+    @Override
+    @Transactional
+    public Ticket registerForm(TicketBotForm form,
+                               @Nullable Collection<PhotoSize> photos,
+                               @Nullable Document document
+    ) {
         Issue issue = issueQueryService.findById(form.getIssueId())
                 .orElseThrow(() -> NotFoundException.entity(Issue.class, "id", form.getIssueId()));
 
@@ -194,6 +206,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                 issue.getProduct(), issue.getName());
 
         storageService.addTelegramAssets(ticket, photos);
+        storageService.addTelegramAssets(ticket, document);
 
         logTicketService.add(LogTicket.builder()
                 .ticket(ticket)
@@ -502,7 +515,11 @@ public class TicketBotServiceImpl implements TicketBotService {
 
     @Override
     @Transactional
-    public SendMessage instantForm_end(long messageId, String text, @Nullable Collection<PhotoSize> captures) {
+    public SendMessage instantForm_end(long messageId,
+                                       String text,
+                                       @Nullable Collection<PhotoSize> captures,
+                                       @Nullable Document document
+    ) {
         Account account = accountQueryService.findByCurrentAccess();
 
         TicketConfirm confirm = confirmService.findById(messageId);
@@ -526,10 +543,17 @@ public class TicketBotServiceImpl implements TicketBotService {
         for (IssueParam param : issue.getParams()) {
             switch (param.getType()) {
                 case CAPTURE:
-                    if (captures == null || captures.isEmpty()) {
+                    if (param.isRequired() && (captures == null || captures.isEmpty())) {
                         throw new TgInvalidFormError(
                                 Objects.requireNonNullElse(param.getDisplay(), "Capture/Attachment"),
                                 "Mohon upload capture yang diperlukan");
+                    }
+                    break;
+                case FILE:
+                    if (param.isRequired() && document == null) {
+                        throw new TgInvalidFormError(
+                                Objects.requireNonNullElse(param.getDisplay(), "Document/Attachment"),
+                                "Mohon upload dokumen/file yang diperlukan");
                     }
                     break;
                 case NOTE:
@@ -541,10 +565,15 @@ public class TicketBotServiceImpl implements TicketBotService {
                                 Objects.requireNonNullElse(param.getDisplay(), "Worklog/Deskripsi"),
                                 "Mohon menyediakan deskripsi yang diperlukan");
                     }
+                    break;
             }
         }
 
-        Ticket ticket = registerForm(ticketFormService.checkInstantForm(form), captures);
+        Ticket ticket = registerForm(
+                ticketFormService.checkInstantForm(form),
+                captures,
+                document
+        );
         confirmService.deleteById(messageId);
 
         return SendMessage.builder()
@@ -568,12 +597,14 @@ public class TicketBotServiceImpl implements TicketBotService {
                 break;
             case NOTE:
                 name = Objects.requireNonNullElse(param.getDisplay(), "Deskripsi");
-                name += ":";
+                break;
+            case FILE:
+                name = Objects.requireNonNullElse(param.getDisplay(), "Dokumen");
                 break;
             default:
                 throw InternalServerException.args("Invalid Param Type");
-
         }
+        name += ":";
 
         if (param.isRequired()) name += " _(required)_";
         else name += " _(opt)_";

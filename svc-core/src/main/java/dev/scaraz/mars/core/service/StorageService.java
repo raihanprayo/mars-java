@@ -9,6 +9,7 @@ import dev.scaraz.mars.telegram.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
@@ -17,6 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
+import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -116,6 +118,13 @@ public class StorageService {
     }
 
     @Async
+    public void addTelegramAssets(Ticket ticket, Document assets, String... dirPaths) {
+        addTelegramAsset(assets, concatSegments(dirPaths,
+                TICKET_STORAGE_PATH,
+                ticket.getNo()));
+    }
+
+    @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     public void addTelegramAssets(Ticket ticket, AgentWorklog worklog, Collection<PhotoSize> assets, String... dirPaths) {
         addTelegramAssets(ticket, assets, concatSegments(dirPaths,
@@ -163,6 +172,27 @@ public class StorageService {
             catch (TelegramApiException ex) {
                 log.error("Fail to add TELEGRAM asset", ex);
             }
+        }
+    }
+
+    private void addTelegramAsset(Document assets, String... dirPaths) {
+        if (assets == null) return;
+
+        log.info("ADDING TELEGRAM SHARED ASSET");
+
+        String extension = FilenameUtils.getExtension(assets.getFileName());
+        String filename = assets.getFileUniqueId() + extension;
+        try {
+            InputStream is = botService.getClient().downloadFileAsStream(
+                    botService.getClient()
+                            .execute(GetFile.builder()
+                                    .fileId(assets.getFileId())
+                                    .build())
+                            .getFilePath());
+            addSharedAsset(is, filename, dirPaths);
+        }
+        catch (TelegramApiException ex) {
+            log.error("Fail to add TELEGRAM asset", ex);
         }
     }
 

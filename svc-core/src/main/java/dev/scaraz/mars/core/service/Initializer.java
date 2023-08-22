@@ -68,19 +68,12 @@ public class Initializer {
     }
 
     public void importConfig() {
-//        appConfigService.getCloseConfirm_drt();
-//        appConfigService.getAllowLogin_bool();
-//        appConfigService.getRegistrationRequireApproval_bool();
-//        appConfigService.getSendRegistrationApproval_bool();
-//        appConfigService.getPostPending_drt();
-//        appConfigService.getApprovalDurationHour_drt();
-//        appConfigService.getApprovalAdminEmails_arr();
-//        appConfigService.getAllowAgentCreateTicket_bool();
-//        appConfigService.getTelegramStartIssueColumn_int();
         configService.bulkCreate(Tag.APPLICATION,
                 new ConfigEntry<>(APP_ALLOW_AGENT_CREATE_TICKET_BOOL, false, "Agent diperbolehkan membuat tiket sendiri"),
                 new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_BOOL, true, "Registrasi user melalui bot telegram diperlukan persetujuan dari admin"),
-                new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_DRT, Duration.ofDays(1), "Lama waktu/Durasi registrasi disetujui")
+                new ConfigEntry<>(APP_USER_REGISTRATION_APPROVAL_DRT, Duration.ofDays(1), "Lama waktu/Durasi registrasi disetujui"),
+                new ConfigEntry<>(APP_ISSUE_GAUL_EXCLUDE_LIST, new ArrayList<String>(), "Lama waktu/Durasi registrasi disetujui"),
+                new ConfigEntry<>(APP_SOLUTION_REPORT_EXCLUDE_LIST, new ArrayList<String>(), "Lama waktu/Durasi registrasi disetujui")
         );
 
         configService.bulkCreate(Tag.ACCOUNT,

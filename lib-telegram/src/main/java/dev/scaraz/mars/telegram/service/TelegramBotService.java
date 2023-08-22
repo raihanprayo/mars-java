@@ -1,9 +1,10 @@
 package dev.scaraz.mars.telegram.service;
 
-import dev.scaraz.mars.telegram.annotation.TelegramCommand;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import dev.scaraz.mars.telegram.config.InternalTelegram;
-import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.config.TelegramArgumentMapper;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
 import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
@@ -14,9 +15,6 @@ import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.ClassUtils;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -25,7 +23,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.OptionalLong;
 
 import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_COMPARATOR;
 
@@ -37,6 +38,10 @@ import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_CO
 @Slf4j
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public abstract class TelegramBotService implements AutoCloseable {
+
+    private static final Gson GSON = new GsonBuilder()
+            .create();
+
     protected final LinkedList<TelegramProcessor> telegramProcessors = new LinkedList<>();
 
     @Autowired
@@ -79,6 +84,7 @@ public abstract class TelegramBotService implements AutoCloseable {
 //    }
 
     protected void onUpdateReceived(Update update) {
+        log.debug("Telegram Update: {}", GSON.toJson(update));
         TelegramProcessor processor = getProcessor(update);
 
         try {

@@ -3,7 +3,6 @@ package dev.scaraz.mars.core.domain.order;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
-import dev.scaraz.mars.common.tools.enums.Product;
 import lombok.*;
 
 import javax.persistence.*;
@@ -21,7 +20,8 @@ public class IssueParam extends AuditableEntity {
 
     public enum Type {
         NOTE,
-        CAPTURE
+        CAPTURE,
+        FILE
     }
 
     @Id

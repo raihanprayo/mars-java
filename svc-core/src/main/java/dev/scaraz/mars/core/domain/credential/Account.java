@@ -139,7 +139,10 @@ public class Account extends AuditableEntity implements AuthenticatedPrincipal, 
 
     public AccountCredential getCredential() {
         if (credentials == null || credentials.size() == 0) return null;
-        return new ArrayList<>(credentials).get(0);
+        for (AccountCredential credential : credentials) {
+            return credential;
+        };
+        return null;
     }
 
     @Override

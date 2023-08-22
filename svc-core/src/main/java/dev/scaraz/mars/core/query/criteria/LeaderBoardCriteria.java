@@ -16,6 +16,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LeaderBoardCriteria implements Criteria {
 
+    private LongFilter solution;
+
     // User Criteria
     private StringFilter name;
     private StringFilter nik;

@@ -25,6 +25,9 @@ public class LeaderBoardFragment {
     @Id
     private long id;
 
+    @Column
+    private Long solution;
+
     @ManyToOne
     @JoinColumn(name = "ticket_id")
     private Ticket ticket;

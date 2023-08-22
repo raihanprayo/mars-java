@@ -79,8 +79,6 @@ public class CloseFlowService {
             storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());
         });
 
-//        Duration duration = appConfigService.getCloseConfirm_drt()
-//                .getAsDuration();
         Duration duration = configService.get(ConfigConstants.TG_CONFIRMATION_DRT)
                 .getAsDuration();
 

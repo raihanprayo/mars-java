@@ -108,6 +108,7 @@ public class AuthServiceImpl implements AuthService {
                     if (authReq.getEmail() != null)
                         account.setEmail(authReq.getEmail());
 
+                    accountService.updatePassword(account, authReq.getPassword());
                     accountService.save(account);
                 }
             }

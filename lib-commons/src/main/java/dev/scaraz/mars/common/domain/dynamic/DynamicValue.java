@@ -5,6 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public interface DynamicValue {
 
@@ -61,6 +63,17 @@ public interface DynamicValue {
     @JsonIgnore
     default List<String> getAsList() {
         return getAs(DynamicValueDeserializer.LIST_STRING);
+    }
+
+    default <T> List<T> getAsList(Function<String, T> convert) {
+        return getAsList().stream()
+                .map(convert)
+                .collect(Collectors.toList());
+    }
+
+    @JsonIgnore
+    default List<Long> getAsLongList() {
+        return getAsList(Long::parseLong);
     }
 
     @JsonIgnore
