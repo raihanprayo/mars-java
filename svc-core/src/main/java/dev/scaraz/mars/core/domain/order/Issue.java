@@ -10,6 +10,7 @@ import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,6 +52,9 @@ public class Issue extends AuditableEntity {
     @ToString.Exclude
     @OneToMany(mappedBy = "issue", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<IssueParam> params = new ArrayList<>();
+
+    @Column
+    private BigDecimal score;
 
     @Column
     @Builder.Default

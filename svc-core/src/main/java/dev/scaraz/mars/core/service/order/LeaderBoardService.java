@@ -38,13 +38,6 @@ public class LeaderBoardService {
     private final LeaderBoardFragmentRepo repo;
     private final LeaderBoardSpecBuilder specBuilder;
 
-//    private final AgentMapper agentMapper;
-//    private final AgentWorklogQueryService agentWorklogQueryService;
-//    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
-//
-//    private final TicketMapper ticketMapper;
-//    private final TicketSummaryQueryService ticketSummaryQueryService;
-
     public List<LeaderBoardDTO> findAll(LeaderBoardCriteria criteria) {
         List<Account> accounts = accountQueryService.findAll(UserCriteria.builder()
                 .name(criteria.getName())

@@ -25,7 +25,7 @@ public class LeaderBoardFragment {
     @Id
     private long id;
 
-    @Column
+    @Column(name = "solution_id")
     private Long solution;
 
     @ManyToOne

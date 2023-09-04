@@ -4,11 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -27,6 +24,9 @@ public class LeaderBoardDTO {
 
     @Builder.Default
     private long total = 0;
+
+    @Builder.Default
+    private BigDecimal totalScore = BigDecimal.ZERO;
 
     @Builder.Default
     private long totalDispatch = 0;

@@ -10,8 +10,11 @@ import java.util.List;
 @Repository
 public interface ConfigRepo extends JpaRepository<Config, String> {
     List<Config> findAllByTagName(String tag);
+
     List<Config> findAllByTagNameNotIn(List<String> tags);
+
     default List<Config> findAllByTagNameNotIn(String... tags) {
         return findAllByTagNameNotIn(Arrays.asList(tags));
-    };
+    }
+
 }
