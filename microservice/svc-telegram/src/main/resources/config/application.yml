@@ -1,0 +1,15 @@
+server:
+  port: 10191
+
+spring:
+  application:
+    name: telegram-svc
+
+telegram:
+  enabled: true
+  name: mars-bot
+  type: long_polling
+  async:
+    core-pool-size: 3
+    max-pool-isze: 30
+    queue-capacity: 100
