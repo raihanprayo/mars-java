@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,8 @@ public class UpdateIssueDTO {
     private String name;
 
     private Product product;
+
+    private BigDecimal score;
 
     private String alias;
 

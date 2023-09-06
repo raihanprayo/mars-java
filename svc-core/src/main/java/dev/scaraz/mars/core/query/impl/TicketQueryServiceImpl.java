@@ -20,8 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -134,6 +136,11 @@ public class TicketQueryServiceImpl implements TicketQueryService {
                 weekAgo.toInstant(ZoneOffset.of("+07")),
                 now.toInstant(ZoneOffset.of("+07"))
         );
+    }
+
+    @Override
+    public BigDecimal sumAllTicketScoreByIds(Collection<String> ids) {
+        return repo.sumAllScoreByTicketId(ids);
     }
 
 }

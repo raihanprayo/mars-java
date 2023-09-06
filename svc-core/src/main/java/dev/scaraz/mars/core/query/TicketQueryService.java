@@ -6,6 +6,8 @@ import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.Map;
 
 public interface TicketQueryService extends BaseQueryService<Ticket, TicketCriteria> {
@@ -22,4 +24,6 @@ public interface TicketQueryService extends BaseQueryService<Ticket, TicketCrite
     Map<Product, Long> countProducts(@Nullable AgentCriteria agentCriteria);
 
     int countGaul(long issueId, String serviceNo);
+
+    BigDecimal sumAllTicketScoreByIds(Collection<String> ids);
 }
