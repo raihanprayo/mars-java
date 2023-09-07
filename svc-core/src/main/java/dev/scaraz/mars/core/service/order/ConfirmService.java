@@ -14,5 +14,5 @@ public interface ConfirmService extends CacheExpireListener {
 
     boolean existsById(long messageId);
 
-    boolean existsByIdAndStatus(long messageId, String status);
+    boolean existsByIdAndStatus(long messageId, String statuse);
 }

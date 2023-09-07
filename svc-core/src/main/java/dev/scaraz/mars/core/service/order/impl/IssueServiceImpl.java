@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -51,6 +52,7 @@ public class IssueServiceImpl implements IssueService {
         return save(Issue.builder()
                 .name(name.toLowerCase())
                 .product(product)
+                .score(BigDecimal.ZERO)
                 .description(description)
                 .build());
     }

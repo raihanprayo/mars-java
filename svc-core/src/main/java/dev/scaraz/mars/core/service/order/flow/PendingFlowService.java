@@ -230,6 +230,7 @@ public class PendingFlowService {
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
         Agent agent = workspace.getAgent();
 
+        log.info("CONFIRM POST PENDING: {}", ticketNo);
         // Requestor menjawab belum
         if (form.getStatus() == TcStatus.REOPEN) {
             ticket.setStatus(TcStatus.REOPEN);
