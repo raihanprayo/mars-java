@@ -108,9 +108,6 @@ public class NotifierService {
             long pendingMinute = configService.get(ConfigConstants.TG_PENDING_CONFIRMATION_DRT)
                     .getAsDuration()
                     .toMinutes();
-//            long pendingMinute = appConfigService.getPostPending_drt()
-//                    .getAsDuration()
-//                    .toMinutes();
 
             String pendingDuration = String.format("%s %s",
                     pendingMinute,

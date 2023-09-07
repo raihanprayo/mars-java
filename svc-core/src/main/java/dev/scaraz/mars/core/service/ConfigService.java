@@ -23,6 +23,8 @@ public interface ConfigService {
 
     List<Config> getByTag(String tag);
 
+    List<String> getTagList();
+
     @Transactional
     <T> void createIfNotExists(String key, T value, ConfigTag tag);
 
