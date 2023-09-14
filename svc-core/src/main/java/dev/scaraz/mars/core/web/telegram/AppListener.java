@@ -68,7 +68,7 @@ public class AppListener {
             Update update,
             Message message,
             @Text String text,
-            @TgAuth(throwUnautorized = false) Account marsAccount
+            @TgAuth() Account marsAccount
     ) {
         log.info("{}", gson.toJson(update));
 
@@ -142,7 +142,7 @@ public class AppListener {
             CallbackQuery cq,
             Message message,
             @CallbackData String data,
-            @TgAuth(throwUnautorized = false) Account marsAccount
+            @TgAuth Account marsAccount
     ) throws TelegramApiException {
         log.info("{}", gson.toJson(cq));
 
@@ -159,7 +159,7 @@ public class AppListener {
             User user,
             Message message,
             @CallbackData String data,
-            @TgAuth(throwUnautorized = false) Account marsAccount
+            @TgAuth Account marsAccount
     ) {
         switch (data) {
             case AppConstants.Telegram.REG_PAIR: {
@@ -197,6 +197,7 @@ public class AppListener {
     ) throws TelegramApiException {
         // Disini tiket bisa jadi kondisi status mau pending atau close
         boolean agree = AppConstants.Telegram.CONFIRM_AGREE.equals(data);
+        log.info("CALLBACK QUERY agreeDisagreeCallback");
 
         int messageId = message.getMessageId();
         if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.CLOSED)) {
@@ -209,6 +210,10 @@ public class AppListener {
         }
         else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING)) {
             log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", TicketConfirm.POST_PENDING, messageId, agree);
+            ticketBotService.confirmedPostPending(messageId, null, null);
+        }
+        else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING_CONFIRMATION)) {
+            log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", TicketConfirm.POST_PENDING_CONFIRMATION, messageId, agree);
             ticketBotService.confirmedPostPending(messageId, null, null);
         }
         else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_NETWORK)) {

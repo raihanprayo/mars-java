@@ -54,28 +54,30 @@ public class SchedulerService {
         log.info("Found {} invalid confirmation", all.size());
         Set<String> members = Objects.requireNonNullElse(boundSet.members(), new HashSet<>());
         for (TicketConfirm confirm : all) {
-            String messageIdStr = confirm.getId() + "";
+            String messageIdStr = String.valueOf(confirm.getId());
 
             boolean included = members.contains(messageIdStr) &&
                     Optional.ofNullable(stringRedisTemplate
                                     .opsForValue()
-                                    .get(AppConstants.Cache.j(TC_CONFIRM_NS, messageIdStr))
-                            )
+                                    .get(AppConstants.Cache.j(TC_CONFIRM_NS, messageIdStr)))
                             .isPresent();
 
             log.debug("Still has running expire cache ({}) ? {}", messageIdStr, included);
-            if (included) continue;
-
-            switch (confirm.getStatus()) {
-                case TicketConfirm.CLOSED:
-                    closeFlowService.confirmCloseAsync(confirm.getValue(), false, new TicketStatusFormDTO());
-                    confirmService.deleteById(confirm.getId());
-                    break;
-                case TicketConfirm.PENDING:
-                    pendingFlowService.confirmPendingAsync(confirm.getValue(), false, new TicketStatusFormDTO());
-                    confirmService.deleteById(confirm.getId());
-                    break;
+            if (included) {
+                switch (confirm.getStatus()) {
+                    case TicketConfirm.CLOSED:
+                        closeFlowService.confirmCloseAsync(confirm.getValue(), false, new TicketStatusFormDTO());
+                        confirmService.deleteById(confirm.getId());
+                        break;
+                    case TicketConfirm.PENDING:
+                    case TicketConfirm.POST_PENDING:
+                    case TicketConfirm.POST_PENDING_CONFIRMATION:
+                        pendingFlowService.confirmPendingAsync(confirm.getValue(), false, new TicketStatusFormDTO());
+                        confirmService.deleteById(confirm.getId());
+                        break;
+                }
             }
+            else confirmService.deleteById(confirm.getId());
         }
     }
 

@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface TgAuth {
-    boolean throwUnautorized() default true;
+    boolean throwUnautorized() default false;
 
 }

@@ -119,7 +119,8 @@ public class ConfirmServiceImpl implements ConfirmService {
 
     @Override
     public TicketConfirm save(TicketConfirm o) {
-        String messageId = o.getId() + "";
+
+        String messageId = String.valueOf(o.getId());
         stringRedisTemplate.boundSetOps(TC_CONFIRM_NS)
                 .add(messageId);
 
@@ -130,7 +131,7 @@ public class ConfirmServiceImpl implements ConfirmService {
             }
             else if (o.getIssueId() != null) {
                 stringRedisTemplate.boundValueOps(Cache.j(TC_CONFIRM_NS, messageId))
-                        .set(o.getIssueId() + "", o.getTtl(), TimeUnit.MINUTES);
+                        .set(String.valueOf(o.getIssueId()), o.getTtl(), TimeUnit.MINUTES);
             }
         }
         else {
@@ -143,6 +144,8 @@ public class ConfirmServiceImpl implements ConfirmService {
                         .set(o.getIssueId() + "");
             }
         }
+
+        log.info("CREATE TICKET CONFIRMATION of status {} with message id {} -- {}", o.getStatus(), o.getId(), o.getValue());
         return repo.save(o);
     }
 

@@ -76,6 +76,13 @@ public class ConfigServiceImpl implements ConfigService {
     }
 
     @Override
+    public List<String> getTagList() {
+        return tagRepo.findAll().stream()
+                .map(ConfigTag::getName)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public <T> void createIfNotExists(String key, T value, ConfigTag tag) {
         createIfNotExists(key, () -> value, tag);

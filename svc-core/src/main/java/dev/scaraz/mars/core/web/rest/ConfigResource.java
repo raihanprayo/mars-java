@@ -45,6 +45,10 @@ public class ConfigResource {
         return ResponseEntity.ok(mapper.toDTO(configService.getByTag(tag)));
     }
 
+    @GetMapping("/tags")
+    public ResponseEntity<?> getTagLists() {
+        return ResponseEntity.ok(configService.getTagList());
+    }
 
 
 }
