@@ -3,7 +3,15 @@ server:
 
 spring:
   application:
-    name: telegram-svc
+    name: mars-bot
+  redis:
+    username: ${REDIS_USERNAME:}
+    password: ${REDIS_PASSWORD:}
+    database: ${REDIS_DATABASE:0}
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    client-type: jedis
+    client-name: mars-bot
 
 telegram:
   enabled: true
@@ -13,3 +21,23 @@ telegram:
     core-pool-size: 3
     max-pool-isze: 30
     queue-capacity: 100
+
+
+keycloak:
+  auth-server-url: ${KC_URL:https://auth.scaraz.dev}
+  realm: ${KC_REALM:mars}
+  bearer-only: true
+  confidential-port: 0
+  resource: ${KC_CLIENT_ID:telegram-resource}
+  credentials:
+    secret: ${CLIENT_SECRET}
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}::${random.value}
+  client:
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${DISCOVERY_URL:http://${DISCOVERY_HOST:localhost}:${DISCOVERY_PORT:8761}}/eureka

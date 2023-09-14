@@ -29,6 +29,8 @@ public class LongPollingTelegramBotService extends TelegramBotService {
 
     private final TelegramBotsApi api;
     private final TelegramLongPollingBot client;
+
+    @Getter
     private final TaskExecutor executor;
 
     @Getter
@@ -66,7 +68,7 @@ public class LongPollingTelegramBotService extends TelegramBotService {
 //        }
     }
 
-    private TelegramLongPollingBot createBot(TelegramBotProperties botProperties) {
+    protected TelegramLongPollingBot createBot(TelegramBotProperties botProperties) {
         return new TelegramLongPollingBot() {
 
             private final String token = botProperties.getToken();
