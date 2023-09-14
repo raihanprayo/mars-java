@@ -34,6 +34,10 @@ public abstract class AppConstants {
         String REG_PAIR = "REG:PAIR";
 
 
+        String REG_NEW_AGREE = "REG:" + CONFIRM_AGREE;
+        String REG_NEW_DISAGREE = "REG:" + CONFIRM_DISAGREE;
+
+
         String REPORT_ISSUE = "REP:ISSUE:";
 
         MultiValueMap<Product, InlineKeyboardButton> ISSUES_BUTTON_LIST = new LinkedMultiValueMap<>();

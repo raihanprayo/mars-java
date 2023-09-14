@@ -22,7 +22,7 @@
 
     <modules>
         <module>svc-discovery</module>
-        <module>svc-telegram</module>
+        <module>svc-administration</module>
         <module>svc-witel</module>
     </modules>
 

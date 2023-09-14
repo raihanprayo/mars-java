@@ -1,0 +1,9 @@
+server:
+  port: ${random.int(0, 30000)}
+
+spring:
+  application:
+    name: mars-${mars.witel}
+
+mars:
+

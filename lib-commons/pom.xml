@@ -130,11 +130,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.bsc.maven</groupId>
-                <artifactId>maven-processor-plugin</artifactId>
-                <version>4.5</version>
-            </plugin>
         </plugins>
     </build>
 
