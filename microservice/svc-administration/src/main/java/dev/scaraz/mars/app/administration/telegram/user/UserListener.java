@@ -1,6 +1,8 @@
 package dev.scaraz.mars.app.administration.telegram.user;
 
-import dev.scaraz.mars.app.administration.service.UserService;
+import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
+import dev.scaraz.mars.app.administration.service.app.UserService;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
@@ -9,12 +11,13 @@ import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.annotation.context.CallbackData;
 import dev.scaraz.mars.telegram.annotation.context.ChatId;
 import dev.scaraz.mars.telegram.annotation.context.UserId;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
+import dev.scaraz.mars.telegram.util.enums.ChatSource;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.util.List;
@@ -27,15 +30,17 @@ import static dev.scaraz.mars.app.administration.telegram.ReplyKeyboardConstant.
 public class UserListener {
 
     private final UserService userService;
-    private final UserNewRegistrationService userNewRegistrationService;
+    private final UserNewRegistrationFlow userNewRegistrationFlow;
 
     @TelegramCommand(
             commands = "/register")
     public SendMessage register(
             @ChatId Long chatId,
-            @UserId Long userId,
-            Message message
+            @UserId Long userId
     ) {
+        ChatSource chatSource = TelegramContextHolder.getChatSource();
+        if (chatSource != ChatSource.PRIVATE)
+            throw new BadRequestException("command ini hanya bisa dilakukan melalui private chat");
 
         Optional<UserRepresentation> userOpt = userService.findByTelegramIdOpt(userId);
         if (userOpt.isPresent()) {
@@ -43,6 +48,17 @@ public class UserListener {
                     .chatId(chatId)
                     .text(TelegramUtil.esc(Translator.tr("error.user.registered")))
                     .build();
+        }
+        else if (userNewRegistrationFlow.isInRegistration(userId)) {
+            UserRegistrationCache cache = userNewRegistrationFlow.get(userId);
+            SendMessage prompt = userNewRegistrationFlow.getPrompt(cache, cache.getState());
+            prompt.setParseMode(ParseMode.MARKDOWNV2);
+            prompt.setText(String.join("\n",
+                    "*Silahkan melanjutkan dari pertanyaan sebelumnya.*",
+                    "",
+                    prompt.getText()
+            ));
+            return prompt;
         }
 
         return SendMessage.builder()
@@ -60,18 +76,18 @@ public class UserListener {
 
     @TelegramCommand("/reg_reset")
     public SendMessage resetRegistration(@UserId long userId) {
-        if (!userNewRegistrationService.isInRegistration(userId))
+        if (!userNewRegistrationFlow.isInRegistration(userId))
             return null;
 
-        return userNewRegistrationService.start(userId);
+        return userNewRegistrationFlow.start(userId);
     }
 
     @TelegramCommand("/reg_end")
     public SendMessage endRegistration(@UserId long userId) {
-        if (!userNewRegistrationService.isInRegistration(userId))
+        if (!userNewRegistrationFlow.isInRegistration(userId))
             return null;
 
-        userNewRegistrationService.deleteById(userId);
+        userNewRegistrationFlow.deleteById(userId);
         return SendMessage.builder()
                 .chatId(userId)
                 .text("Proses registrasi dihentikan!")
@@ -85,7 +101,7 @@ public class UserListener {
     ) {
         switch (data) {
             case AppConstants.Telegram.REG_NEW:
-                return userNewRegistrationService.start(userId);
+                return userNewRegistrationFlow.start(userId);
             case AppConstants.Telegram.REG_PAIR:
                 break;
         }
@@ -95,12 +111,12 @@ public class UserListener {
 
     @TelegramCallbackQuery({AppConstants.Telegram.REG_NEW_AGREE, AppConstants.Telegram.REG_NEW_DISAGREE})
     public SendMessage registrationAgree(@UserId long userId, @CallbackData String data) {
-        if (userNewRegistrationService.isInRegistration(userId)) {
+        if (userNewRegistrationFlow.isInRegistration(userId)) {
             switch (data) {
                 case AppConstants.Telegram.REG_NEW_AGREE:
-                    return userNewRegistrationService.end(userId);
+                    return userNewRegistrationFlow.end(userId);
                 case AppConstants.Telegram.REG_NEW_DISAGREE:
-                    return userNewRegistrationService.start(userId);
+                    return userNewRegistrationFlow.start(userId);
             }
         }
 

@@ -16,9 +16,21 @@ import javax.persistence.*;
 @Table(name = "t_user_registration")
 public class UserRegistration extends TimestampEntity {
 
+    public static String WAIT_APPROVAL = "WAIT_APPROVAL";
+    public static String REQUIRE_DOCUMENT = "REQUIRE_DOCUMENT";
+
     @Id
     @GeneratedValue(generator = "uuid")
     private String id;
+
+    @Column
+    private String no;
+
+    @Column
+    private String status;
+
+    @Column
+    private Long telegramId;
 
     @Column
     private String name;

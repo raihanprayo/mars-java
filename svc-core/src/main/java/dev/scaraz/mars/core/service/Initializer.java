@@ -5,6 +5,7 @@ import dev.scaraz.mars.common.domain.request.CreateUserDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
+import dev.scaraz.mars.common.utils.ConfigEntry;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.Role;
 import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;

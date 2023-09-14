@@ -1,16 +1,14 @@
-package dev.scaraz.mars.core.service.impl;
+package dev.scaraz.mars.app.administration.service.app.impl;
 
+import dev.scaraz.mars.app.administration.service.app.ConfigService;
 import dev.scaraz.mars.common.domain.ConfigDTO;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.app.administration.config.event.app.ConfigUpdateEvent;
+import dev.scaraz.mars.app.administration.domain.db.Config;
+import dev.scaraz.mars.app.administration.domain.db.ConfigTag;
+import dev.scaraz.mars.app.administration.repository.db.ConfigRepo;
+import dev.scaraz.mars.app.administration.repository.db.ConfigTagRepo;
 import dev.scaraz.mars.common.utils.ConfigEntry;
-import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
-import dev.scaraz.mars.core.config.event.app.ConfigUpdateEvent;
-import dev.scaraz.mars.core.domain.Config;
-import dev.scaraz.mars.core.domain.ConfigTag;
-import dev.scaraz.mars.core.repository.db.ConfigRepo;
-import dev.scaraz.mars.core.repository.db.ConfigTagRepo;
-import dev.scaraz.mars.core.service.ConfigService;
-import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -174,18 +172,13 @@ public class ConfigServiceImpl implements ConfigService {
 
         if (anyUpdate) config = save(config);
         emitEventAsync(config, valueChange);
-        try {
             return config;
-        }
-        finally {
-            if (anyUpdate) {
-                AccountAccessEvent.details("ADMIN_UPDATE_CONFIG", MarsUserContext.getUsername())
-                        .put("config_key", config.getKey())
-                        .put("config_value_to", oldValue)
-                        .put("config_value_from", config.getValue())
-                        .publish();
-            }
-        }
+//        try {
+//        }
+//        finally {
+//            if (anyUpdate) {
+//            }
+//        }
     }
 
     @Async

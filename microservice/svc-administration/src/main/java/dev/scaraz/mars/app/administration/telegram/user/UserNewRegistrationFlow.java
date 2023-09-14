@@ -2,7 +2,7 @@ package dev.scaraz.mars.app.administration.telegram.user;
 
 import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
 import dev.scaraz.mars.app.administration.repository.cache.UserRegistrationCacheRepo;
-import dev.scaraz.mars.app.administration.service.UserService;
+import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
@@ -20,7 +20,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.EnumMap;
 import java.util.List;
@@ -31,17 +30,11 @@ import java.util.Objects;
 @RequiredArgsConstructor
 
 @Service
-public class UserNewRegistrationService {
+public class UserNewRegistrationFlow {
 
     private final static Map<RegisterState, SendMessage.SendMessageBuilder> PROMPT = new EnumMap<>(RegisterState.class);
 
-    private final UserService userService;
-    private final UserRegistrationCacheRepo registrationCacheRepo;
-    private final TelegramBotService telegramBotService;
-
-
-    @PostConstruct
-    private void init() {
+    static {
         PROMPT.put(RegisterState.NAME, SendMessage.builder()
                 .parseMode(ParseMode.MARKDOWNV2)
                 .text("Silahkan sebutkan nama lengkap anda")
@@ -71,6 +64,9 @@ public class UserNewRegistrationService {
         );
     }
 
+    private final UserService userService;
+    private final UserRegistrationCacheRepo registrationCacheRepo;
+    private final TelegramBotService telegramBotService;
 
     public boolean isInRegistration(long userId) {
         return registrationCacheRepo.existsById(userId);
@@ -212,11 +208,26 @@ public class UserNewRegistrationService {
                 .orElseThrow();
 
         // TODO: register new user
-        return SendMessage.builder()
-                .chatId(cache.getId())
-                .parseMode(ParseMode.MARKDOWNV2)
-                .text(TelegramUtil.WELCOME_MESSAGE())
-                .build();
+        UserService.BotRegistrationResult result = userService.registerFromBot(cache);
+        if (result.isOnHold()) {
+            return SendMessage.builder()
+                    .chatId(cache.getId())
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.esc(
+                            "Registrasi *" + result.getRegistrationNo() + "*",
+                            "Terima kasih, permintaan anda kami terima. Menunggu konfirmasi admin *MARS*",
+                            "",
+                            "_Jika dalam 1x" + result.getExpiredDuration() + " jam belum terkonfirmasi, silahkan mengirim kembali registrasimu_"
+                    ))
+                    .build();
+        }
+        else {
+            return SendMessage.builder()
+                    .chatId(cache.getId())
+                    .parseMode(ParseMode.MARKDOWNV2)
+                    .text(TelegramUtil.WELCOME_MESSAGE())
+                    .build();
+        }
     }
 
     @EventListener(RedisKeyExpiredEvent.class)

@@ -22,6 +22,10 @@ public enum Witel {
         return "WITEL_" + name();
     }
 
+    public String clientId() {
+        return String.format("api-%s-witel-resource", name().toLowerCase());
+    }
+
     public static final String[] CALLBACK_DATAS = Arrays.stream(values())
             .map(Witel::callbackData)
             .toArray(String[]::new);
