@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
             sync = true)
     @Override
     public UserRepresentation findByTelegramId(long telegramId) throws IllegalStateException {
-        List<UserRepresentation> users = realm.users().searchByAttributes("telegram=" + telegramId);
+        List<UserRepresentation> users = realm.users().searchByAttributes("telegram:" + telegramId);
         if (users.size() != 1) throw new IllegalStateException("user not found");
         return users.get(0);
     }
@@ -64,6 +64,11 @@ public class UserServiceImpl implements UserService {
         catch (IllegalStateException ex) {
         }
         return Optional.empty();
+    }
+
+    @Override
+    public UserRepresentation findById(String id) {
+        return realm.users().get(id).toRepresentation();
     }
 
     @Override
@@ -165,6 +170,7 @@ public class UserServiceImpl implements UserService {
             String name = cache.getName().trim();
             String[] split = name.split(" ");
 
+            user.setUsername(cache.getNik());
             if (split.length == 1) user.setFirstName(name);
             else {
                 int i = name.lastIndexOf(" ");

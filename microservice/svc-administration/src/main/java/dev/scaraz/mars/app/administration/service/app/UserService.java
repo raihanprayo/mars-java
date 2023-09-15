@@ -14,6 +14,8 @@ public interface UserService {
 
     Optional<UserRepresentation> findByTelegramIdOpt(long telegramId);
 
+    UserRepresentation findById(String id);
+
     void registerNewUser(UserRegistrationDTO dto);
 
     BotRegistrationResult registerFromBot(UserRegistrationCache cache);

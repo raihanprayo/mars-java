@@ -3,7 +3,6 @@ package dev.scaraz.mars.common.tools.enums;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public enum Witel {
@@ -26,10 +25,6 @@ public enum Witel {
         return String.format("api-%s-witel-resource", name().toLowerCase());
     }
 
-    public static final String[] CALLBACK_DATAS = Arrays.stream(values())
-            .map(Witel::callbackData)
-            .toArray(String[]::new);
-
     public static List<List<InlineKeyboardButton>> generateKeyboardButtons() {
         Witel[] values = Witel.values();
         List<List<InlineKeyboardButton>> keyboards = new ArrayList<>();
@@ -44,7 +39,9 @@ public enum Witel {
             }
 
             String text = witel.name();
-            text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+            if (witel != ROC)
+                text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+
             row.add(InlineKeyboardButton.builder()
                     .text(text)
                     .callbackData(witel.callbackData())

@@ -77,8 +77,8 @@ public class UserNewRegistrationFlow {
                 .orElseThrow();
     }
 
-    public void save(UserRegistrationCache cache) {
-        registrationCacheRepo.save(cache);
+    public UserRegistrationCache save(UserRegistrationCache cache) {
+        return registrationCacheRepo.save(cache);
     }
 
     public void deleteById(long userId) {
@@ -94,23 +94,23 @@ public class UserNewRegistrationFlow {
         switch (state) {
             case NAME:
                 if (StringUtils.isNotBlank(cache.getName()))
-                    text += String.format(" (%s)", cache.getName());
+                    text += String.format(" \\(%s\\)", cache.getName());
                 break;
             case NIK:
                 if (StringUtils.isNotBlank(cache.getNik()))
-                    text += String.format(" (%s)", cache.getNik());
+                    text += String.format(" \\(%s\\)", cache.getNik());
                 break;
             case PHONE:
                 if (StringUtils.isNotBlank(cache.getPhone()))
-                    text += String.format(" (%s)", cache.getPhone());
+                    text += String.format(" \\(%s\\)", cache.getPhone());
                 break;
             case WITEL:
                 if (cache.getWitel() != null)
-                    text += String.format(" (%s)", cache.getWitel());
+                    text += String.format(" \\(%s\\)", cache.getWitel());
                 break;
             case REGION:
                 if (StringUtils.isNotBlank(cache.getSto()))
-                    text += String.format(" (%s)", cache.getSto());
+                    text += String.format(" \\(%s\\)", cache.getSto());
                 break;
         }
 
@@ -148,8 +148,7 @@ public class UserNewRegistrationFlow {
                 );
 
         cache.setState(RegisterState.NAME);
-        save(cache);
-        return getPrompt(cache, RegisterState.NAME);
+        return getPrompt(save(cache), RegisterState.NAME);
     }
 
     public void answer(UserRegistrationCache cache, String answer) {

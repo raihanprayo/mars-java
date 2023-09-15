@@ -4,6 +4,8 @@ import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
+import dev.scaraz.mars.common.tools.enums.RegisterState;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
@@ -12,19 +14,26 @@ import dev.scaraz.mars.telegram.annotation.context.CallbackData;
 import dev.scaraz.mars.telegram.annotation.context.ChatId;
 import dev.scaraz.mars.telegram.annotation.context.UserId;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
+import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
+import dev.scaraz.mars.telegram.model.TelegramHandler;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import dev.scaraz.mars.telegram.util.enums.ChatSource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.context.annotation.Lazy;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalLong;
 
 import static dev.scaraz.mars.app.administration.telegram.ReplyKeyboardConstant.UNREGISTERED_USER;
 
+@Slf4j
 @TelegramBot
 @RequiredArgsConstructor
 public class UserListener {
@@ -32,11 +41,14 @@ public class UserListener {
     private final UserService userService;
     private final UserNewRegistrationFlow userNewRegistrationFlow;
 
+    @Lazy
+    private final TelegramHandlerMapper telegramHandlerMapper;
+
     @TelegramCommand(
             commands = "/register")
     public SendMessage register(
-            @ChatId Long chatId,
-            @UserId Long userId
+            @ChatId long chatId,
+            @UserId long userId
     ) {
         ChatSource chatSource = TelegramContextHolder.getChatSource();
         if (chatSource != ChatSource.PRIVATE)
@@ -123,4 +135,36 @@ public class UserListener {
         return null;
     }
 
+    public SendMessage registrationAnswerWitel(
+            @UserId long userId,
+            @CallbackData String data
+    ) {
+        UserRegistrationCache cache = userNewRegistrationFlow.get(userId);
+        userNewRegistrationFlow.answer(cache, data);
+
+        if (cache.getWitel() == Witel.ROC)
+            return userNewRegistrationFlow.summary(cache);
+
+        cache.setState(RegisterState.REGION);
+        userNewRegistrationFlow.save(cache);
+        return userNewRegistrationFlow.getPrompt(cache, RegisterState.REGION);
+    }
+
+    @PostConstruct
+    private void initWitelQuery() {
+        telegramHandlerMapper.addHandlers(OptionalLong.empty(), t -> {
+            for (Witel witel : Witel.values()) {
+                log.debug("Add Witel Callback Query: {}", witel);
+                try {
+                    t.getCallbackQueryList().put(witel.callbackData(), TelegramHandler.builder()
+                            .bean(this)
+                            .method(getClass().getDeclaredMethod("registrationAnswerWitel", Long.TYPE, String.class))
+                            .build());
+                }
+                catch (NoSuchMethodException e) {
+
+                }
+            }
+        });
+    }
 }

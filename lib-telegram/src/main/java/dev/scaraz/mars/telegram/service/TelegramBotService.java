@@ -90,7 +90,15 @@ public abstract class TelegramBotService implements AutoCloseable {
         try {
             if (processor == null) log.warn("No processor can handle current update {}", update.getUpdateId());
             else {
-                InternalTelegram.update(b -> b.update(update).processor(processor).cycle(ProcessCycle.PROCESS));
+                InternalTelegram.init(TelegramProcessContext.builder()
+                        .update(update)
+                        .processor(processor)
+                        .cycle(ProcessCycle.PROCESS)
+                        .addAttribute(TelegramContextHolder.TG_USER, InternalTelegram.getUser(processor, update))
+                        .addAttribute(TelegramContextHolder.TG_CHAT, InternalTelegram.getChat(processor, update))
+                        .addAttribute(TelegramContextHolder.TG_CHAT_SOURCE, InternalTelegram.getChatSource(processor, update))
+                        .build());
+
                 try {
                     processor.process(this, update)
                             .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
@@ -153,17 +161,6 @@ public abstract class TelegramBotService implements AutoCloseable {
         telegramProcessors.forEach(this::addProcessor);
     }
 
-//    @EventListener(ApplicationReadyEvent.class)
-//    public void onApplicationReady() {
-//        if (springApplicationReady) return;
-//        springApplicationReady = true;
-//
-//        for (Update update : incomingUpdatePreAppReady) {
-//
-//        }
-//
-//        incomingUpdatePreAppReady.clear();
-//    }
 
     private String buildHelpMessage(OptionalLong userKey) {
         StringBuilder sb = new StringBuilder();
@@ -181,18 +178,6 @@ public abstract class TelegramBotService implements AutoCloseable {
                 );
         return sb.toString();
     }
-
-    /**
-     * Default help method.
-     */
-//    @SuppressWarnings("WeakerAccess")
-//    @TelegramCommand(
-//            commands = "/help",
-//            isHelp = true,
-//            description = "#{@loc?.t('TelegramBotService.HELP.DESC')?:'This help'}"
-//    )
-//    public void helpMethod() {
-//    }
 
     @Override
     public void close() {

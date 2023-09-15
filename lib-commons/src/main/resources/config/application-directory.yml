@@ -1,0 +1,4 @@
+mars:
+  directory:
+    tmp: ${MARS_TMP_DIRECTORY:D:/TMP/mars}
+    shared: ${MARS_SHARED_DIRECTORY:D:/TMP/mars}

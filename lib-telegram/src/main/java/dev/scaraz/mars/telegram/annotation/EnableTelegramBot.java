@@ -1,6 +1,6 @@
 package dev.scaraz.mars.telegram.annotation;
 
-import dev.scaraz.mars.telegram.TelegramConfiguration;
+import dev.scaraz.mars.telegram.TelegramApiConfiguration;
 
 import org.springframework.context.annotation.Import;
 
@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-@Import(TelegramConfiguration.class)
+@Import(TelegramApiConfiguration.class)
 @Documented
 @Inherited
 public @interface EnableTelegramBot {

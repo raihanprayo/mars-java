@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-@Component
 public final class UserIdArgResolver implements TelegramAnnotationArgResolver {
 
     @Override

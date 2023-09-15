@@ -6,14 +6,12 @@ import dev.scaraz.mars.telegram.model.TelegramHandlerContext;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import org.springframework.core.MethodParameter;
-import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-@Component
 public class ChatIdArgResolver implements TelegramAnnotationArgResolver {
 
     @Override

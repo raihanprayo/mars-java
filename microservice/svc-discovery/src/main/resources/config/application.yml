@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: mars-discovery
+  profiles:
+    include: directory
   sleuth:
     enabled: true
 
@@ -15,9 +17,3 @@ eureka:
     register-with-eureka: false
     service-url:
       defaultZone: ${MARS_DISCOVERY_URL:http://localhost:${server.port}}/eureka/
-
-mars:
-  secret: ${JWT_SECRET}
-  directory:
-    tmp: ${MARS_TMP_DIRECTORY:D:/TMP/mars}
-    shared: ${MARS_SHARED_DIRECTORY:D:/TMP/mars}
