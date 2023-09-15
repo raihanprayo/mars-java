@@ -6,13 +6,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import static dev.scaraz.mars.telegram.TelegramBotProperties.DEFAULT_MAX_THREADS;
-
 @Data
 @ConfigurationProperties(prefix = "telegram")
 public class TelegramProperties {
     private boolean enabled = true;
-    private boolean formEnabled = false;
 
     private String name;
     private String token;
@@ -20,6 +17,7 @@ public class TelegramProperties {
     private BotType type = BotType.LONG_POLLING;
 
     private final AsyncPool async = new AsyncPool();
+    private final FormProperties form = new FormProperties();
 
     @Getter
     @Setter
@@ -28,4 +26,12 @@ public class TelegramProperties {
         private int maxPoolSize = 30;
         private int queueCapacity = 1000;
     }
+
+    @Getter
+    @Setter
+    public static class FormProperties {
+        private boolean enabled = false;
+        private String source = "classpath:forms";
+    }
+
 }

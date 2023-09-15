@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  dev.scaraz.mars.telegram.TelegramApiConfiguration
+  dev.scaraz.mars.telegram.TelegramApiConfiguration,\
+  dev.scaraz.mars.telegram.TelegramFormConfiguration

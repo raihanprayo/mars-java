@@ -1,13 +1,13 @@
 package dev.scaraz.mars.app.administration.service.app.impl;
 
-import dev.scaraz.mars.app.administration.service.app.ConfigService;
-import dev.scaraz.mars.common.domain.ConfigDTO;
-import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.app.administration.config.event.app.ConfigUpdateEvent;
 import dev.scaraz.mars.app.administration.domain.db.Config;
 import dev.scaraz.mars.app.administration.domain.db.ConfigTag;
 import dev.scaraz.mars.app.administration.repository.db.ConfigRepo;
 import dev.scaraz.mars.app.administration.repository.db.ConfigTagRepo;
+import dev.scaraz.mars.app.administration.service.app.ConfigService;
+import dev.scaraz.mars.common.domain.ConfigDTO;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.utils.ConfigEntry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -172,13 +172,7 @@ public class ConfigServiceImpl implements ConfigService {
 
         if (anyUpdate) config = save(config);
         emitEventAsync(config, valueChange);
-            return config;
-//        try {
-//        }
-//        finally {
-//            if (anyUpdate) {
-//            }
-//        }
+        return config;
     }
 
     @Async

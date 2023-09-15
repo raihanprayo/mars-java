@@ -22,7 +22,10 @@ import java.util.List;
 public class Config extends AuditableEntity implements DynamicValue {
 
     @Id
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+
+    @Column
     private String key;
 
     @ManyToOne(fetch = FetchType.EAGER)

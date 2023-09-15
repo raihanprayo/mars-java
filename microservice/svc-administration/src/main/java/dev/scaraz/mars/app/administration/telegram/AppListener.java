@@ -4,6 +4,7 @@ import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.app.administration.telegram.user.UserListener;
 import dev.scaraz.mars.app.administration.telegram.user.UserNewRegistrationFlow;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
@@ -11,6 +12,8 @@ import dev.scaraz.mars.telegram.annotation.TelegramMessage;
 import dev.scaraz.mars.telegram.annotation.context.ChatId;
 import dev.scaraz.mars.telegram.annotation.context.Text;
 import dev.scaraz.mars.telegram.annotation.context.UserId;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
+import dev.scaraz.mars.telegram.util.enums.ChatSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.keycloak.representations.idm.UserRepresentation;
@@ -65,6 +68,10 @@ public class AppListener {
 
     @TelegramCommand("/start")
     public SendMessage commandStart(@ChatId long chatId, @UserId long userId) {
+        ChatSource chatSource = TelegramContextHolder.getChatSource();
+        if (chatSource!= ChatSource.PRIVATE)
+            throw new BadRequestException("command /start hanya bisa melalui private chat");
+
         log.info("Chat ID: {} | User ID: {}", chatId, userId);
 
         Optional<UserRepresentation> userOpt = userService.findByTelegramIdOpt(userId);

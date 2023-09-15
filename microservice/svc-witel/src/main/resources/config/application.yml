@@ -1,9 +1,64 @@
 server:
-  port: ${random.int(0, 30000)}
+  port: ${MARS_WITEL_PORT:${random.int(0, 30000)}}
+
+dump:
+  ds:
+    host: ${MARS_WITEL_DS_HOST:${DS_HOST:localhost}}
+    port: ${MARS_WITEL_DS_PORT:${DS_PORT:5432}}
+    url: ${MARS_WITEL_DS_URL:postgresql://${dump.ds.host}:${dump.ds.port}}/mars-witel?${MARS_WITEL_DS_QUERY:}
+    username: ${MARS_WITEL_DS_USERNAME:${DS_USERNAME:postgres}}
+    password: ${MARS_WITEL_DS_PASSWORD:${DS_PASSWORD:postgres}}
+    schema: ${MARS_WITEL_DS_SCHEMA:${DS_SCHEMA:public}}
 
 spring:
+  profiles:
+    include: common, directory
   application:
-    name: mars-${mars.witel}
+    name: mars-witel-${mars.witel}
+  redis:
+    username: ${REDIS_USERNAME:}
+    password: ${REDIS_PASSWORD:}
+    database: ${REDIS_DATABASE:0}
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    client-type: jedis
+    client-name: ${spring.application.name}
+  jackson:
+    default-property-inclusion: non_null
+  jpa:
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:${dump.ds.url}
+    username: ${dump.ds.username}
+    password: ${dump.ds.password}
+    hikari:
+      pool-name: ${spring.application.name}
+      schema: ${dump.ds.schema}
+      maximum-pool-size: 10
+  flyway:
+    default-schema: ${dump.ds.schema}
+    schemas: ${dump.ds.schema}
+    create-schemas: true
+  data:
+    web:
+      pageable:
+        default-page-size: 20
+
+eureka:
+  instance:
+    instance-id: ${spring.application.name}:${server.port}
+  client:
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${MARS_DISCOVERY_URL:http://${MARS_DISCOVERY_HOST:localhost}:${MARS_DISCOVERY_PORT:8761}}/eureka
+
 
 mars:
-
+  witel: ${MARS_WITEL}

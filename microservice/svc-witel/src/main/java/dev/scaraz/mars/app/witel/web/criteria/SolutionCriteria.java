@@ -3,6 +3,7 @@ package dev.scaraz.mars.app.witel.web.criteria;
 import dev.scaraz.mars.common.tools.TimestampCriteria;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class SolutionCriteria extends TimestampCriteria {
     private StringFilter id;
+    private WitelFilter witel;
     private StringFilter name;
     private ProductFilter product;
 }

@@ -3,6 +3,7 @@ package dev.scaraz.mars.app.witel.domain;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -31,6 +32,10 @@ public class Issue extends AuditableEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private String id;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Witel witel;
 
     @Column
     @Enumerated(EnumType.STRING)

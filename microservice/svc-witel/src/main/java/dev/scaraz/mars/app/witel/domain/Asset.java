@@ -1,14 +1,15 @@
 package dev.scaraz.mars.app.witel.domain;
 
 import dev.scaraz.mars.common.domain.TimestampEntity;
-import dev.scaraz.mars.common.tools.enums.AssetType;
 import lombok.*;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 
 @Getter
 @Setter
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class Asset extends TimestampEntity {
@@ -17,11 +18,7 @@ public class Asset extends TimestampEntity {
     @GeneratedValue(generator = "uuid")
     private String id;
 
-    private AssetType type;
-
-    @ManyToOne
-    @JoinColumn(name = "parent_id")
-    private Asset parent;
+    private String name;
 
     @Column(name = "content_type")
     private String contentType;

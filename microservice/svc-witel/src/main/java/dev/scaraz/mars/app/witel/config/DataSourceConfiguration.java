@@ -16,7 +16,7 @@ import javax.persistence.EntityManagerFactory;
 @EnableJpaAuditing(
         auditorAwareRef = DataSourceAuditor.BEAN_NAME,
         dateTimeProviderRef = DataSourceAuditor.BEAN_NAME)
-public class DatasourceConfiguration {
+public class DataSourceConfiguration {
 
     @Bean(DataSourceAuditor.BEAN_NAME)
     public DataSourceAuditor dataSourceAuditor() {

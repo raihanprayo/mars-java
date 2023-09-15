@@ -1,39 +1,30 @@
 package dev.scaraz.mars.app.administration.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.scaraz.mars.app.administration.domain.cache.ImpersonateTokenCache;
 import dev.scaraz.mars.app.administration.repository.cache.ImpersonateTokenCacheRepo;
-import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.Witel;
+import dev.scaraz.mars.common.utils.RoleConstant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.keycloak.adapters.springboot.KeycloakSpringBootProperties;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.*;
-import org.keycloak.representations.AccessTokenResponse;
 import org.keycloak.representations.idm.*;
 import org.keycloak.representations.idm.authorization.ClientPolicyRepresentation;
 import org.keycloak.representations.idm.authorization.Logic;
 import org.keycloak.representations.idm.authorization.ScopePermissionRepresentation;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -138,31 +129,70 @@ public class RealmService {
     }
 
     @Async
-    public void createAdminUser() {
+    public void createAdministration() {
         if (INITIALIZER.containsKey(INIT_KEY_ADMIN)) return;
         INITIALIZER.put(INIT_KEY_ADMIN, 1);
 
-        UsersResource users = realmResource.users();
-        List<UserRepresentation> accounts = users.search("admin", true);
-        if (!accounts.isEmpty()) return;
+        RolesResource roles = realmResource.roles();
+        Set<String> realmRoles = roles.list().stream()
+                .map(RoleRepresentation::getName)
+                .collect(Collectors.toSet());
 
-        log.info("CREATING Administrator ACCOUNT");
-        UserRepresentation admin = new UserRepresentation();
-        admin.setUsername("admin");
-        admin.setFirstName("administrator");
+        for (String roleName : RoleConstant.PERMISSIONS.keySet()) {
+            if (realmRoles.contains(roleName)) continue;
 
-        MultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-        attributes.add("witel", Witel.ROC.name());
+            log.info("CREATE NEW ROLE PERMISSION - {}", roleName);
+            RoleRepresentation role = new RoleRepresentation();
+            role.setName(roleName);
+            role.setDescription(RoleConstant.PERMISSIONS.get(roleName));
+            roles.create(role);
+        }
 
-        CredentialRepresentation credential = new CredentialRepresentation();
-        credential.setTemporary(false);
-        credential.setType("password");
-        credential.setValue("admin");
+        if (!realmRoles.contains(RoleConstant.ROLE_COMPOSITE_ADMINISTRATOR)) {
+            log.info("CREATE ADMIN ROLE");
+            ClientResource rmcr = getRealmManagementClientResource();
+            List<RoleRepresentation> rmRoles = rmcr.roles().list();
 
-        admin.setAttributes(attributes);
-        admin.setCredentials(List.of(credential));
+            RoleRepresentation adminRole = new RoleRepresentation();
+            adminRole.setName(RoleConstant.ROLE_COMPOSITE_ADMINISTRATOR);
+            adminRole.setDescription("admin role");
+            adminRole.setComposite(true);
+            roles.create(adminRole);
 
-        users.create(admin).close();
+            RoleResource adminRoleResource = roles.get(RoleConstant.ROLE_COMPOSITE_ADMINISTRATOR);
+            adminRoleResource.addComposites(rmRoles);
+
+            List<RoleRepresentation> customRoles = Stream.of(
+                            RoleConstant.Permission.ISSUE_QUERY,
+                            RoleConstant.Permission.ISSUE_MANAGE,
+                            RoleConstant.Permission.ISSUE_QUERY,
+                            RoleConstant.Permission.STO_MANAGE,
+
+                            RoleConstant.Permission.TICKET_QUERY
+                    )
+                    .map(e -> roles.get(e.getKey()).toRepresentation())
+                    .collect(Collectors.toList());
+
+            adminRoleResource.addComposites(customRoles);
+            UsersResource users = realmResource.users();
+            List<UserRepresentation> accounts = users.search("admin", true);
+            if (accounts.isEmpty()) {
+                log.info("CREATE admin ACCOUNT");
+                UserRepresentation admin = new UserRepresentation();
+                admin.setEnabled(true);
+                admin.setUsername("admin");
+                admin.setFirstName("administrator");
+                admin.setRealmRoles(List.of(adminRole.getId()));
+
+                CredentialRepresentation credential = new CredentialRepresentation();
+                credential.setTemporary(false);
+                credential.setType("password");
+                credential.setValue("admin");
+
+                admin.setCredentials(List.of(credential));
+                users.create(admin).close();
+            }
+        }
     }
 
     public void resetClients() {
@@ -178,59 +208,6 @@ public class RealmService {
         if (cpr != null)
             cr.authorization().policies().client().findById(cpr.getId()).remove();
         INITIALIZER.remove(INIT_KEY_CLIENTS);
-    }
-
-    public ImpersonateTokenCache impersonate(String userId, Witel witel) {
-        if (tokenCacheRepo.existsById(userId)) return tokenCacheRepo.getById(userId);
-
-        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
-            String serverUrl = String.join("/",
-                    keycloakProperties.getAuthServerUrl(),
-                    "realms",
-                    keycloakProperties.getRealm(),
-                    "protocol",
-                    "openid-connect",
-                    "token"
-            );
-
-            try (CloseableHttpResponse response = client.execute(RequestBuilder.post()
-                    .setUri(serverUrl)
-                    .addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                    .addParameter("client_id", keycloakProperties.getResource())
-                    .addParameter("client_secret", keycloakProperties.getCredentials().get("secret").toString())
-                    .addParameter("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-                    .addParameter("requested_token_type", "urn:ietf:params:oauth:token-type:access_token")
-                    .addParameter("subject_token", keycloak.tokenManager().getAccessTokenString())
-                    .addParameter("requested_subject", userId)
-                    .addParameter("audience", witel.clientId())
-                    .build())
-            ) {
-                int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode >= 200 && statusCode <= 299) {
-                    AccessTokenResponse accessToken = objectMapper.readValue(response.getEntity().getContent(), AccessTokenResponse.class);
-                    return tokenCacheRepo.save(ImpersonateTokenCache.builder()
-                            .id(userId)
-                            .accessToken(accessToken.getToken())
-                            .accessTokenExpired(accessToken.getExpiresIn())
-                            .refreshToken(accessToken.getRefreshToken())
-                            .refreshTokenExpired(accessToken.getRefreshExpiresIn())
-                            .build());
-                }
-                else if (statusCode >= 400 && statusCode <= 499) {
-                    AccessTokenResponse accessToken = objectMapper.readValue(response.getEntity().getContent(), AccessTokenResponse.class);
-                    String error = accessToken.getError();
-                    String errorDescription = accessToken.getErrorDescription();
-
-                    throw new BadRequestException(String.format("Failed to impersonate user: %s - %s", error, errorDescription));
-                }
-
-                throw new BadRequestException("Failed to impersonate user: " + statusCode);
-            }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            throw new BadRequestException(e.getMessage());
-        }
     }
 
     private String createTokenExchangePolicy(Collection<String> clientIds, ClientResource realmMngClient) {

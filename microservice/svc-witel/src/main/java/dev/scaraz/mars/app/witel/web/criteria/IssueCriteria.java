@@ -1,10 +1,7 @@
 package dev.scaraz.mars.app.witel.web.criteria;
 
 import dev.scaraz.mars.common.tools.AuditableCriteria;
-import dev.scaraz.mars.common.tools.filter.type.BigDecimalFilter;
-import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
-import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
-import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 public class IssueCriteria extends AuditableCriteria {
 
     private StringFilter id;
+    private WitelFilter witel;
     private ProductFilter product;
     private StringFilter code;
     private StringFilter name;

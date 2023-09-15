@@ -1,6 +1,7 @@
 package dev.scaraz.mars.app.administration.web.rest;
 
 import dev.scaraz.mars.app.administration.service.RealmService;
+import dev.scaraz.mars.app.administration.service.TokenExchangeService;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class KeycloakAppResource {
 
     private final RealmService realmService;
+    private final TokenExchangeService tokenExchangeService;
     private final UserService userService;
 
     @DeleteMapping("/clients")
@@ -32,7 +34,7 @@ public class KeycloakAppResource {
     @GetMapping("/impersonate")
     public ResponseEntity<?> impersonate(@RequestParam String userId) {
         UserRepresentation user = userService.findById(userId);
-        return ResponseEntity.ok(realmService.impersonate(user.getId(), Witel.ROC));
+        return ResponseEntity.ok(tokenExchangeService.exchange(user.getId(), Witel.ROC));
     }
 
 }

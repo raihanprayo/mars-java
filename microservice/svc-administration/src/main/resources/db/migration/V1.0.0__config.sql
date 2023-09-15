@@ -1,15 +1,21 @@
-create table t_app_config
+create table t_config_tag
 (
-    id          int4 primary key,
-    name        varchar(100) unique not null,
-    title       varchar(100)        not null,
-    type        varchar(255),
-    class_type  varchar(255),
+    id         serial primary key,
+    name       varchar(100) unique not null,
+    created_at timestamp(0)        not null default CURRENT_TIMESTAMP
+);
+
+create table t_config
+(
+    id          varchar(100) primary key,
     value       text,
+    type        varchar(50)  not null,
+    tag_id      bigint,
     description text,
 
-    created_at  timestamp(0)        not null default CURRENT_TIMESTAMP,
-    created_by  varchar(255)        not null,
-    updated_at  timestamp(0)                 default CURRENT_TIMESTAMP,
-    updated_by  varchar(255)
+    created_by  varchar(100) not null,
+    created_at  timestamp(0) not null default CURRENT_TIMESTAMP,
+    updated_by  varchar(100),
+    updated_at  timestamp(0),
+    constraint fk_tag_id foreign key (tag_id) references t_config_tag (id)
 );

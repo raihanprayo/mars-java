@@ -27,7 +27,7 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
         name = "enabled",
         havingValue = "true",
         matchIfMissing = true)
-@ComponentScan("dev.scaraz.mars.telegram")
+@ComponentScan(basePackages = "dev.scaraz.mars.telegram")
 @EnableConfigurationProperties(TelegramProperties.class)
 public class TelegramApiConfiguration implements ImportAware {
 
