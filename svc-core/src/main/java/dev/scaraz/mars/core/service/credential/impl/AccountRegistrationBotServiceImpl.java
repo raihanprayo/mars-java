@@ -8,7 +8,6 @@ import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
-import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -29,11 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -231,25 +228,13 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
         registration.setPhone(ansPhone);
         registration.setState(RegisterState.WITEL);
         registrationRepo.save(registration);
+
         return SendMessage.builder()
                 .chatId(registration.getId())
                 .parseMode(ParseMode.MARKDOWNV2)
-                .text(TelegramUtil.esc(
-                        "Silahkan sebutkan *Witel* anda",
-                        "",
-                        "_Anda bisa membalas pesan ini dengan menyebut nama *Witel* anda",
-                        "atau dengan menekan tombol yang disediakan.",
-                        "Jika anda menekan *Current* dibawah, *Witel* region anda akan disesuaikan dengan dimana bot (saya) di deploy_",
-                        "",
-                        "Deployment: *" + marsProperties.getWitel() + "*"
-                ))
+                .text(TelegramUtil.esc("Silahkan sebutkan *Witel* anda"))
                 .replyMarkup(InlineKeyboardMarkup.builder()
-                        .keyboardRow(List.of(
-                                InlineKeyboardButton.builder()
-                                        .text(TelegramUtil.esc("Current"))
-                                        .callbackData(AppConstants.Telegram.REG_IGNORE_WITEL)
-                                        .build()
-                        ))
+                        .keyboard(Witel.generateKeyboardButtons())
                         .build())
                 .build();
     }

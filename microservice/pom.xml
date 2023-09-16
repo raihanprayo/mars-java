@@ -24,6 +24,7 @@
         <module>svc-discovery</module>
         <module>svc-administration</module>
         <module>svc-witel</module>
+        <module>api-gateway</module>
     </modules>
 
     <dependencyManagement>

@@ -8,6 +8,7 @@ import dev.scaraz.mars.app.administration.repository.db.ConfigTagRepo;
 import dev.scaraz.mars.app.administration.service.app.ConfigService;
 import dev.scaraz.mars.common.domain.ConfigDTO;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.ConfigEntry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +61,12 @@ public class ConfigServiceImpl implements ConfigService {
     public Config get(String key) {
         return repo.findById(key)
                 .orElseThrow(() -> NotFoundException.entity(Config.class, "key", key));
+    }
+
+    @Override
+    public Config get(Witel witel, String key) {
+        String format = String.format("%s-%s", witel.name().toLowerCase(), key);
+        return repo.findById(format).orElseGet(()-> get(key));
     }
 
     @Override

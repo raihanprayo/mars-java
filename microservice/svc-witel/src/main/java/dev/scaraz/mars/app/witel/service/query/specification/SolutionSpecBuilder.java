@@ -1,4 +1,4 @@
-package dev.scaraz.mars.app.witel.service.specification;
+package dev.scaraz.mars.app.witel.service.query.specification;
 
 import dev.scaraz.mars.app.witel.domain.Solution;
 import dev.scaraz.mars.app.witel.domain.Solution_;
@@ -8,11 +8,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SolutionSpecification extends TimestampSpec<Solution, SolutionCriteria> {
+public class SolutionSpecBuilder extends TimestampSpec<Solution, SolutionCriteria> {
     @Override
     public Specification<Solution> createSpec(SolutionCriteria criteria) {
         return chain()
                 .pick(Solution_.id, criteria.getId())
+                .pick(Solution_.witel, criteria.getWitel())
                 .pick(Solution_.name, criteria.getName())
                 .pick(Solution_.product, criteria.getProduct())
                 .extend(s -> timestampSpec(s, criteria))

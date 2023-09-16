@@ -1,14 +1,18 @@
 package dev.scaraz.mars.app.administration.service.app.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
 import dev.scaraz.mars.app.administration.domain.db.Config;
 import dev.scaraz.mars.app.administration.domain.db.UserApproval;
+import dev.scaraz.mars.app.administration.service.RealmService;
 import dev.scaraz.mars.app.administration.service.app.ConfigService;
 import dev.scaraz.mars.app.administration.service.app.UserApprovalService;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.app.administration.service.query.UserApprovalQueryService;
 import dev.scaraz.mars.app.administration.web.dto.UserRegistrationDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
+import dev.scaraz.mars.common.exception.web.MarsException;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
@@ -16,17 +20,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.resource.RealmResource;
+import org.keycloak.admin.client.resource.UserPoliciesResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.representations.idm.authorization.UserPolicyRepresentation;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -35,7 +47,7 @@ import java.util.Optional;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final RealmResource realm;
+    private final RealmResource realmResource;
     private final ConfigService configService;
 
     //    private final UserApprovalRepo userApprovalRepo;
@@ -43,13 +55,18 @@ public class UserServiceImpl implements UserService {
     private final UserApprovalQueryService userApprovalQueryService;
     private final TelegramBotService telegramBotService;
 
+    @Lazy
+    private final RealmService realmService;
+    private final ObjectMapper objectMapper;
+
+
     @Cacheable(
-            cacheNames = "tg:user",
+            cacheNames = "kc:user",
             unless = "#result == null",
             sync = true)
     @Override
     public UserRepresentation findByTelegramId(long telegramId) throws IllegalStateException {
-        List<UserRepresentation> users = realm.users().searchByAttributes("telegram:" + telegramId);
+        List<UserRepresentation> users = realmResource.users().searchByAttributes("telegram:" + telegramId);
         if (users.size() != 1) throw new IllegalStateException("user not found");
         return users.get(0);
     }
@@ -67,14 +84,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserRepresentation findById(String id) {
-        return realm.users().get(id).toRepresentation();
+        return realmResource.users().get(id).toRepresentation();
     }
 
     @Override
     public UserRepresentation createUser(UserRegistrationDTO dto) {
-        UsersResource users = realm.users();
+        log.info("ADD NEW user -- {}/{}/{}", dto.getTelegramId(), dto.getWitel(), dto.getNik());
+
+        UsersResource users = realmResource.users();
         UserRepresentation user = new UserRepresentation();
         user.setEnabled(true);
+        user.setUsername(dto.getNik());
+
         String name = dto.getName().trim();
         String[] split = name.split(" ");
 
@@ -96,17 +117,44 @@ public class UserServiceImpl implements UserService {
             attributes.set("telegram", dto.getTelegramId().toString());
 
         user.setAttributes(attributes);
-        String createdId = CreatedResponseUtil.getCreatedId(users.create(user));
-        return users.get(createdId).toRepresentation();
+        try (Response response = users.create(user)) {
+            log.info("CREATE USER RESPONSE STATUS -- {}", response.getStatus());
+
+            if (response.getStatus() == 201) {
+                String createdId = CreatedResponseUtil.getCreatedId(response);
+                return addImpersonatedPolicy(users.get(createdId).toRepresentation());
+            }
+
+            Object entity = response.getEntity();
+            if (response.getEntity() instanceof InputStream) {
+                try {
+                    String content = new String(((InputStream) entity).readAllBytes(), StandardCharsets.UTF_8);
+                    log.warn(content);
+
+                    throw BadRequestException
+                            .args("Failed to create user account")
+                            .setRef(objectMapper.readValue((InputStream) entity, new TypeReference<Map<String, Object>>() {
+                            }));
+                }
+                catch (Exception e) {
+                    if (e instanceof MarsException)
+                        throw (MarsException) e;
+                }
+            }
+
+            log.warn("CREATE USER Response Entity -- {}", entity);
+            throw BadRequestException.args("Failed to create user account");
+        }
     }
 
     @Override
-    public BotRegistrationResult createUserFromBot(FormRegistrationCache cache) {
+    public RegistrationResult createUserFromBot(FormRegistrationCache cache) {
         // TODO: config user approval
         boolean needApproval = configService.get(Config.USER_REGISTRATION_APPROVAL_BOOL).getAsBoolean();
         Duration approvalDuration = configService.get(Config.USER_REGISTRATION_APPROVAL_DRT).getAsDuration();
 
         if (needApproval) {
+            log.info("ADD NEW user-registration-approval -- {}/{}/{}", cache.getId(), cache.getWitel(), cache.getNik());
             String no = "REG" + cache.getId();
 
             UserApproval registration = userApprovalService.save(UserApproval.builder()
@@ -120,7 +168,7 @@ public class UserServiceImpl implements UserService {
                     .sto(cache.getSto())
                     .build());
 
-            return new BotRegistrationResult(true, registration.getNo(), approvalDuration);
+            return new RegistrationResult(true, registration.getNo(), approvalDuration);
         }
         else {
             createUser(UserRegistrationDTO.builder()
@@ -132,12 +180,13 @@ public class UserServiceImpl implements UserService {
                     .telegramId(cache.getId())
                     .build());
 
-            return new BotRegistrationResult(false, null, null);
+            return new RegistrationResult(false, null, null);
         }
     }
 
     @Override
-    public void createUserFromApproval(String approvalNoOrId, boolean approved) {
+    @Transactional
+    public RegistrationResult createUserFromApproval(String approvalNoOrId, boolean approved) {
         UserApproval registration = userApprovalQueryService.findByIdOrNo(approvalNoOrId);
 
         if (approved) {
@@ -151,10 +200,12 @@ public class UserServiceImpl implements UserService {
                     .build());
 
             userApprovalService.deleteById(registration.getId());
+            return new RegistrationResult(false, registration.getNo(), null);
         }
         else {
             if (registration.getStatus().equals(UserApproval.REQUIRE_DOCUMENT)) {
                 deleteRegistration(registration);
+                return new RegistrationResult(true, registration.getNo(), null);
             }
             else {
                 registration.setStatus(UserApproval.REQUIRE_DOCUMENT);
@@ -174,6 +225,7 @@ public class UserServiceImpl implements UserService {
                             ))
                             .build());
                     userApprovalService.save(registration);
+                    return new RegistrationResult(true, registration.getNo(), null);
                 }
                 catch (TelegramApiException e) {
                     throw BadRequestException.args("Unable to notify requestor: " + e.getMessage());
@@ -200,6 +252,20 @@ public class UserServiceImpl implements UserService {
         catch (TelegramApiException e) {
             throw BadRequestException.args("Unable to notify requestor: " + e.getMessage());
         }
+    }
+
+    private UserRepresentation addImpersonatedPolicy(UserRepresentation user) {
+        try {
+            UserPoliciesResource userPoliciesResource = realmService.getRealmManagementClientResource().authorization().policies().user();
+            UserPolicyRepresentation policy = userPoliciesResource.findByName(RealmService.USER_IMPERSONATED);
+            policy.addUser(user.getId());
+            userPoliciesResource.findById(policy.getId()).update(policy);
+
+            log.info("UPDATE USER POLICY");
+        }
+        catch (Exception ex) {
+        }
+        return user;
     }
 
 }

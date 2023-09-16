@@ -23,13 +23,13 @@ public class KeycloakAppResource {
 
     @DeleteMapping("/clients")
     public void resets() {
-        realmService.resetClients();
+        realmService.resetWitelClients();
     }
 
-//    @PostMapping("/clients")
-//    public void recreateClients() {
-//        realmService.createPolicies();
-//    }
+    @PostMapping("/clients")
+    public void recreateClients() {
+        realmService.createWitelClients();
+    }
 
     @GetMapping("/impersonate")
     public ResponseEntity<?> impersonate(@RequestParam String userId) {

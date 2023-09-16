@@ -6,4 +6,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ImpersonateTokenCacheRepo extends JpaRepository<ImpersonateTokenCache, String> {
+
+    @Override
+    default ImpersonateTokenCache getById(String s) {
+        return findById(s).orElseThrow();
+    };
 }

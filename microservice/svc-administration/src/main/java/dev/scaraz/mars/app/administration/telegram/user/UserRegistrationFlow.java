@@ -2,6 +2,7 @@ package dev.scaraz.mars.app.administration.telegram.user;
 
 import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
 import dev.scaraz.mars.app.administration.repository.cache.FormRegistrationCacheRepo;
+import dev.scaraz.mars.app.administration.service.app.UserApprovalService;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.Witel;
@@ -30,7 +31,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 
 @Service
-public class UserNewRegistrationFlow {
+public class UserRegistrationFlow {
 
     private final static Map<RegisterState, SendMessage.SendMessageBuilder> PROMPT = new EnumMap<>(RegisterState.class);
 
@@ -65,11 +66,20 @@ public class UserNewRegistrationFlow {
     }
 
     private final UserService userService;
+    private final UserApprovalService userApprovalService;
     private final FormRegistrationCacheRepo formRegistrationCacheRepo;
     private final TelegramBotService telegramBotService;
 
+    public boolean isInRegistrationOrWaitList(long userId) {
+        return isInRegistration(userId) || isInApprovalWaitList(userId);
+    }
+
     public boolean isInRegistration(long userId) {
         return formRegistrationCacheRepo.existsById(userId);
+    }
+
+    public boolean isInApprovalWaitList(long userId) {
+        return userApprovalService.isInApprovalWaitList(userId);
     }
 
     public FormRegistrationCache get(long userId) {
@@ -207,25 +217,30 @@ public class UserNewRegistrationFlow {
                 .orElseThrow();
 
         // TODO: register new user
-        UserService.BotRegistrationResult result = userService.createUserFromBot(cache);
-        if (result.isOnHold()) {
-            return SendMessage.builder()
-                    .chatId(cache.getId())
-                    .parseMode(ParseMode.MARKDOWNV2)
-                    .text(TelegramUtil.esc(
-                            "Registrasi *" + result.getRegistrationNo() + "*",
-                            "Terima kasih, permintaan anda kami terima. Menunggu konfirmasi admin *MARS*",
-                            "",
-                            "_Jika dalam 1x" + result.getExpiredDuration() + " jam belum terkonfirmasi, silahkan mengirim kembali registrasimu_"
-                    ))
-                    .build();
+        UserService.RegistrationResult result = userService.createUserFromBot(cache);
+        try {
+            if (result.isOnHold()) {
+                return SendMessage.builder()
+                        .chatId(cache.getId())
+                        .parseMode(ParseMode.MARKDOWNV2)
+                        .text(TelegramUtil.esc(
+                                "Registrasi *" + result.getRegistrationNo() + "*",
+                                "Terima kasih, permintaan anda kami terima. Menunggu konfirmasi admin *MARS*",
+                                "",
+                                "_Jika dalam 1x" + result.getExpiredDuration().toHours() + " jam belum terkonfirmasi, silahkan mengirim kembali registrasimu_"
+                        ))
+                        .build();
+            }
+            else {
+                return SendMessage.builder()
+                        .chatId(cache.getId())
+                        .parseMode(ParseMode.MARKDOWNV2)
+                        .text(TelegramUtil.WELCOME_MESSAGE())
+                        .build();
+            }
         }
-        else {
-            return SendMessage.builder()
-                    .chatId(cache.getId())
-                    .parseMode(ParseMode.MARKDOWNV2)
-                    .text(TelegramUtil.WELCOME_MESSAGE())
-                    .build();
+        finally {
+            formRegistrationCacheRepo.deleteById(cache.getId());
         }
     }
 

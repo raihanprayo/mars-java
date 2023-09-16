@@ -5,8 +5,6 @@ keycloak:
   confidential-port: 0
   resource: mars-admin-resource
   credentials:
-    username: admin-cli
-    password: darkmega12
     secret: IGQcuDoTsZYgx6ODfpuHLFXSBsFqDncO
 
 telegram:

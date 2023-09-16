@@ -21,11 +21,14 @@ import java.util.List;
 @Table(name = "t_config")
 public class Config extends AuditableEntity implements DynamicValue {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    public static final String
+            USER_REGISTRATION_APPROVAL_BOOL = "user-registration-approval",
+            USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration",
+            USER_REGISTRATION_EMAIL_LIST = "user-registration-email-list",
+            TG_CMD_ISSUE_COLUMN_INT = "tg-issue-col-count";
 
-    @Column
+    @Id
+    @Column(name = "id")
     private String key;
 
     @ManyToOne(fetch = FetchType.EAGER)
@@ -68,10 +71,4 @@ public class Config extends AuditableEntity implements DynamicValue {
             }
         }
     }
-
-
-    public static final String
-            USER_REGISTRATION_APPROVAL_BOOL = "user-registration-approval",
-            USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration",
-            USER_REGISTRATION_EMAIL_LIST = "user-registration-email-list";
 }

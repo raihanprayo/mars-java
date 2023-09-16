@@ -18,15 +18,15 @@ public interface UserService {
 
     UserRepresentation createUser(UserRegistrationDTO dto);
 
-    BotRegistrationResult createUserFromBot(FormRegistrationCache cache);
+    RegistrationResult createUserFromBot(FormRegistrationCache cache);
 
-    void createUserFromApproval(String approvalNoOrId, boolean approve);
+    RegistrationResult createUserFromApproval(String approvalNoOrId, boolean approve);
 
     void deleteRegistration(String approvalNoOrId);
 
     @Getter
     @AllArgsConstructor
-    class BotRegistrationResult {
+    class RegistrationResult {
         private boolean onHold;
         private String registrationNo;
         private Duration expiredDuration;

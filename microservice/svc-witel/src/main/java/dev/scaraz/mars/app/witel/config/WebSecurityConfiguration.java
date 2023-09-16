@@ -4,7 +4,6 @@ import dev.scaraz.mars.app.witel.config.security.MarsKeycloakAuthenticationProvi
 import lombok.RequiredArgsConstructor;
 import org.keycloak.adapters.springboot.KeycloakSpringBootConfigResolver;
 import org.keycloak.adapters.springsecurity.KeycloakConfiguration;
-import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +31,7 @@ public class WebSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapt
     public MethodInvokingFactoryBean setSecurityStrategy() {
         MethodInvokingFactoryBean m = new MethodInvokingFactoryBean();
         m.setTargetClass(SecurityContextHolder.class);
-        m.setTargetMethod("setStrategy");
+        m.setTargetMethod("setStrategyName");
         m.setArguments(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
         return m;
     }

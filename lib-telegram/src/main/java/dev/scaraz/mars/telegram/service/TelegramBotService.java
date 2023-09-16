@@ -2,12 +2,11 @@ package dev.scaraz.mars.telegram.service;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.scaraz.mars.telegram.config.InternalTelegram;
-import dev.scaraz.mars.telegram.config.TelegramArgumentMapper;
-import dev.scaraz.mars.telegram.config.TelegramContextHolder;
-import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
+import dev.scaraz.mars.telegram.config.*;
 import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
+import dev.scaraz.mars.telegram.model.TelegramHandlerResult;
+import dev.scaraz.mars.telegram.model.TelegramInterceptor;
 import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
@@ -52,6 +51,9 @@ public abstract class TelegramBotService implements AutoCloseable {
 
     @Autowired
     protected TelegramHandlerMapper handlerMapper;
+
+    @Autowired
+    protected TelegramInterceptorMapper interceptorMapper;
 
     /**
      * @return telegram api client implementation
@@ -100,8 +102,17 @@ public abstract class TelegramBotService implements AutoCloseable {
                         .build());
 
                 try {
-                    processor.process(this, update)
-                            .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
+                    Optional<TelegramHandlerResult> processResult = processor.process(this, update);
+                    if (processResult.isPresent()) {
+                        TelegramHandlerResult result = processResult.get();
+
+                        boolean shouldInvoke = interceptHandler(result);
+
+                        if (shouldInvoke) {
+                            invokeHandler(result.getHandler(), result.getArguments())
+                                    .ifPresent(m -> InternalTelegram.update(b -> b.result(m)));
+                        }
+                    }
                 }
                 catch (Exception e) {
                     log.warn("Fail to process update {}", update.getUpdateId(), e);
@@ -116,28 +127,31 @@ public abstract class TelegramBotService implements AutoCloseable {
         }
     }
 
-    public Optional<BotApiMethod<?>> processHandler(TelegramHandler commandHandler, Object[] arguments) throws Exception {
+    private boolean interceptHandler(TelegramHandlerResult result) {
+        for (TelegramInterceptor interceptor : interceptorMapper.getInterceptors()) {
+            boolean doNext = interceptor.intercept(TelegramContextHolder.get().getType(), TelegramContextHolder.getUpdate(), result.getHandler());
+            if (!doNext) return false;
+        }
+        return true;
+    }
+
+    private Optional<BotApiMethod<?>> invokeHandler(TelegramHandler commandHandler, Object[] arguments) throws Exception {
         InternalTelegram.update(b -> b.handler(commandHandler).handlerArguments(arguments));
 
         Method method = commandHandler.getMethod();
         Class<?> methodReturnType = method.getReturnType();
         log.debug("Derived method return type: {}", methodReturnType);
         log.debug("Bean {}", commandHandler.getBean());
-        if (methodReturnType == void.class || methodReturnType == Void.class) {
-            method.invoke(commandHandler.getBean(), arguments);
-        }
-//        else if (BotApiMethod.class.isAssignableFrom(methodReturnType)) {
-        else if (ClassUtils.isAssignable(BotApiMethod.class, methodReturnType)) {
-            try {
+        try {
+            if (ClassUtils.isAssignable(Void.class, methodReturnType))
+                method.invoke(commandHandler.getBean(), arguments);
+            else if (ClassUtils.isAssignable(BotApiMethod.class, methodReturnType))
                 return Optional.ofNullable((BotApiMethod<?>) method.invoke(commandHandler.getBean(), arguments));
-            }
-            catch (InvocationTargetException ex) {
-                if (ex.getCause() != null) throw (Exception) ex.getCause();
-                throw ex;
-            }
+            else log.error("Unsupported handler '{}'", commandHandler);
         }
-        else {
-            log.error("Unsupported handler '{}'", commandHandler);
+        catch (InvocationTargetException ex) {
+            if (ex.getCause() != null) throw (Exception) ex.getCause();
+            throw ex;
         }
         return Optional.empty();
     }

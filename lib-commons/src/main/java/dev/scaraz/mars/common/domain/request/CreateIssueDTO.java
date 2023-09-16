@@ -2,6 +2,7 @@ package dev.scaraz.mars.common.domain.request;
 
 import dev.scaraz.mars.common.domain.response.IssueParamDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,12 +19,14 @@ import java.util.List;
 public class CreateIssueDTO {
 
     @NotNull
+    private String code;
+
     private String name;
+
+    private Witel witel;
 
     @NotNull
     private Product product;
-
-    private String alias;
 
     @NotNull
     private String description;

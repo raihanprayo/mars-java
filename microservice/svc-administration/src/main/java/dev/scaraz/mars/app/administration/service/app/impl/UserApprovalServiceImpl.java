@@ -9,6 +9,7 @@ import dev.scaraz.mars.app.administration.service.app.UserApprovalService;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -33,7 +34,7 @@ public class UserApprovalServiceImpl implements UserApprovalService {
     @Override
     public UserApproval save(UserApproval approval) {
         UserApproval a = repo.save(approval);
-        String key = String.format("%s:%s", NAMESPACE, a.getId());
+        String key = namespace(a.getId());
 
         Duration duration = configService.get(Config.USER_REGISTRATION_APPROVAL_DRT).getAsDuration();
         redisTemplate.delete(key);
@@ -44,6 +45,12 @@ public class UserApprovalServiceImpl implements UserApprovalService {
     @Override
     public void deleteById(String id) {
         repo.deleteById(id);
+        redisTemplate.delete(namespace(id));
+    }
+
+    @Override
+    public boolean isInApprovalWaitList(long id) {
+        return repo.existsByTelegramId(id);
     }
 
     @Async
@@ -55,4 +62,18 @@ public class UserApprovalServiceImpl implements UserApprovalService {
                 .deleteRegistration(event.getValue());
     }
 
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        for (String id : repo.findAllId()) {
+            String key = namespace(id);
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) continue;
+
+            applicationContext.getBean(UserService.class)
+                    .deleteRegistration(id);
+        }
+    }
+
+    private String namespace(String id) {
+        return String.format("%s:%s", NAMESPACE, id);
+    }
 }

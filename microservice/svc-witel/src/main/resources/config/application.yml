@@ -1,5 +1,5 @@
 server:
-  port: ${MARS_WITEL_PORT:${random.int(0, 30000)}}
+  port: ${MARS_WITEL_PORT:${random.int(10000,30000)}}
 
 dump:
   ds:
@@ -14,7 +14,7 @@ spring:
   profiles:
     include: common, directory
   application:
-    name: mars-witel-${mars.witel}
+    name: mars-${mars.witel}
   redis:
     username: ${REDIS_USERNAME:}
     password: ${REDIS_PASSWORD:}
@@ -28,6 +28,7 @@ spring:
   jpa:
     show-sql: false
     generate-ddl: false
+    open-in-view: false
     hibernate:
       ddl-auto: none
   datasource:
@@ -44,6 +45,9 @@ spring:
     default-schema: ${dump.ds.schema}
     schemas: ${dump.ds.schema}
     create-schemas: true
+    url: jdbc:${dump.ds.url}
+    user: ${dump.ds.username}
+    password: ${dump.ds.password}
   data:
     web:
       pageable:
@@ -51,14 +55,34 @@ spring:
 
 eureka:
   instance:
-    instance-id: ${spring.application.name}:${server.port}
+    appname: ${spring.application.name}
+    app-group-name: witel
+    instance-id: ${spring.application.name}:${random.value}
   client:
     enabled: true
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: ${MARS_DISCOVERY_URL:http://${MARS_DISCOVERY_HOST:localhost}:${MARS_DISCOVERY_PORT:8761}}/eureka
+    registry-fetch-interval-seconds: 10
 
+keycloak:
+  auth-server-url: https://auth.scaraz.dev
+  realm: mars
+  bearer-only: true
+  confidential-port: 0
+  resource: mars-witel-resource
+  credentials:
+    secret: IGQcuDoTsZYgx6ODfpuHLFXSBsFqDncO
 
 mars:
   witel: ${MARS_WITEL}
+  telegram:
+    enabled: true
+    name: mars-bot
+    type: long_polling
+    token: 5477841359:AAEsfQWb6sVmj0oTMTodgpjZyGuTw8PR2FI
+    async:
+      core-pool-size: 3
+      max-pool-isze: 10
+      queue-capacity: 100

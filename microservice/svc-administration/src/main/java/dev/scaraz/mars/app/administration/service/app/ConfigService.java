@@ -3,6 +3,7 @@ package dev.scaraz.mars.app.administration.service.app;
 import dev.scaraz.mars.common.domain.ConfigDTO;
 import dev.scaraz.mars.app.administration.domain.db.Config;
 import dev.scaraz.mars.app.administration.domain.db.ConfigTag;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.ConfigEntry;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,8 @@ public interface ConfigService {
     ConfigTag getOrCreateTag(String tag);
 
     Config get(String key);
+
+    Config get(Witel witel, String key);
 
     Map<String, Config> getBulkMap(String... keys);
 

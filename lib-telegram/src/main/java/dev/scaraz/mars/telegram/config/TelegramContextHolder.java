@@ -55,11 +55,6 @@ public class TelegramContextHolder {
         if (context == null) return null;
 
         return ((User) context.getAttribute(TG_CHAT)).getId();
-//        Message message = getMessage(context.getType(), context.getUpdate());
-//        return Optional.ofNullable(message)
-//                .map(Message::getFrom)
-//                .map(User::getId)
-//                .orElse(null);
     }
 
     @Nullable

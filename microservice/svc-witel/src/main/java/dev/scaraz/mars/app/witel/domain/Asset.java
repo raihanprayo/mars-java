@@ -3,15 +3,16 @@ package dev.scaraz.mars.app.witel.domain;
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Getter
 @Setter
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
+
+@Entity
+@Table(name = "t_asset")
 public class Asset extends TimestampEntity {
 
     @Id

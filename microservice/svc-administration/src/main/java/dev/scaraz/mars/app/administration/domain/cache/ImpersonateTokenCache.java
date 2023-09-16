@@ -12,7 +12,7 @@ import org.springframework.data.redis.core.TimeToLive;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@RedisHash("tg:impersonate:token")
+@RedisHash("user:impersonate:token")
 public class ImpersonateTokenCache {
 
     @Id

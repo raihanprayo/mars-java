@@ -6,4 +6,6 @@ public interface UserApprovalService {
     UserApproval save(UserApproval approval);
 
     void deleteById(String id);
+
+    boolean isInApprovalWaitList(long id);
 }

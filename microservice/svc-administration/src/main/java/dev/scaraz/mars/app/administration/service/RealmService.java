@@ -1,7 +1,5 @@
 package dev.scaraz.mars.app.administration.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.scaraz.mars.app.administration.repository.cache.ImpersonateTokenCacheRepo;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.RealmConstant;
 import lombok.AllArgsConstructor;
@@ -13,12 +11,8 @@ import org.keycloak.adapters.springboot.KeycloakSpringBootProperties;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.*;
-import org.keycloak.representations.idm.ClientRepresentation;
-import org.keycloak.representations.idm.CredentialRepresentation;
-import org.keycloak.representations.idm.RoleRepresentation;
-import org.keycloak.representations.idm.UserRepresentation;
+import org.keycloak.representations.idm.*;
 import org.keycloak.representations.idm.authorization.ClientPolicyRepresentation;
-import org.keycloak.representations.idm.authorization.Logic;
 import org.keycloak.representations.idm.authorization.ScopePermissionRepresentation;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
@@ -35,25 +29,23 @@ import java.util.stream.Stream;
 public class RealmService {
 
     private static final Map<String, Object> INITIALIZER = new LinkedHashMap<>();
+    public static final String
+            CLIENT_IMPERSONATOR = "client-impersonator",
+            USER_IMPERSONATED = "user-impersonated";
     private static final String
-            POLICY_NAME = "witels-token-exchange";
-    private static final String
-            INIT_KEY_POLICIES = "witel-clients",
+            INIT_KEY_CLIENTS = "witel-clients",
             INIT_KEY_ADMIN = "admin-user";
 
     private final Keycloak keycloak;
     private final RealmResource realmResource;
     private final KeycloakSpringBootProperties keycloakProperties;
 
-    private final ImpersonateTokenCacheRepo tokenCacheRepo;
-    private final ObjectMapper objectMapper;
-
     @Cacheable("kc:client")
     public ClientRepresentation getRealmManagement() {
         return realmResource.clients().findByClientId("realm-management").get(0);
     }
 
-    private ClientResource getRealmManagementClientResource() {
+    public ClientResource getRealmManagementClientResource() {
         return realmResource.clients().get(getRealmManagement().getId());
     }
 
@@ -120,57 +112,98 @@ public class RealmService {
         }
     }
 
-    private void createWitelClient() {
-//        realmResource.clients().findByClientId()
-    }
+    @Async
+    public void createWitelClients() {
+        if (INITIALIZER.containsKey(INIT_KEY_CLIENTS)) return;
+        INITIALIZER.put(INIT_KEY_CLIENTS, 1);
 
-    public void resetClients() {
-//        log.info("RESET ALL WITEL CLIENT RESOURCE");
-//        for (Witel value : Witel.values()) {
-//            ClientRepresentation cr = realmResource.clients().findByClientId(value.clientId()).get(0);
-//            realmResource.clients().get(cr.getId()).remove();
-//        }
-//
-//        ClientResource cr = getRealmManagementClientResource();
-//        ClientPolicyRepresentation cpr = cr.authorization().policies().client().findByName(POLICY_NAME);
-//        log.debug("Client Policy: {}", cpr);
-//        if (cpr != null)
-//            cr.authorization().policies().client().findById(cpr.getId()).remove();
-//        INITIALIZER.remove(INIT_KEY_POLICIES);
-    }
+        ClientsResource clientsResource = realmResource.clients();
+        List<String> clients = clientsResource.findAll().stream()
+                .map(ClientRepresentation::getClientId)
+                .collect(Collectors.toList());
 
-    private String createTokenExchangePolicy(Collection<String> clientIds, ClientResource realmMngClient) {
-        ClientPolicyRepresentation cpRep = new ClientPolicyRepresentation();
-        cpRep.setName(POLICY_NAME);
-        cpRep.setLogic(Logic.POSITIVE);
-        cpRep.addClient(clientIds.toArray(String[]::new));
+        ClientResource rmcr = getRealmManagementClientResource();
+        ClientPolicyRepresentation clientImpersonatorPolicy = rmcr.authorization()
+                .policies()
+                .client()
+                .findByName(CLIENT_IMPERSONATOR);
+        ClientPolicyResource clientImpersonatorPolicyResource = rmcr.authorization()
+                .policies()
+                .client()
+                .findById(clientImpersonatorPolicy.getId());
 
-        ClientPoliciesResource cpRes = realmMngClient.authorization().policies().client();
-        cpRes.findByName(cpRep.getName());
+        List<ClientMetadata> tokenExchangeMap = new ArrayList<>();
+        for (Witel witel : Witel.values()) {
+            String clientId = witel.clientId();
+            if (clients.stream().anyMatch(id -> id.equals(clientId)))
+                continue;
 
-        try (Response response = cpRes.create(cpRep)) {
-            log.info("CREATE TOKEN EXCHANGE Policy response Status - {}", response.getStatus());
+            log.info("CREATE Witel Client - {}", clientId);
+            try {
+                ClientRepresentation client = new ClientRepresentation();
+                client.setClientId(clientId);
+                client.setDescription(String.format("%s client", witel));
+                client.setAlwaysDisplayInConsole(true);
+                client.setServiceAccountsEnabled(true);
 
-            cpRep = response.readEntity(ClientPolicyRepresentation.class);
-            log.info("CREATE TOKEN EXCHANGE Policy ID - {}", cpRep.getId());
-            return cpRep.getId();
+                try (Response response = clientsResource.create(client)) {
+                    if (response.getStatus() == 201) {
+                        client = clientsResource.findByClientId(clientId).get(0);
+
+                        log.info("ENABLE Client PERMISSION CONFIG - {}", clientId);
+                        ManagementPermissionReference permissions = clientsResource
+                                .get(client.getId())
+                                .setPermissions(new ManagementPermissionRepresentation(true));
+                        String tokenExchangeId = permissions.getScopePermissions().get("token-exchange");
+                        log.info("Client PERMISSION token-exchange ID - {}", tokenExchangeId);
+                        tokenExchangeMap.add(new ClientMetadata(
+                                client.getId(),
+                                tokenExchangeId,
+                                witel
+                        ));
+                    }
+                }
+            }
+            catch (Exception ex) {
+                List<ClientRepresentation> o = clientsResource.findByClientId(clientId);
+                if (!o.isEmpty()) clientsResource.get(o.get(0).getId()).remove();
+            }
+        }
+
+        if (!tokenExchangeMap.isEmpty()) {
+            log.debug("CURRENT {} POLICY ClientIds - {}", CLIENT_IMPERSONATOR, clientImpersonatorPolicy.getClients());
+            clientImpersonatorPolicy.addClient(tokenExchangeMap.stream()
+                    .map(ClientMetadata::getClientId)
+                    .toArray(String[]::new));
+            clientImpersonatorPolicyResource.update(clientImpersonatorPolicy);
+
+            log.debug("client-impersonator ID - {}", clientImpersonatorPolicy.getId());
+            for (ClientMetadata entry : tokenExchangeMap) {
+                Witel witel = entry.getWitel();
+                String tokenExchangeId = entry.getTokenExchangeId();
+
+                ScopePermissionResource scopePermissionResource = rmcr.authorization()
+                        .permissions()
+                        .scope()
+                        .findById(tokenExchangeId);
+                ScopePermissionRepresentation permission = scopePermissionResource.toRepresentation();
+
+                permission.setDescription(String.format("%s Token Exchange Permission", witel));
+                permission.addPolicy(clientImpersonatorPolicy.getId());
+                log.debug("UPDATE Witel Permission - {}", witel);
+                scopePermissionResource.update(permission);
+            }
         }
     }
 
-    private void updateClientPermissionPolicy(Witel witel,
-                                              ClientMetadata clientMetadata,
-                                              String policyId,
-                                              ClientResource realmMngClient
-    ) {
-        PermissionsResource permissionsResource = realmMngClient.authorization().permissions();
 
-        log.info("Updating Witel Client token-exchange permission - {}", witel);
-        ScopePermissionResource spRes = permissionsResource.scope().findById(clientMetadata.permissionId);
-        ScopePermissionRepresentation spRep = spRes.toRepresentation();
-        spRep.setName(String.format("%s-token-exchange-permission", witel.toString().toLowerCase()));
-        spRep.setDescription(witel.name());
-        spRep.addPolicy(policyId);
-        spRes.update(spRep);
+    public void resetWitelClients() {
+        log.info("RESET ALL WITEL CLIENT RESOURCE");
+        for (Witel value : Witel.values()) {
+            ClientRepresentation cr = realmResource.clients().findByClientId(value.clientId()).get(0);
+            realmResource.clients().get(cr.getId()).remove();
+        }
+        INITIALIZER.remove(INIT_KEY_CLIENTS);
     }
 
     @Getter
@@ -178,6 +211,7 @@ public class RealmService {
     @AllArgsConstructor
     private static class ClientMetadata {
         private String clientId;
-        private String permissionId;
+        private String tokenExchangeId;
+        private Witel witel;
     }
 }

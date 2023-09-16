@@ -29,7 +29,7 @@ public class UserApproval extends TimestampEntity {
     @Column
     private String status;
 
-    @Column
+    @Column(name = "telegram_id")
     private Long telegramId;
 
     @Column

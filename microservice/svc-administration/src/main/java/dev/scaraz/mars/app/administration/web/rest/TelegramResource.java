@@ -1,5 +1,6 @@
 package dev.scaraz.mars.app.administration.web.rest;
 
+import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,11 @@ public class TelegramResource {
         if (StringUtils.isBlank(callbackUrl)) return ResponseEntity.ok(message);
         return ResponseEntity.ok()
                 .build();
+    }
+
+    @PutMapping("/issues/{witel}")
+    public void updateIssues(@PathVariable Witel witel) {
+
     }
 
 }

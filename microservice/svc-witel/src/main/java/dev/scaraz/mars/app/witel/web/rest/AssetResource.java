@@ -24,7 +24,7 @@ public class AssetResource {
 
     private final AssetSevice assetSevice;
 
-    @GetMapping("/{id}")
+    @GetMapping("/_/{id}")
     public ResponseEntity<?> getById(@PathVariable String id) {
         Asset asset = assetSevice.get(id);
 

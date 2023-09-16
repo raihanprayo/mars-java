@@ -6,6 +6,8 @@ import org.zalando.problem.Status;
 
 public class MarsException extends AbstractThrowableProblem {
 
+    private Object ref;
+
     public MarsException(Status status, String title, String message, Object... args) {
         super(null,
                 title != null ? Translator.tr(title) : null,
@@ -14,4 +16,12 @@ public class MarsException extends AbstractThrowableProblem {
         );
     }
 
+    public Object getRef() {
+        return ref;
+    }
+
+    public MarsException setRef(Object ref) {
+        this.ref = ref;
+        return this;
+    }
 }

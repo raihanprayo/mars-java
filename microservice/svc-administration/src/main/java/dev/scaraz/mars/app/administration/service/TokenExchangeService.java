@@ -11,6 +11,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.keycloak.OAuth2Constants;
 import org.keycloak.adapters.springboot.KeycloakSpringBootProperties;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.AccessTokenResponse;
@@ -30,7 +31,6 @@ public class TokenExchangeService {
     private final KeycloakSpringBootProperties keycloakProperties;
 
     public ImpersonateTokenCache exchange(String userId, Witel witel) {
-
         if (tokenCacheRepo.existsById(userId)) return tokenCacheRepo.getById(userId);
 
         try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
@@ -48,11 +48,11 @@ public class TokenExchangeService {
                     .addHeader("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE)
                     .addParameter("client_id", keycloakProperties.getResource())
                     .addParameter("client_secret", keycloakProperties.getCredentials().get("secret").toString())
-                    .addParameter("grant_type", "urn:ietf:params:oauth:grant-type:token-exchange")
-//                    .addParameter("requested_token_type", "urn:ietf:params:oauth:token-type:access_token")
-//                    .addParameter("subject_token", keycloak.tokenManager().getAccessTokenString())
-                    .addParameter("requested_subject", userId)
+                    .addParameter("subject_token", keycloak.tokenManager().getAccessTokenString())
+                    .addParameter("grant_type", OAuth2Constants.TOKEN_EXCHANGE_GRANT_TYPE)
                     .addParameter("audience", witel.clientId())
+                    .addParameter("requested_token_type", OAuth2Constants.ACCESS_TOKEN_TYPE)
+                    .addParameter("requested_subject", userId)
                     .build())
             ) {
                 int statusCode = response.getStatusLine().getStatusCode();
@@ -61,7 +61,7 @@ public class TokenExchangeService {
                     return tokenCacheRepo.save(ImpersonateTokenCache.builder()
                             .id(userId)
                             .accessToken(accessToken.getToken())
-                            .accessTokenExpired(accessToken.getExpiresIn())
+                            .accessTokenExpired(accessToken.getExpiresIn() - 5)
                             .refreshToken(accessToken.getRefreshToken())
                             .refreshTokenExpired(accessToken.getRefreshExpiresIn())
                             .build());

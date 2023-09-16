@@ -1,5 +1,5 @@
 server:
-  port: ${MARS_ADMIN_PORT:10920}
+  port: ${MARS_ADMIN_PORT:10921}
 
 dump:
   ds:
@@ -9,10 +9,18 @@ dump:
     username: ${MARS_ADMIN_DS_USERNAME:${DS_USERNAME:postgres}}
     password: ${MARS_ADMIN_DS_PASSWORD:${DS_PASSWORD:postgres}}
     schema: ${MARS_ADMIN_DS_SCHEMA:${DS_SCHEMA:public}}
+  witel:
+    ds:
+      host: ${MARS_WITEL_DS_HOST:${DS_HOST:localhost}}
+      port: ${MARS_WITEL_DS_PORT:${DS_PORT:5432}}
+      url: ${MARS_WITEL_DS_URL:postgresql://${dump.ds.host}:${dump.ds.port}}/mars-witel?${MARS_WITEL_DS_QUERY:}
+      username: ${MARS_WITEL_DS_USERNAME:${DS_USERNAME:postgres}}
+      password: ${MARS_WITEL_DS_PASSWORD:${DS_PASSWORD:postgres}}
+      schema: ${MARS_WITEL_DS_SCHEMA:${DS_SCHEMA:public}}
 
 spring:
   application:
-    name: mars-bot
+    name: mars-admin
   profiles:
     include: common, directory
   redis:
@@ -26,22 +34,40 @@ spring:
   jpa:
     show-sql: false
     generate-ddl: false
+    database: postgresql
     hibernate:
       ddl-auto: none
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    driver-class-name: org.postgresql.Driver
     url: jdbc:${dump.ds.url}
+    jdbc-url: jdbc:${dump.ds.url}
     username: ${dump.ds.username}
     password: ${dump.ds.password}
     hikari:
       pool-name: ${spring.application.name}
       schema: ${dump.ds.schema}
       maximum-pool-size: 10
+      jdbc-url: jdbc:${dump.ds.url}
   flyway:
     default-schema: ${dump.ds.schema}
     schemas: ${dump.ds.schema}
     create-schemas: true
+    url: jdbc:${dump.ds.url}
+    user: ${dump.ds.username}
+    password: ${dump.ds.password}
+
+witel:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:${dump.witel.ds.url}
+    jdbc-url: jdbc:${dump.witel.ds.url}
+    username: ${dump.witel.ds.username}
+    password: ${dump.witel.ds.password}
+    hikari:
+      pool-name: ${spring.application.name}
+      schema: ${dump.witel.ds.schema}
+      maximum-pool-size: 10
+      jdbc-url: jdbc:${dump.witel.ds.url}
 
 telegram:
   enabled: true
@@ -63,6 +89,7 @@ telegram:
 
 eureka:
   instance:
+    appname: ${spring.application.name}
     instance-id: ${spring.application.name}::${random.value}
   client:
     enabled: true
