@@ -26,10 +26,10 @@ public class KeycloakAppResource {
         realmService.resetClients();
     }
 
-    @PostMapping("/clients")
-    public void recreateClients() {
-        realmService.createWitelClients();
-    }
+//    @PostMapping("/clients")
+//    public void recreateClients() {
+//        realmService.createPolicies();
+//    }
 
     @GetMapping("/impersonate")
     public ResponseEntity<?> impersonate(@RequestParam String userId) {

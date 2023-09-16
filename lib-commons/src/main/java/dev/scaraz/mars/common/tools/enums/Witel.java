@@ -22,7 +22,7 @@ public enum Witel {
     }
 
     public String clientId() {
-        return String.format("api-%s-witel-resource", name().toLowerCase());
+        return String.format("witel-%s-resource", name().toLowerCase());
     }
 
     public static List<List<InlineKeyboardButton>> generateKeyboardButtons() {

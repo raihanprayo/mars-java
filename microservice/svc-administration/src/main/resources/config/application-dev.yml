@@ -3,11 +3,11 @@ keycloak:
   realm: mars
   bearer-only: true
   confidential-port: 0
-  resource: administration
+  resource: mars-admin-resource
   credentials:
     username: admin-cli
     password: darkmega12
-    secret: Q71GMfVePTU4yihVdltPUAmB7gpUYPWn
+    secret: IGQcuDoTsZYgx6ODfpuHLFXSBsFqDncO
 
 telegram:
   enabled: true

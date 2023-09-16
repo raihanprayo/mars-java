@@ -1,28 +1,27 @@
 package dev.scaraz.mars.app.administration.service.app.impl;
 
-import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
+import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
 import dev.scaraz.mars.app.administration.domain.db.Config;
-import dev.scaraz.mars.app.administration.domain.db.UserRegistration;
-import dev.scaraz.mars.app.administration.repository.db.UserRegistrationRepo;
+import dev.scaraz.mars.app.administration.domain.db.UserApproval;
 import dev.scaraz.mars.app.administration.service.app.ConfigService;
+import dev.scaraz.mars.app.administration.service.app.UserApprovalService;
 import dev.scaraz.mars.app.administration.service.app.UserService;
+import dev.scaraz.mars.app.administration.service.query.UserApprovalQueryService;
 import dev.scaraz.mars.app.administration.web.dto.UserRegistrationDTO;
-import dev.scaraz.mars.common.exception.web.NotFoundException;
-import dev.scaraz.mars.telegram.config.TelegramContextHolder;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.resource.RealmResource;
 import org.keycloak.admin.client.resource.UsersResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -39,10 +38,10 @@ public class UserServiceImpl implements UserService {
     private final RealmResource realm;
     private final ConfigService configService;
 
-    private final UserRegistrationRepo userRegistrationRepo;
+    //    private final UserApprovalRepo userApprovalRepo;
+    private final UserApprovalService userApprovalService;
+    private final UserApprovalQueryService userApprovalQueryService;
     private final TelegramBotService telegramBotService;
-
-    private final StringRedisTemplate stringRedisTemplate;
 
     @Cacheable(
             cacheNames = "tg:user",
@@ -72,79 +71,37 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void registerNewUser(UserRegistrationDTO dto) {
+    public UserRepresentation createUser(UserRegistrationDTO dto) {
         UsersResource users = realm.users();
         UserRepresentation user = new UserRepresentation();
+        user.setEnabled(true);
+        String name = dto.getName().trim();
+        String[] split = name.split(" ");
 
-        // TODO: config user approval
-        boolean needApproval = configService.get(Config.USER_REGISTRATION_APPROVAL_BOOL).getAsBoolean();
-        Duration approvalDuration = configService.get(Config.USER_REGISTRATION_APPROVAL_DRT).getAsDuration();
-
-        if (needApproval) {
-            String no = null;
-            if (dto.getTelegramId() != null)
-                no = "REG" + dto.getTelegramId();
-
-            UserRegistration registration = userRegistrationRepo.save(UserRegistration.builder()
-                    .no(no)
-                    .telegramId(dto.getTelegramId())
-                    .status(UserRegistration.WAIT_APPROVAL)
-                    .name(dto.getName())
-                    .nik(dto.getNik())
-                    .phone(dto.getPhone())
-                    .witel(dto.getWitel())
-                    .sto(dto.getSto())
-                    .build());
-
-            if (TelegramContextHolder.hasContext()) {
-                try {
-                    telegramBotService.getClient().execute(SendMessage.builder()
-                            .chatId(dto.getTelegramId())
-                            .parseMode(ParseMode.MARKDOWNV2)
-                            .text(TelegramUtil.esc(
-                                    "Registrasi *" + registration.getNo() + "*",
-                                    "Terima kasih, permintaan anda kami terima. Menunggu konfirmasi admin *MARS*",
-                                    "",
-                                    "_Jika dalam 1x" + approvalDuration.toHours() + " jam belum terkonfirmasi, silahkan mengirim kembali registrasimu_"
-                            ))
-                            .build());
-                }
-                catch (TelegramApiException e) {
-                }
-            }
-        }
+        if (split.length == 1) user.setFirstName(name);
         else {
-            user.setEnabled(true);
-            String name = dto.getName().trim();
-            String[] split = name.split(" ");
-
-            if (split.length == 1) user.setFirstName(name);
-            else {
-                int i = name.lastIndexOf(" ");
-                user.setFirstName(name.substring(0, i).trim());
-                user.setLastName(name.substring(i).trim());
-            }
-
-            MultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.set("phone", dto.getPhone());
-            attributes.set("witel", dto.getWitel().name());
-
-            if (StringUtils.isNotBlank(dto.getSto()))
-                attributes.set("sto", dto.getSto());
-
-            if (dto.getTelegramId() != null)
-                attributes.set("telegram", dto.getTelegramId().toString());
-
-            user.setAttributes(attributes);
-            users.create(user);
+            int i = name.lastIndexOf(" ");
+            user.setFirstName(name.substring(0, i).trim());
+            user.setLastName(name.substring(i).trim());
         }
+
+        MultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+        attributes.set("phone", dto.getPhone());
+        attributes.set("witel", dto.getWitel().name());
+
+        if (StringUtils.isNotBlank(dto.getSto()))
+            attributes.set("sto", dto.getSto());
+
+        if (dto.getTelegramId() != null)
+            attributes.set("telegram", dto.getTelegramId().toString());
+
+        user.setAttributes(attributes);
+        String createdId = CreatedResponseUtil.getCreatedId(users.create(user));
+        return users.get(createdId).toRepresentation();
     }
 
     @Override
-    public BotRegistrationResult registerFromBot(UserRegistrationCache cache) {
-        UsersResource users = realm.users();
-        UserRepresentation user = new UserRepresentation();
-
+    public BotRegistrationResult createUserFromBot(FormRegistrationCache cache) {
         // TODO: config user approval
         boolean needApproval = configService.get(Config.USER_REGISTRATION_APPROVAL_BOOL).getAsBoolean();
         Duration approvalDuration = configService.get(Config.USER_REGISTRATION_APPROVAL_DRT).getAsDuration();
@@ -152,10 +109,10 @@ public class UserServiceImpl implements UserService {
         if (needApproval) {
             String no = "REG" + cache.getId();
 
-            UserRegistration registration = userRegistrationRepo.save(UserRegistration.builder()
+            UserApproval registration = userApprovalService.save(UserApproval.builder()
                     .no(no)
                     .telegramId(cache.getId())
-                    .status(UserRegistration.WAIT_APPROVAL)
+                    .status(UserApproval.WAIT_APPROVAL)
                     .name(cache.getName())
                     .nik(cache.getNik())
                     .phone(cache.getPhone())
@@ -166,40 +123,83 @@ public class UserServiceImpl implements UserService {
             return new BotRegistrationResult(true, registration.getNo(), approvalDuration);
         }
         else {
-            user.setEnabled(true);
-            String name = cache.getName().trim();
-            String[] split = name.split(" ");
+            createUser(UserRegistrationDTO.builder()
+                    .name(cache.getName())
+                    .nik(cache.getNik())
+                    .phone(cache.getPhone())
+                    .witel(cache.getWitel())
+                    .sto(cache.getSto())
+                    .telegramId(cache.getId())
+                    .build());
 
-            user.setUsername(cache.getNik());
-            if (split.length == 1) user.setFirstName(name);
-            else {
-                int i = name.lastIndexOf(" ");
-                user.setFirstName(name.substring(0, i).trim());
-                user.setLastName(name.substring(i).trim());
-            }
-
-            MultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
-            attributes.set("phone", cache.getPhone());
-            attributes.set("witel", cache.getWitel().name());
-
-            if (StringUtils.isNotBlank(cache.getSto()))
-                attributes.set("sto", cache.getSto());
-
-            attributes.set("telegram", String.valueOf(cache.getId()));
-
-            user.setAttributes(attributes);
-            users.create(user);
-
-            return new BotRegistrationResult(true, null, null);
+            return new BotRegistrationResult(false, null, null);
         }
     }
 
     @Override
-    public void registerFromApproval(String approvalNoOrId) {
-        UserRegistration registration = userRegistrationRepo.findByIdOrNo(approvalNoOrId, approvalNoOrId)
-                .orElseThrow(() -> new NotFoundException("registration not found"));
+    public void createUserFromApproval(String approvalNoOrId, boolean approved) {
+        UserApproval registration = userApprovalQueryService.findByIdOrNo(approvalNoOrId);
 
+        if (approved) {
+            createUser(UserRegistrationDTO.builder()
+                    .name(registration.getName())
+                    .nik(registration.getNik())
+                    .phone(registration.getPhone())
+                    .witel(registration.getWitel())
+                    .sto(registration.getSto())
+                    .telegramId(registration.getTelegramId())
+                    .build());
 
+            userApprovalService.deleteById(registration.getId());
+        }
+        else {
+            if (registration.getStatus().equals(UserApproval.REQUIRE_DOCUMENT)) {
+                deleteRegistration(registration);
+            }
+            else {
+                registration.setStatus(UserApproval.REQUIRE_DOCUMENT);
+                List<String> emails = configService.get(Config.USER_REGISTRATION_EMAIL_LIST).getAsList();
+                String concatedEmails = emails.isEmpty() ? " - " : String.join("\n", emails);
+                try {
+                    telegramBotService.getClient().execute(SendMessage.builder()
+                            .chatId(registration.getTelegramId())
+                            .text(TelegramUtil.esc(
+                                    "Maaf, request registrasi *" + registration.getNo() + "*, telah ditolak.",
+                                    "",
+                                    "Silahkan menghubungi admin *MARS-ROC2* via email ke:",
+                                    concatedEmails,
+                                    "dengan melampirkan *KTP* dan *NDA* (Pakta Integritas) terbaru.",
+                                    "",
+                                    "Terima Kasih"
+                            ))
+                            .build());
+                    userApprovalService.save(registration);
+                }
+                catch (TelegramApiException e) {
+                    throw BadRequestException.args("Unable to notify requestor: " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void deleteRegistration(String approvalNoOrId) {
+        UserApproval registration = userApprovalQueryService.findByIdOrNo(approvalNoOrId);
+        deleteRegistration(registration);
+    }
+
+    private void deleteRegistration(UserApproval registration) {
+        log.info("DELETE USER APPROVAL - {}", registration.getId());
+        try {
+            telegramBotService.getClient().execute(SendMessage.builder()
+                    .chatId(registration.getTelegramId())
+                    .text(TelegramUtil.esc("Maaf, request registrasimu dengan nomor *" + registration.getNo() + "*, telah ditolak."))
+                    .build());
+            userApprovalService.deleteById(registration.getId());
+        }
+        catch (TelegramApiException e) {
+            throw BadRequestException.args("Unable to notify requestor: " + e.getMessage());
+        }
     }
 
 }

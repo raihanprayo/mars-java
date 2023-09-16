@@ -1,4 +1,4 @@
-create table t_user_registration
+create table t_user_approval
 (
     id          varchar(37) primary key,
     no          varchar(50) unique not null,

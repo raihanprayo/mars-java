@@ -1,9 +1,9 @@
 package dev.scaraz.mars.app.administration.repository.cache;
 
-import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
+import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRegistrationCacheRepo extends JpaRepository<UserRegistrationCache, Long> {
+public interface FormRegistrationCacheRepo extends JpaRepository<FormRegistrationCache, Long> {
 }

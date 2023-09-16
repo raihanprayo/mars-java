@@ -72,5 +72,6 @@ public class Config extends AuditableEntity implements DynamicValue {
 
     public static final String
             USER_REGISTRATION_APPROVAL_BOOL = "user-registration-approval",
-            USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration";
+            USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration",
+            USER_REGISTRATION_EMAIL_LIST = "user-registration-email-list";
 }

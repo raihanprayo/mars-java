@@ -13,8 +13,8 @@ import javax.persistence.*;
 @AllArgsConstructor
 
 @Entity
-@Table(name = "t_user_registration")
-public class UserRegistration extends TimestampEntity {
+@Table(name = "t_user_approval")
+public class UserApproval extends TimestampEntity {
 
     public static String WAIT_APPROVAL = "WAIT_APPROVAL";
     public static String REQUIRE_DOCUMENT = "REQUIRE_DOCUMENT";

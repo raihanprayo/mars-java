@@ -16,8 +16,8 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@RedisHash("tg:reg")
-public class UserRegistrationCache implements Serializable {
+@RedisHash("user:reg:form")
+public class FormRegistrationCache implements Serializable {
 
     /**
      * user id

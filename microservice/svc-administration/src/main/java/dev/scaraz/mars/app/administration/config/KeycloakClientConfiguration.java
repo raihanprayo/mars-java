@@ -21,21 +21,15 @@ public class KeycloakClientConfiguration {
 
     @Bean
     public Keycloak keycloak() {
-        String username = keycloakProperties.getCredentials().get("username").toString();
-        String password = keycloakProperties.getCredentials().get("password").toString();
         String secret = keycloakProperties.getCredentials().get("secret").toString();
 
-        log.debug("Keycloak username: {}", username);
-        log.debug("Keycloak password: {}", password);
         log.debug("Keycloak client-id: {}", keycloakProperties.getResource());
         return KeycloakBuilder.builder()
-                .grantType(OAuth2Constants.PASSWORD)
+                .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
                 .serverUrl(keycloakProperties.getAuthServerUrl())
                 .realm(keycloakProperties.getRealm())
                 .clientId(keycloakProperties.getResource())
                 .clientSecret(secret)
-                .username(username)
-                .password(password)
                 .build();
     }
 

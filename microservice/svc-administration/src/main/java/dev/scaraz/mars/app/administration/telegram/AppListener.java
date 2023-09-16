@@ -1,6 +1,6 @@
 package dev.scaraz.mars.app.administration.telegram;
 
-import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
+import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.app.administration.telegram.user.UserListener;
 import dev.scaraz.mars.app.administration.telegram.user.UserNewRegistrationFlow;
@@ -34,7 +34,7 @@ public class AppListener {
     @TelegramMessage
     public SendMessage onMessage(@UserId long userId, @Text String text) {
         if (userNewRegistrationFlow.isInRegistration(userId)) {
-            UserRegistrationCache cache = userNewRegistrationFlow.get(userId);
+            FormRegistrationCache cache = userNewRegistrationFlow.get(userId);
             userNewRegistrationFlow.answer(cache, text);
 
             switch (cache.getState()) {

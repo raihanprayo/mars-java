@@ -1,6 +1,6 @@
 package dev.scaraz.mars.app.administration.service.app;
 
-import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
+import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
 import dev.scaraz.mars.app.administration.web.dto.UserRegistrationDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,11 +16,13 @@ public interface UserService {
 
     UserRepresentation findById(String id);
 
-    void registerNewUser(UserRegistrationDTO dto);
+    UserRepresentation createUser(UserRegistrationDTO dto);
 
-    BotRegistrationResult registerFromBot(UserRegistrationCache cache);
+    BotRegistrationResult createUserFromBot(FormRegistrationCache cache);
 
-    void registerFromApproval(String approvalNoOrId);
+    void createUserFromApproval(String approvalNoOrId, boolean approve);
+
+    void deleteRegistration(String approvalNoOrId);
 
     @Getter
     @AllArgsConstructor

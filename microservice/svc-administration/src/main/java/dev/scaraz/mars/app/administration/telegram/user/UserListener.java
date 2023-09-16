@@ -1,6 +1,6 @@
 package dev.scaraz.mars.app.administration.telegram.user;
 
-import dev.scaraz.mars.app.administration.domain.cache.UserRegistrationCache;
+import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
@@ -62,7 +62,7 @@ public class UserListener {
                     .build();
         }
         else if (userNewRegistrationFlow.isInRegistration(userId)) {
-            UserRegistrationCache cache = userNewRegistrationFlow.get(userId);
+            FormRegistrationCache cache = userNewRegistrationFlow.get(userId);
             SendMessage prompt = userNewRegistrationFlow.getPrompt(cache, cache.getState());
             prompt.setParseMode(ParseMode.MARKDOWNV2);
             prompt.setText(String.join("\n",
@@ -139,7 +139,7 @@ public class UserListener {
             @UserId long userId,
             @CallbackData String data
     ) {
-        UserRegistrationCache cache = userNewRegistrationFlow.get(userId);
+        FormRegistrationCache cache = userNewRegistrationFlow.get(userId);
         userNewRegistrationFlow.answer(cache, data);
 
         if (cache.getWitel() == Witel.ROC)

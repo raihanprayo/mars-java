@@ -3,7 +3,7 @@ package dev.scaraz.mars.app.administration.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.scaraz.mars.app.administration.repository.cache.ImpersonateTokenCacheRepo;
 import dev.scaraz.mars.common.tools.enums.Witel;
-import dev.scaraz.mars.common.utils.RoleConstant;
+import dev.scaraz.mars.common.utils.RealmConstant;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +13,10 @@ import org.keycloak.adapters.springboot.KeycloakSpringBootProperties;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.resource.*;
-import org.keycloak.representations.idm.*;
+import org.keycloak.representations.idm.ClientRepresentation;
+import org.keycloak.representations.idm.CredentialRepresentation;
+import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.keycloak.representations.idm.authorization.ClientPolicyRepresentation;
 import org.keycloak.representations.idm.authorization.Logic;
 import org.keycloak.representations.idm.authorization.ScopePermissionRepresentation;
@@ -35,7 +38,7 @@ public class RealmService {
     private static final String
             POLICY_NAME = "witels-token-exchange";
     private static final String
-            INIT_KEY_CLIENTS = "witel-clients",
+            INIT_KEY_POLICIES = "witel-clients",
             INIT_KEY_ADMIN = "admin-user";
 
     private final Keycloak keycloak;
@@ -55,80 +58,6 @@ public class RealmService {
     }
 
     @Async
-    public void createWitelClients() {
-        if (INITIALIZER.containsKey(INIT_KEY_CLIENTS)) return;
-        INITIALIZER.put(INIT_KEY_CLIENTS, 1);
-
-        ClientsResource clients = realmResource.clients();
-        Map<Witel, ClientMetadata> clientIds = new EnumMap<>(Witel.class);
-        try {
-            for (Witel witel : Witel.values()) {
-                String clientId = witel.clientId();
-
-                List<ClientRepresentation> byClientId = clients.findByClientId(clientId);
-                if (!byClientId.isEmpty()) continue;
-
-                ClientRepresentation client = new ClientRepresentation();
-                client.setClientId(clientId);
-                client.setDescription(String.format("Witel %s Client Resource", witel));
-                client.setAlwaysDisplayInConsole(true);
-                client.setEnabled(true);
-                client.setServiceAccountsEnabled(true);
-
-                log.info("Create new Witel Client ID: {}", clientId);
-                try (Response createResponse = clients.create(client)) {
-                    boolean isOK = createResponse.getStatus() == 200 || createResponse.getStatus() == 201;
-                    if (!isOK) return;
-
-                    String createdId = CreatedResponseUtil.getCreatedId(createResponse);
-                    ClientResource clientResource = clients.get(createdId);
-                    ManagementPermissionReference ref = clientResource.setPermissions(new ManagementPermissionRepresentation(true));
-                    String tokenExchangePermissionId = ref.getScopePermissions().get("token-exchange");
-//
-//                ClientResource rmClient = getRealmManagementClientResource();
-//                PermissionsResource permissionsResource = rmClient.authorization().permissions();
-//
-//                log.info("Updating Witel Client Token-Exchange permission - {}", witel);
-//                ScopePermissionResource spRes = permissionsResource.scope().findById(tokenExchangePermissionId);
-//                ScopePermissionRepresentation spRep = spRes.toRepresentation();
-//                spRep.setName(String.format("%s-token-exchange-permission", witel.toString().toLowerCase()));
-//                spRep.setDescription(witel.name());
-//                spRes.update(spRep);
-                    clientIds.put(witel, new ClientMetadata(createdId, tokenExchangePermissionId));
-                }
-            }
-
-            if (clientIds.isEmpty()) return;
-
-            ClientResource realmMngClient = getRealmManagementClientResource();
-            String policyId = createTokenExchangePolicy(
-                    clientIds.values().stream()
-                            .map(ClientMetadata::getClientId)
-                            .collect(Collectors.toList()),
-                    realmMngClient
-            );
-            try {
-                for (Witel witel : Witel.values())
-                    updateClientPermissionPolicy(witel, clientIds.get(witel), policyId, realmMngClient);
-            }
-            catch (Exception ex) {
-                realmMngClient.authorization().policies().client().findById(policyId).remove();
-                throw ex;
-            }
-        }
-        catch (Exception ex) {
-            if (!clientIds.isEmpty()) {
-                for (Witel witel : clientIds.keySet()) {
-                    ClientMetadata md = clientIds.get(witel);
-                    clients.get(md.clientId).remove();
-                }
-            }
-
-            throw ex;
-        }
-    }
-
-    @Async
     public void createAdministration() {
         if (INITIALIZER.containsKey(INIT_KEY_ADMIN)) return;
         INITIALIZER.put(INIT_KEY_ADMIN, 1);
@@ -138,76 +67,76 @@ public class RealmService {
                 .map(RoleRepresentation::getName)
                 .collect(Collectors.toSet());
 
-        for (String roleName : RoleConstant.PERMISSIONS.keySet()) {
-            if (realmRoles.contains(roleName)) continue;
-
-            log.info("CREATE NEW ROLE PERMISSION - {}", roleName);
-            RoleRepresentation role = new RoleRepresentation();
-            role.setName(roleName);
-            role.setDescription(RoleConstant.PERMISSIONS.get(roleName));
-            roles.create(role);
-        }
-
-        if (!realmRoles.contains(RoleConstant.ROLE_COMPOSITE_ADMINISTRATOR)) {
+        if (!realmRoles.contains(RealmConstant.ROLE_COMPOSITE_ADMINISTRATOR)) {
             log.info("CREATE ADMIN ROLE");
             ClientResource rmcr = getRealmManagementClientResource();
             List<RoleRepresentation> rmRoles = rmcr.roles().list();
 
             RoleRepresentation adminRole = new RoleRepresentation();
-            adminRole.setName(RoleConstant.ROLE_COMPOSITE_ADMINISTRATOR);
+            adminRole.setName(RealmConstant.ROLE_COMPOSITE_ADMINISTRATOR);
             adminRole.setDescription("admin role");
             adminRole.setComposite(true);
             roles.create(adminRole);
 
-            RoleResource adminRoleResource = roles.get(RoleConstant.ROLE_COMPOSITE_ADMINISTRATOR);
+            RoleResource adminRoleResource = roles.get(RealmConstant.ROLE_COMPOSITE_ADMINISTRATOR);
             adminRoleResource.addComposites(rmRoles);
 
             List<RoleRepresentation> customRoles = Stream.of(
-                            RoleConstant.Permission.ISSUE_QUERY,
-                            RoleConstant.Permission.ISSUE_MANAGE,
-                            RoleConstant.Permission.ISSUE_QUERY,
-                            RoleConstant.Permission.STO_MANAGE,
+                            RealmConstant.Permission.ISSUE_QUERY,
+                            RealmConstant.Permission.ISSUE_MANAGE,
+                            RealmConstant.Permission.ISSUE_QUERY,
+                            RealmConstant.Permission.STO_MANAGE,
 
-                            RoleConstant.Permission.TICKET_QUERY
+                            RealmConstant.Permission.TICKET_QUERY
                     )
                     .map(e -> roles.get(e.getKey()).toRepresentation())
                     .collect(Collectors.toList());
 
+            log.info("ROLES: {}", customRoles);
             adminRoleResource.addComposites(customRoles);
-            UsersResource users = realmResource.users();
-            List<UserRepresentation> accounts = users.search("admin", true);
-            if (accounts.isEmpty()) {
-                log.info("CREATE admin ACCOUNT");
-                UserRepresentation admin = new UserRepresentation();
-                admin.setEnabled(true);
-                admin.setUsername("admin");
-                admin.setFirstName("administrator");
-                admin.setRealmRoles(List.of(adminRole.getId()));
+        }
 
-                CredentialRepresentation credential = new CredentialRepresentation();
-                credential.setTemporary(false);
-                credential.setType("password");
-                credential.setValue("admin");
 
-                admin.setCredentials(List.of(credential));
-                users.create(admin).close();
-            }
+        UsersResource users = realmResource.users();
+        List<UserRepresentation> accounts = users.search("admin", true);
+        if (accounts.isEmpty()) {
+            log.info("CREATE admin ACCOUNT");
+
+            RoleRepresentation adminRole = realmResource.roles().get(RealmConstant.ROLE_COMPOSITE_ADMINISTRATOR).toRepresentation();
+            UserRepresentation admin = new UserRepresentation();
+            admin.setEnabled(true);
+            admin.setUsername("admin");
+            admin.setFirstName("administrator");
+
+            CredentialRepresentation credential = new CredentialRepresentation();
+            credential.setTemporary(false);
+            credential.setType("password");
+            credential.setValue("admin");
+
+            admin.setCredentials(List.of(credential));
+            Response createAdminResponse = users.create(admin);
+            String adminId = CreatedResponseUtil.getCreatedId(createAdminResponse);
+            users.get(adminId).roles().realmLevel().add(List.of(adminRole));
         }
     }
 
-    public void resetClients() {
-        log.info("RESET ALL WITEL CLIENT RESOURCE");
-        for (Witel value : Witel.values()) {
-            ClientRepresentation cr = realmResource.clients().findByClientId(value.clientId()).get(0);
-            realmResource.clients().get(cr.getId()).remove();
-        }
+    private void createWitelClient() {
+//        realmResource.clients().findByClientId()
+    }
 
-        ClientResource cr = getRealmManagementClientResource();
-        ClientPolicyRepresentation cpr = cr.authorization().policies().client().findByName(POLICY_NAME);
-        log.debug("Client Policy: {}", cpr);
-        if (cpr != null)
-            cr.authorization().policies().client().findById(cpr.getId()).remove();
-        INITIALIZER.remove(INIT_KEY_CLIENTS);
+    public void resetClients() {
+//        log.info("RESET ALL WITEL CLIENT RESOURCE");
+//        for (Witel value : Witel.values()) {
+//            ClientRepresentation cr = realmResource.clients().findByClientId(value.clientId()).get(0);
+//            realmResource.clients().get(cr.getId()).remove();
+//        }
+//
+//        ClientResource cr = getRealmManagementClientResource();
+//        ClientPolicyRepresentation cpr = cr.authorization().policies().client().findByName(POLICY_NAME);
+//        log.debug("Client Policy: {}", cpr);
+//        if (cpr != null)
+//            cr.authorization().policies().client().findById(cpr.getId()).remove();
+//        INITIALIZER.remove(INIT_KEY_POLICIES);
     }
 
     private String createTokenExchangePolicy(Collection<String> clientIds, ClientResource realmMngClient) {
