@@ -10,6 +10,10 @@ public class ReplyKeyboardConstant {
     private ReplyKeyboardConstant() {
     }
 
+    public static final String
+            REG_TICKET_AGREE = "REG:TC:NETWORK:" + AppConstants.Telegram.CONFIRM_AGREE,
+            REG_TICKET_DISAGREE = "REG:TC:NETWORK:" + AppConstants.Telegram.CONFIRM_DISAGREE;
+
     public static final List<InlineKeyboardButton> UNREGISTERED_USER = List.of(
             InlineKeyboardButton.builder()
                     .callbackData(AppConstants.Telegram.REG_PAIR)
@@ -20,4 +24,15 @@ public class ReplyKeyboardConstant {
                     .text(Translator.tr("Registrasi"))
                     .build()
     );
+
+    public static final InlineKeyboardButton
+            BTN_AGREE = InlineKeyboardButton.builder()
+                .text(Translator.tr("Ya"))
+                .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
+                .build(),
+            BTN_DISAGREE = InlineKeyboardButton.builder()
+                    .text(Translator.tr("Tidak"))
+                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
+                    .build();
+
 }

@@ -1,7 +1,7 @@
 package dev.scaraz.mars.app.administration.telegram.user;
 
-import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
-import dev.scaraz.mars.app.administration.repository.cache.FormRegistrationCacheRepo;
+import dev.scaraz.mars.app.administration.domain.cache.FormUserRegistrationCache;
+import dev.scaraz.mars.app.administration.repository.cache.FormUserRegistrationCacheRepo;
 import dev.scaraz.mars.app.administration.service.app.UserApprovalService;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
@@ -67,7 +67,7 @@ public class UserRegistrationFlow {
 
     private final UserService userService;
     private final UserApprovalService userApprovalService;
-    private final FormRegistrationCacheRepo formRegistrationCacheRepo;
+    private final FormUserRegistrationCacheRepo formUserRegistrationCacheRepo;
     private final TelegramBotService telegramBotService;
 
     public boolean isInRegistrationOrWaitList(long userId) {
@@ -75,27 +75,27 @@ public class UserRegistrationFlow {
     }
 
     public boolean isInRegistration(long userId) {
-        return formRegistrationCacheRepo.existsById(userId);
+        return formUserRegistrationCacheRepo.existsById(userId);
     }
 
     public boolean isInApprovalWaitList(long userId) {
         return userApprovalService.isInApprovalWaitList(userId);
     }
 
-    public FormRegistrationCache get(long userId) {
-        return formRegistrationCacheRepo.findById(userId)
+    public FormUserRegistrationCache get(long userId) {
+        return formUserRegistrationCacheRepo.findById(userId)
                 .orElseThrow();
     }
 
-    public FormRegistrationCache save(FormRegistrationCache cache) {
-        return formRegistrationCacheRepo.save(cache);
+    public FormUserRegistrationCache save(FormUserRegistrationCache cache) {
+        return formUserRegistrationCacheRepo.save(cache);
     }
 
     public void deleteById(long userId) {
-        formRegistrationCacheRepo.deleteById(userId);
+        formUserRegistrationCacheRepo.deleteById(userId);
     }
 
-    public SendMessage getPrompt(FormRegistrationCache cache, RegisterState state) {
+    public SendMessage getPrompt(FormUserRegistrationCache cache, RegisterState state) {
         SendMessage prompt = PROMPT.get(state)
                 .chatId(cache.getId())
                 .build();
@@ -129,7 +129,7 @@ public class UserRegistrationFlow {
     }
 
     public SendMessage start(long telegramId) {
-        if (!formRegistrationCacheRepo.existsById(telegramId)) {
+        if (!formUserRegistrationCacheRepo.existsById(telegramId)) {
             try {
                 telegramBotService.getClient().execute(SendMessage.builder()
                         .chatId(telegramId)
@@ -149,8 +149,8 @@ public class UserRegistrationFlow {
             }
         }
 
-        FormRegistrationCache cache = formRegistrationCacheRepo.findById(telegramId)
-                .orElseGet(() -> FormRegistrationCache.builder()
+        FormUserRegistrationCache cache = formUserRegistrationCacheRepo.findById(telegramId)
+                .orElseGet(() -> FormUserRegistrationCache.builder()
                         .id(telegramId)
                         .state(RegisterState.NAME)
                         .ttl(Duration.ofMinutes(5).toSeconds())
@@ -161,7 +161,7 @@ public class UserRegistrationFlow {
         return getPrompt(save(cache), RegisterState.NAME);
     }
 
-    public void answer(FormRegistrationCache cache, String answer) {
+    public void answer(FormUserRegistrationCache cache, String answer) {
         switch (cache.getState()) {
             case NAME:
                 cache.setName(answer);
@@ -179,10 +179,10 @@ public class UserRegistrationFlow {
                 cache.setSto(answer);
                 break;
         }
-        formRegistrationCacheRepo.save(cache);
+        formUserRegistrationCacheRepo.save(cache);
     }
 
-    public SendMessage summary(FormRegistrationCache cache) {
+    public SendMessage summary(FormUserRegistrationCache cache) {
         return SendMessage.builder()
                 .chatId(cache.getId())
                 .parseMode(ParseMode.MARKDOWNV2)
@@ -213,7 +213,7 @@ public class UserRegistrationFlow {
     }
 
     public SendMessage end(long userId) {
-        FormRegistrationCache cache = formRegistrationCacheRepo.findById(userId)
+        FormUserRegistrationCache cache = formUserRegistrationCacheRepo.findById(userId)
                 .orElseThrow();
 
         // TODO: register new user
@@ -240,14 +240,14 @@ public class UserRegistrationFlow {
             }
         }
         finally {
-            formRegistrationCacheRepo.deleteById(cache.getId());
+            formUserRegistrationCacheRepo.deleteById(cache.getId());
         }
     }
 
     @EventListener(RedisKeyExpiredEvent.class)
-    public void onRegistrationExpired(RedisKeyExpiredEvent<FormRegistrationCache> event) throws TelegramApiException {
-        if (event.getValue() instanceof FormRegistrationCache) {
-            FormRegistrationCache value = (FormRegistrationCache) event.getValue();
+    public void onRegistrationExpired(RedisKeyExpiredEvent<FormUserRegistrationCache> event) throws TelegramApiException {
+        if (event.getValue() instanceof FormUserRegistrationCache) {
+            FormUserRegistrationCache value = (FormUserRegistrationCache) event.getValue();
 
             telegramBotService.getClient().execute(SendMessage.builder()
                     .chatId(value.getId())

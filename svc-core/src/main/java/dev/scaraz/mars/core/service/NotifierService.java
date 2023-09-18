@@ -38,7 +38,7 @@ public class NotifierService {
     private final TelegramBotService botService;
     private final AccountSettingRepo accountSettingRepo;
 
-//    @Lazy
+    //    @Lazy
 //    private final AppConfigService appConfigService;
     private final ConfigService configService;
 

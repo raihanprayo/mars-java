@@ -314,8 +314,6 @@ public class TicketBotServiceImpl implements TicketBotService {
 
         Account account = accountQueryService.findByCurrentAccess();
         if (account.hasAnyRole(AuthorityConstant.AGENT_ROLE)) {
-//            boolean allowedCreate = appConfigService.getAllowAgentCreateTicket_bool()
-//                    .getAsBoolean();
             boolean allowedCreate = configService.get(ConfigConstants.APP_ALLOW_AGENT_CREATE_TICKET_BOOL)
                     .getAsBoolean();
 
@@ -336,9 +334,6 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .build();
 
         synchronized (ISSUES_BUTTON_LIST) {
-//            int colCount = appConfigService.getTelegramStartIssueColumn_int()
-//                    .getAsNumber()
-//                    .intValue();
             int colCount = configService.get(ConfigConstants.TG_START_CMD_ISSUE_COLUMN_INT)
                     .getAsInt();
 
@@ -482,7 +477,6 @@ public class TicketBotServiceImpl implements TicketBotService {
                         .map(this::generateIssueParam)
                         .collect(Collectors.joining("\n")) + "\n";
 
-        // TODO: tambah custom parameter per-issue
         Integer paramMessageId = botService.getClient().execute(SendMessage.builder()
                         .chatId(TelegramContextHolder.getChatId())
                         .parseMode(ParseMode.MARKDOWNV2)

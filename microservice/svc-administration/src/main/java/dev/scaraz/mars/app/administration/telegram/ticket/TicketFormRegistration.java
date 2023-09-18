@@ -1,5 +1,6 @@
-package dev.scaraz.mars.core.service.order;
+package dev.scaraz.mars.app.administration.telegram.ticket;
 
+import dev.scaraz.mars.app.administration.service.extern.IssueService;
 import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
@@ -7,30 +8,23 @@ import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.core.domain.order.Issue;
-import dev.scaraz.mars.core.domain.order.Sto;
-import dev.scaraz.mars.core.query.IssueQueryService;
-import dev.scaraz.mars.core.query.criteria.IssueCriteria;
-import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import dev.scaraz.mars.common.utils.Util;
-import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
+@Service
 @RequiredArgsConstructor
-
-@Component
-public class TicketFormService {
+public class TicketFormRegistration {
 
     private final IssueQueryService issueQueryService;
     private final StoRepo stoRepo;
+
+    private final IssueService issueService;
 
     public TicketBotForm parseTicketRegistration(String text) {
         TicketBotForm form = new TicketBotForm();

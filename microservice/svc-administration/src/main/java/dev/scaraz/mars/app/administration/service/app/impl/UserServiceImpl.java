@@ -2,7 +2,7 @@ package dev.scaraz.mars.app.administration.service.app.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
+import dev.scaraz.mars.app.administration.domain.cache.FormUserRegistrationCache;
 import dev.scaraz.mars.app.administration.domain.db.Config;
 import dev.scaraz.mars.app.administration.domain.db.UserApproval;
 import dev.scaraz.mars.app.administration.service.RealmService;
@@ -148,7 +148,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public RegistrationResult createUserFromBot(FormRegistrationCache cache) {
+    public RegistrationResult createUserFromBot(FormUserRegistrationCache cache) {
         // TODO: config user approval
         boolean needApproval = configService.get(Config.USER_REGISTRATION_APPROVAL_BOOL).getAsBoolean();
         Duration approvalDuration = configService.get(Config.USER_REGISTRATION_APPROVAL_DRT).getAsDuration();

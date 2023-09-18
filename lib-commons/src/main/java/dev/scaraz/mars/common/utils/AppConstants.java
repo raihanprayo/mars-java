@@ -34,11 +34,17 @@ public abstract class AppConstants {
         String REG_PAIR = "REG:PAIR";
 
 
-        String REG_NEW_AGREE = "REG:" + CONFIRM_AGREE;
-        String REG_NEW_DISAGREE = "REG:" + CONFIRM_DISAGREE;
+        String REG_NEW_AGREE = "REG:USER:NEW:" + CONFIRM_AGREE;
+        String REG_NEW_DISAGREE = "REG:USER:NEW:" + CONFIRM_DISAGREE;
 
 
         String REPORT_ISSUE = "REP:ISSUE:";
+
+        String REG_TICKET_NETWORK_AGREE = "REG:TC:NETWORK:" + AppConstants.Telegram.CONFIRM_AGREE;
+        String REG_TICKET_NETWORK_DISAGREE = "REG:TC:NETWORK:" + AppConstants.Telegram.CONFIRM_DISAGREE;
+
+        String REG_TICKET_PARAM_AGREE = "REG:TC:PARAM:" + AppConstants.Telegram.CONFIRM_AGREE;
+        String REG_TICKET_PARAM_DISAGREE = "REG:TC:PARAM:" + AppConstants.Telegram.CONFIRM_DISAGREE;
 
         MultiValueMap<Product, InlineKeyboardButton> ISSUES_BUTTON_LIST = new LinkedMultiValueMap<>();
     }

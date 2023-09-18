@@ -1,12 +1,9 @@
-package dev.scaraz.mars.core.util;
+package dev.scaraz.mars.common.utils;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

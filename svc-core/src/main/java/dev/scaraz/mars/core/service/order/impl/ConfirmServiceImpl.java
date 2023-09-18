@@ -119,7 +119,6 @@ public class ConfirmServiceImpl implements ConfirmService {
 
     @Override
     public TicketConfirm save(TicketConfirm o) {
-
         String messageId = String.valueOf(o.getId());
         stringRedisTemplate.boundSetOps(TC_CONFIRM_NS)
                 .add(messageId);

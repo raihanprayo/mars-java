@@ -10,6 +10,10 @@ public class RealmConstant {
     public static final String
             ROLE_COMPOSITE_ADMINISTRATOR = "admin";
 
+    public static final String
+            CLIENT_MARS_ADMIN_RESOURCE = "mars-admin-resource",
+            CLIENT_MARS_WITEL_RESOURCE = "mars-witel-resource";
+
     public interface Permission {
         Map.Entry<String, String> TICKET_CREATE = Map.entry(
                 "create-ticket",

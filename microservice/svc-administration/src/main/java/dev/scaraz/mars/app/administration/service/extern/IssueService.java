@@ -1,9 +1,11 @@
-package dev.scaraz.mars.app.administration.service;
+package dev.scaraz.mars.app.administration.service.extern;
 
 import dev.scaraz.mars.app.administration.domain.db.Config;
 import dev.scaraz.mars.app.administration.domain.extern.Issue;
 import dev.scaraz.mars.app.administration.repository.extern.IssueRepo;
 import dev.scaraz.mars.app.administration.service.app.ConfigService;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,8 +29,7 @@ public class IssueService {
         witels.add(null);
         witels.add(witel);
         List<Issue> issues = repo.findAllByDeletedIsFalseAndWitelIn(witels);
-        int rowCount = configService.get(witel, Config.TG_CMD_ISSUE_COLUMN_INT)
-                .getAsInt();
+        int rowCount = configService.get(witel, Config.TG_CMD_ISSUE_COLUMN_INT).getAsInt();
 
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
@@ -49,6 +51,15 @@ public class IssueService {
         }
 
         return buttons;
+    }
+
+    public Issue findByCode(String code) {
+        return repo.findByCode(code)
+                .orElseThrow(() -> NotFoundException.entity(Issue.class, "code", code));
+    }
+
+    public Optional<Issue> findByProductAndCode(Product product, String code) {
+        return repo.findByCodeAndProduct(code, product);
     }
 
 }

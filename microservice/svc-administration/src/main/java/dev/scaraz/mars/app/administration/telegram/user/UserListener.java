@@ -1,7 +1,7 @@
 package dev.scaraz.mars.app.administration.telegram.user;
 
 import dev.scaraz.mars.app.administration.config.telegram.AccessRegistrationInterceptor;
-import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
+import dev.scaraz.mars.app.administration.domain.cache.FormUserRegistrationCache;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
@@ -58,7 +58,7 @@ public class UserListener {
                     .build();
         }
         else if (userRegistrationFlow.isInRegistration(userId)) {
-            FormRegistrationCache cache = userRegistrationFlow.get(userId);
+            FormUserRegistrationCache cache = userRegistrationFlow.get(userId);
             SendMessage prompt = userRegistrationFlow.getPrompt(cache, cache.getState());
             prompt.setParseMode(ParseMode.MARKDOWNV2);
             prompt.setText(String.join("\n",

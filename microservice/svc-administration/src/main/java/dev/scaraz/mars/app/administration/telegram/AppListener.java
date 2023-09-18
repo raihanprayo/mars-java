@@ -1,10 +1,9 @@
 package dev.scaraz.mars.app.administration.telegram;
 
-import dev.scaraz.mars.app.administration.domain.cache.FormRegistrationCache;
+import dev.scaraz.mars.app.administration.domain.cache.FormUserRegistrationCache;
 import dev.scaraz.mars.app.administration.service.app.UserService;
 import dev.scaraz.mars.app.administration.telegram.user.UserListener;
 import dev.scaraz.mars.app.administration.telegram.user.UserRegistrationFlow;
-import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
@@ -39,7 +38,7 @@ public class AppListener {
     @TelegramMessage
     public SendMessage onMessage(@UserId long userId, @Text String text) {
         if (userRegistrationFlow.isInRegistration(userId)) {
-            FormRegistrationCache cache = userRegistrationFlow.get(userId);
+            FormUserRegistrationCache cache = userRegistrationFlow.get(userId);
             userRegistrationFlow.answer(cache, text);
 
             switch (cache.getState()) {
@@ -70,7 +69,7 @@ public class AppListener {
     ) {
         if (userRegistrationFlow.isInRegistration(userId)) {
             if (data.startsWith("WITEL_")) {
-                FormRegistrationCache cache = userRegistrationFlow.get(userId);
+                FormUserRegistrationCache cache = userRegistrationFlow.get(userId);
                 userRegistrationFlow.answer(cache, data);
 
                 if (cache.getWitel() == Witel.ROC)
@@ -92,14 +91,13 @@ public class AppListener {
     @TelegramCommand("/start")
     public SendMessage commandStart(@ChatId long chatId, @UserId long userId) {
         ChatSource chatSource = TelegramContextHolder.getChatSource();
-        if (chatSource != ChatSource.PRIVATE)
-            throw new BadRequestException("command /start hanya bisa melalui private chat");
+        if (chatSource != ChatSource.PRIVATE) {
+            log.info("Chat ID: {} | User ID: {}", chatId, userId);
 
-        log.info("Chat ID: {} | User ID: {}", chatId, userId);
+            Optional<UserRepresentation> userOpt = userService.findByTelegramIdOpt(userId);
+            if (userOpt.isEmpty()) return userListener.register(chatId, userId);
 
-        Optional<UserRepresentation> userOpt = userService.findByTelegramIdOpt(userId);
-        if (userOpt.isEmpty())
-            return userListener.register(chatId, userId);
+        }
 
         return null;
     }
