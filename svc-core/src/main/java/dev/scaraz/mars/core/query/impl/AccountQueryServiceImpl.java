@@ -108,8 +108,7 @@ public class AccountQueryServiceImpl implements AccountQueryService {
     @Override
     public Account findByTelegramId(long tgId) {
         return repo.findByTgId(tgId)
-                .orElseThrow(() -> NotFoundException.entity(
-                        Account.class, "telegramId", tgId));
+                .orElseThrow(() -> NotFoundException.entity(Account.class, "telegramId", tgId));
     }
 
     @Override

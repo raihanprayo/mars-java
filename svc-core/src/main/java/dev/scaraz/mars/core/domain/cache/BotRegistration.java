@@ -32,7 +32,7 @@ public class BotRegistration {
 
     private String phone;
 
-    private String subregion;
+    private String sto;
 
     private Witel witel;
 

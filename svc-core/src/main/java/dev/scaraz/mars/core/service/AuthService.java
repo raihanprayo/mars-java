@@ -9,6 +9,7 @@ import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
 public interface AuthService {
 
@@ -20,6 +21,8 @@ public interface AuthService {
     );
 
     Account authenticateFromBot(long telegramId);
+
+    Optional<Account> optionalAuthenticationFromBot(long telegramId);
 
     AuthResDTO refresh(MarsWebAuthenticationToken authentication);
 

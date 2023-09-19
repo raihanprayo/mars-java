@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.exception.telegram.TgUnauthorizedError;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.model.TelegramAnnotationArgResolver;
 import dev.scaraz.mars.telegram.model.TelegramHandlerContext;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
@@ -39,11 +40,11 @@ public class AuthArgResolver implements TelegramAnnotationArgResolver {
 
         log.debug("Param annotations, {}", (Object) mp.getParameterAnnotations());
         TgAuth md = mp.getParameterAnnotation(TgAuth.class);
-        long id = getTelegramId(ctx.getScope(), update);
         try {
-            return authService.authenticateFromBot(id);
+            return authService.authenticateFromBot(TelegramContextHolder.getUserId());
         }
         catch (TgUnauthorizedError ex) {
+            ex.printStackTrace();
             if (md.throwUnautorized()) throw ex;
         }
         return null;

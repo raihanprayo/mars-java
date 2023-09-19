@@ -54,7 +54,7 @@ public class TelegramContextHolder {
         TelegramProcessContext context = CONTEXT_ATTRIBUTE.get();
         if (context == null) return null;
 
-        return ((User) context.getAttribute(TG_CHAT)).getId();
+        return ((User) context.getAttribute(TG_USER)).getId();
     }
 
     @Nullable

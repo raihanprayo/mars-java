@@ -2,6 +2,7 @@ package dev.scaraz.mars.app.administration.service.app.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.scaraz.mars.app.administration.config.CacheConfiguration;
 import dev.scaraz.mars.app.administration.domain.cache.FormUserRegistrationCache;
 import dev.scaraz.mars.app.administration.domain.db.Config;
 import dev.scaraz.mars.app.administration.domain.db.UserApproval;
@@ -61,8 +62,9 @@ public class UserServiceImpl implements UserService {
 
 
     @Cacheable(
-            cacheNames = "kc:user",
+            cacheNames = CacheConfiguration.CACHE_KEYCLOAK_USER,
             unless = "#result == null",
+            key = "#telegramId",
             sync = true)
     @Override
     public UserRepresentation findByTelegramId(long telegramId) throws IllegalStateException {

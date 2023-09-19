@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.service.credential;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public interface AccountRegistrationBotService {
 
@@ -22,5 +23,7 @@ public interface AccountRegistrationBotService {
 
     SendMessage answerWitelThenAskSubregion(BotRegistration registration, Witel ansWitel);
 
-    SendMessage answerSubregionThenEnd(BotRegistration registration, String ansSubRegion);
+    SendMessage answerSubregionThenShowSummary(BotRegistration registration, String ansSubRegion);
+
+    SendMessage answerSummary(BotRegistration registration, boolean agree) throws TelegramApiException;
 }

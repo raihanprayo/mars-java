@@ -52,6 +52,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Auth.PASSWORD_CONFIRMATION;
 import static dev.scaraz.mars.common.utils.AppConstants.Auth.SUCCESS;
@@ -158,6 +159,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Account authenticateFromBot(long telegramId) {
+        return optionalAuthenticationFromBot(telegramId)
+                .orElseThrow(() -> new TgUnauthorizedError(telegramId));
+    }
+
+    @Override
+    public Optional<Account> optionalAuthenticationFromBot(long telegramId) {
         try {
             Account account = accountQueryService.findByTelegramId(telegramId);
             if (!account.isActive())
@@ -174,10 +181,10 @@ public class AuthServiceImpl implements AuthService {
                             .telegram(account.getTg().getId())
                             .build())
             );
-            return account;
+            return Optional.of(account);
         }
         catch (NotFoundException ex) {
-            throw new TgUnauthorizedError(telegramId);
+            return Optional.empty();
         }
     }
 

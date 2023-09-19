@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.web.telegram;
 
 import dev.scaraz.mars.common.tools.Translator;
-import dev.scaraz.mars.common.tools.enums.Witel;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
@@ -12,12 +12,12 @@ import dev.scaraz.mars.core.service.credential.AccountRegistrationBotService;
 import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
+import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.annotation.context.CallbackData;
 import dev.scaraz.mars.telegram.annotation.context.Text;
 import dev.scaraz.mars.telegram.annotation.context.UserId;
 import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
-import dev.scaraz.mars.telegram.model.TelegramHandler;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +27,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import javax.annotation.PostConstruct;
 import java.util.Optional;
-import java.util.OptionalLong;
 
 import static dev.scaraz.mars.common.tools.Translator.LANG_EN;
 import static dev.scaraz.mars.common.tools.Translator.LANG_ID;
@@ -137,40 +136,23 @@ public class UserListener {
         return null;
     }
 
-    public SendMessage registrationAnswerWitel(
+    @TelegramCallbackQuery({AppConstants.Telegram.REG_NEW_AGREE, AppConstants.Telegram.REG_NEW_DISAGREE})
+    public SendMessage registrationSummaryCallback(
             User user,
             @CallbackData String data
-    ) {
-        Optional<BotRegistration> registrationOpt = registrationRepo.findById(user.getId());
-        if (registrationOpt.isPresent()) {
-            Witel witel = Witel.fromCallbackData(data);
-            return accountRegistrationBotService.answerWitelThenAskSubregion(registrationOpt.get(), witel);
-        }
+    ) throws TelegramApiException {
+        Optional<BotRegistration> registration = registrationRepo.findById(user.getId());
+        if (registration.isEmpty()) return null;
 
-        return null;
+        return accountRegistrationBotService.answerSummary(
+                registration.get(),
+                AppConstants.Telegram.REG_NEW_AGREE.equals(data)
+        );
     }
 
     private boolean checkSettingFormat(String text) {
         return text.split("[ =]").length == 2;
     }
 
-    @PostConstruct
-    private void registerWitelCallback() {
-        telegramHandlerMapper.addHandlers(OptionalLong.empty(), t -> {
-            for (Witel witel : Witel.values()) {
-                log.debug("Add Witel Callback Query: {}", witel);
-                try {
-                    t.getCallbackQueryList().put(witel.callbackData(),
-                            TelegramHandler.builder()
-                                    .bean(this)
-                                    .method(getClass().getDeclaredMethod("registrationAnswerWitel", User.class, String.class))
-                                    .build()
-                    );
-                }
-                catch (NoSuchMethodException e) {
-                }
-            }
-        });
-    }
 
 }

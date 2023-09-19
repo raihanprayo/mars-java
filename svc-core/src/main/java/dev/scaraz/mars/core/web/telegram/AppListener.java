@@ -11,12 +11,14 @@ import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.AccountRegistrationBotService;
-import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.ConfirmService;
+import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
-import dev.scaraz.mars.telegram.annotation.*;
+import dev.scaraz.mars.telegram.annotation.TelegramBot;
+import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
+import dev.scaraz.mars.telegram.annotation.TelegramCommand;
+import dev.scaraz.mars.telegram.annotation.TelegramMessage;
 import dev.scaraz.mars.telegram.annotation.context.CallbackData;
-import dev.scaraz.mars.telegram.annotation.context.ChatId;
 import dev.scaraz.mars.telegram.annotation.context.Text;
 import dev.scaraz.mars.telegram.annotation.context.UserId;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
@@ -95,7 +97,7 @@ public class AppListener {
                                     .build();
                         }
                     case REGION:
-                        return accountRegistrationBotService.answerSubregionThenEnd(registration, text.trim());
+                        return accountRegistrationBotService.answerSubregionThenShowSummary(registration, text.trim());
                     case PAIR_NIK:
                         return accountRegistrationBotService.pairAccountAnsNik(registration, text.trim());
                     case PAIR_WITEL:
@@ -150,6 +152,13 @@ public class AppListener {
         if (data.startsWith(REPORT_ISSUE) && confirmService.existsById(messageId)) {
             long issueId = Long.parseLong(data.substring(data.lastIndexOf(":") + 1));
             ticketBotService.instantForm_answerIssue(messageId, issueId);
+        }
+        else if (data.startsWith("WITEL_") && registrationRepo.existsById(user.getId())) {
+            Optional<BotRegistration> registrationOpt = registrationRepo.findById(user.getId());
+            if (registrationOpt.isPresent()) {
+                Witel witel = Witel.fromCallbackData(data);
+                return accountRegistrationBotService.answerWitelThenAskSubregion(registrationOpt.get(), witel);
+            }
         }
         return null;
     }
@@ -230,14 +239,15 @@ public class AppListener {
 
     @TelegramCommand(commands = "/start")
     public SendMessage start(
-            @ChatId Long chatId,
             @UserId Long tgUserId,
-            @TgAuth Account marsAccount,
             Message message
     ) throws TelegramApiException {
         if (TelegramContextHolder.getChatSource() == ChatSource.PRIVATE) {
-            if (marsAccount == null) return userListener.register(tgUserId, message);
-            else return ticketBotService.instantForm_start(tgUserId);
+            Optional<Account> account = authService.optionalAuthenticationFromBot(TelegramContextHolder.getUserId());
+            if (account.isPresent())
+                return ticketBotService.instantForm_start(tgUserId);
+            else
+                return userListener.register(tgUserId, message);
         }
 
         return null;

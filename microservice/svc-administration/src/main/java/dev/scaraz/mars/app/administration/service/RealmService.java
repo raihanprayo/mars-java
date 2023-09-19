@@ -1,5 +1,6 @@
 package dev.scaraz.mars.app.administration.service;
 
+import dev.scaraz.mars.app.administration.config.CacheConfiguration;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.RealmConstant;
 import lombok.AllArgsConstructor;
@@ -40,7 +41,9 @@ public class RealmService {
     private final RealmResource realmResource;
     private final KeycloakSpringBootProperties keycloakProperties;
 
-    @Cacheable("kc:client")
+    @Cacheable(
+            value = CacheConfiguration.CACHE_KEYCLOAK_CLIENT,
+            key = "'realm-management'")
     public ClientRepresentation getRealmManagement() {
         return realmResource.clients().findByClientId("realm-management").get(0);
     }

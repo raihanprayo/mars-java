@@ -8,6 +8,7 @@ import dev.scaraz.mars.common.tools.enums.RegisterState;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -28,9 +29,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -39,7 +43,7 @@ import java.util.Optional;
 @Service
 public class AccountRegistrationBotServiceImpl implements AccountRegistrationBotService {
 
-//    private final AppConfigService appConfigService;
+    //    private final AppConfigService appConfigService;
     private final ConfigService configService;
     private final MarsProperties marsProperties;
 
@@ -253,12 +257,12 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
                     .build();
         }
 
-        return answerSubregionThenEnd(registration, null);
+        return answerSubregionThenShowSummary(registration, null);
     }
 
     @Override
     @Transactional
-    public SendMessage answerSubregionThenEnd(BotRegistration registration, @Nullable String ansSubRegion) {
+    public SendMessage answerSubregionThenShowSummary(BotRegistration registration, @Nullable String ansSubRegion) {
         if (registration.getWitel() != Witel.ROC) {
             if (ansSubRegion == null)
                 throw BadRequestException.args("Mohon input STO anda");
@@ -270,33 +274,70 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
             }
         }
 
-//        boolean needApproval = appConfigService.getRegistrationRequireApproval_bool()
-//                .getAsBoolean();
-        boolean needApproval = configService.get(ConfigConstants.APP_USER_REGISTRATION_APPROVAL_BOOL)
-                .getAsBoolean();
+        registration.setSto(ansSubRegion);
+        registrationRepo.save(registration);
+        return SendMessage.builder()
+                .chatId(registration.getId())
+                .text(String.join("\n",
+                        "Berikut ringkasan registrasi anda:",
+                        "",
+                        "Nama: " + registration.getName(),
+                        "NIK: " + registration.getNik(),
+                        "No. HP: " + registration.getPhone(),
+                        "Witel: " + registration.getWitel(),
+                        "STO: " + Objects.requireNonNullElse(registration.getSto(), "-"),
+                        "",
+                        "Apakah anda yakin dengan data tersebut?"
+                ))
+                .replyMarkup(InlineKeyboardMarkup.builder()
+                        .keyboardRow(List.of(
+                                InlineKeyboardButton.builder()
+                                        .text("Ya")
+                                        .callbackData(AppConstants.Telegram.REG_NEW_AGREE)
+                                        .build(),
+                                InlineKeyboardButton.builder()
+                                        .text("Tidak")
+                                        .callbackData(AppConstants.Telegram.REG_NEW_DISAGREE)
+                                        .build()
+                        ))
+                        .build()
+                ).build();
+    }
 
-        accountService.createFromBot(needApproval, TelegramCreateUserDTO.builder()
-                .tgId(registration.getId())
-                .tgUsername(registration.getUsername())
-                .phone(registration.getPhone())
-                .nik(registration.getNik())
-                .name(registration.getName())
-                .witel(registration.getWitel())
-                .sto(ansSubRegion == null ?
-                        null :
-                        ansSubRegion.toUpperCase())
-                .build());
+    @Override
+    public SendMessage answerSummary(BotRegistration registration, boolean agree) throws TelegramApiException {
+        if (agree) {
+            boolean needApproval = configService.get(ConfigConstants.APP_USER_REGISTRATION_APPROVAL_BOOL)
+                    .getAsBoolean();
 
-        if (!needApproval) {
-            return SendMessage.builder()
-                    .chatId(registration.getId())
-                    .parseMode(ParseMode.MARKDOWNV2)
-                    .text(TelegramUtil.WELCOME_MESSAGE())
-                    .build();
+            accountService.createFromBot(needApproval, TelegramCreateUserDTO.builder()
+                    .tgId(registration.getId())
+                    .tgUsername(registration.getUsername())
+                    .phone(registration.getPhone())
+                    .nik(registration.getNik())
+                    .name(registration.getName())
+                    .witel(registration.getWitel())
+                    .sto(registration.getSto() == null ?
+                            null :
+                            registration.getSto().toUpperCase())
+                    .build());
+
+            if (!needApproval) {
+                return SendMessage.builder()
+                        .chatId(registration.getId())
+                        .parseMode(ParseMode.MARKDOWNV2)
+                        .text(TelegramUtil.WELCOME_MESSAGE())
+                        .build();
+            }
+
+            registrationRepo.deleteById(registration.getId());
         }
 
-        registrationRepo.deleteById(registration.getId());
-        return null;
+        botService.getClient().execute(SendMessage.builder()
+                .chatId(registration.getId())
+                .text("Mengulang pertanyaan registrasi")
+                .build());
+        return start(registration.getId(), registration.getUsername());
     }
 
 }
