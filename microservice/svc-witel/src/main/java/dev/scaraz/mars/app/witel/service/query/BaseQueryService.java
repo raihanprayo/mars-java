@@ -6,12 +6,12 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
-public interface CriteriaQueryService<E, C extends Criteria> extends BaseQueryService<E> {
+public interface BaseQueryService<E> {
+    List<E> findAll();
 
-    List<E> findAll(C criteria);
+    Page<E> findAll(Pageable pageable);
 
-    Page<E> findAll(C criteria, Pageable pageable);
+    long count();
 
-    long count(C criteria);
 
 }

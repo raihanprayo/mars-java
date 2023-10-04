@@ -34,7 +34,7 @@ public class TicketBotForm {
             required = true,
             alias = {"jenis gangguan", "problemtype", "problem"})
     private String issue;
-    private Long issueId;
+    private Object issueId;
 
     @FormDescriptor(
             required = true,

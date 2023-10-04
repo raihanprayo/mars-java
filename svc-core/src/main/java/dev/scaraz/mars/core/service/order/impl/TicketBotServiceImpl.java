@@ -181,10 +181,10 @@ public class TicketBotServiceImpl implements TicketBotService {
                                @Nullable Collection<PhotoSize> photos,
                                @Nullable Document document
     ) {
-        Issue issue = issueQueryService.findById(form.getIssueId())
+        Issue issue = issueQueryService.findById((Long) form.getIssueId())
                 .orElseThrow(() -> NotFoundException.entity(Issue.class, "id", form.getIssueId()));
 
-        int totalGaul = queryService.countGaul(form.getIssueId(), form.getService());
+        int totalGaul = queryService.countGaul((Long) form.getIssueId(), form.getService());
 
         Account account = accountQueryService.findByCurrentAccess();
         Ticket ticket = service.save(Ticket.builder()

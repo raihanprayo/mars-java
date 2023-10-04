@@ -2,6 +2,7 @@ package dev.scaraz.mars.app.administration.telegram;
 
 import dev.scaraz.mars.app.administration.domain.cache.FormUserRegistrationCache;
 import dev.scaraz.mars.app.administration.service.app.UserService;
+import dev.scaraz.mars.app.administration.telegram.ticket.TicketRegistrationFlow;
 import dev.scaraz.mars.app.administration.telegram.user.UserListener;
 import dev.scaraz.mars.app.administration.telegram.user.UserRegistrationFlow;
 import dev.scaraz.mars.common.tools.enums.RegisterState;
@@ -34,6 +35,7 @@ public class AppListener {
 
     private final UserService userService;
     private final UserRegistrationFlow userRegistrationFlow;
+    private final TicketRegistrationFlow ticketRegistrationFlow;
 
     @TelegramMessage
     public SendMessage onMessage(@UserId long userId, @Text String text) {
@@ -96,7 +98,7 @@ public class AppListener {
 
             Optional<UserRepresentation> userOpt = userService.findByTelegramIdOpt(userId);
             if (userOpt.isEmpty()) return userListener.register(chatId, userId);
-
+            else return ticketRegistrationFlow.instant_start(chatId);
         }
 
         return null;

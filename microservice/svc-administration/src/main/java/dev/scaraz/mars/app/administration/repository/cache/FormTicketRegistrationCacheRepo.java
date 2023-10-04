@@ -9,8 +9,7 @@ import java.util.function.Consumer;
 @Repository
 public interface FormTicketRegistrationCacheRepo extends CrudRepository<FormTicketRegistrationCache, Long> {
 
-    default void update(long messageId,
-                        Consumer<FormTicketRegistrationCache.FormTicketRegistrationCacheBuilder> callback) {
+    default void replace(long messageId, Consumer<FormTicketRegistrationCache.FormTicketRegistrationCacheBuilder> callback) {
         findById(messageId)
                 .ifPresent(c -> {
                     FormTicketRegistrationCache.FormTicketRegistrationCacheBuilder b = c.toBuilder();

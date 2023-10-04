@@ -23,7 +23,10 @@ public class AuthorizeduserInterceptor implements TelegramInterceptor {
     @Override
     public boolean intercept(HandlerType type, Update update, TelegramHandler handler) {
         Optional<UserRepresentation> userOpt = userService.findByTelegramIdOpt(TelegramContextHolder.getUserId());
-        userOpt.ifPresent(userRepresentation -> TelegramContextHolder.get().addAttribute(ATTRIBUTE, new UserAccount(userRepresentation)));
+        userOpt.ifPresent(userRepresentation -> {
+            UserAccount account = new UserAccount(userRepresentation);
+            TelegramContextHolder.get().addAttribute(ATTRIBUTE, account);
+        });
         return true;
     }
 }

@@ -1,6 +1,7 @@
 package dev.scaraz.mars.app.witel.domain.order;
 
 import dev.scaraz.mars.app.witel.domain.Issue;
+import dev.scaraz.mars.app.witel.domain.manage.InboxLayer;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
@@ -43,5 +44,15 @@ public class Ticket extends AuditableEntity {
     @ManyToOne
     @JoinColumn(name = "issue_id")
     private Issue issue;
+
+    @Column(name = "service_no")
+    private String serviceNo;
+
+    @Column(name = "incident_no")
+    private String incidentNo;
+
+    @ManyToOne
+    @JoinColumn(name = "inbox_id")
+    private InboxLayer inbox;
 
 }

@@ -1,14 +1,19 @@
 package dev.scaraz.mars.app.administration.telegram.ticket;
 
+import dev.scaraz.mars.app.administration.config.telegram.AuthorizeduserInterceptor;
+import dev.scaraz.mars.app.administration.domain.db.Sto;
+import dev.scaraz.mars.app.administration.domain.extern.Issue;
+import dev.scaraz.mars.app.administration.repository.db.StoRepo;
+import dev.scaraz.mars.app.administration.repository.extern.IssueRepo;
 import dev.scaraz.mars.app.administration.service.extern.IssueService;
+import dev.scaraz.mars.app.administration.web.dto.UserAccount;
 import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
-import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
-import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.Util;
+import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,8 +26,8 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class TicketFormRegistration {
 
-    private final IssueQueryService issueQueryService;
     private final StoRepo stoRepo;
+    private final IssueRepo issueRepo;
 
     private final IssueService issueService;
 
@@ -182,12 +187,7 @@ public class TicketFormRegistration {
         FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
 
         String problem = form.getIssue();
-        IssueCriteria criteria = IssueCriteria.builder()
-                .name(new StringFilter().setLike(problem))
-                .product(new ProductFilter().setEq(form.getProduct()))
-                .build();
-
-        Optional<Issue> issueOpt = issueQueryService.findOne(criteria);
+        Optional<Issue> issueOpt = issueRepo.findByCodeAndProduct(problem, form.getProduct());
 
         if (issueOpt.isPresent()) {
             form.setIssueId(issueOpt.get().getId());
@@ -205,8 +205,9 @@ public class TicketFormRegistration {
         final String FIELD_NAME = "sto";
         FormDescriptor formDescriptor = TicketBotForm.getDescriptors().get(FIELD_NAME);
 
-        Witel witel = Objects.requireNonNullElseGet(form.getWitel(), () -> MarsUserContext.getAccessToken().getWitel());
-        String stoAlias = Objects.requireNonNullElseGet(form.getSto(), () -> MarsUserContext.getAccessToken().getSto());
+        UserAccount account = (UserAccount) TelegramContextHolder.getAttribute(AuthorizeduserInterceptor.ATTRIBUTE);
+        Witel witel = Objects.requireNonNullElse(form.getWitel(), account.getWitel());
+        String stoAlias = Objects.requireNonNullElse(form.getSto(), account.getSto());
 
         Optional<Sto> stoOpt = stoRepo.findByWitelAndAliasIgnoreCase(witel, stoAlias);
         if (stoOpt.isEmpty()) {

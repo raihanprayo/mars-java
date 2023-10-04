@@ -40,8 +40,7 @@ public class UserListener {
     @Lazy
     private final TelegramHandlerMapper telegramHandlerMapper;
 
-    @TelegramCommand(
-            commands = "/register")
+    @TelegramCommand("/register")
     public SendMessage register(
             @ChatId long chatId,
             @UserId long userId

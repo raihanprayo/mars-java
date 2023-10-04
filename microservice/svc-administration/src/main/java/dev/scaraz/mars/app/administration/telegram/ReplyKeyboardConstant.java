@@ -11,8 +11,12 @@ public class ReplyKeyboardConstant {
     }
 
     public static final String
-            REG_TICKET_AGREE = "REG:TC:NETWORK:" + AppConstants.Telegram.CONFIRM_AGREE,
-            REG_TICKET_DISAGREE = "REG:TC:NETWORK:" + AppConstants.Telegram.CONFIRM_DISAGREE;
+            REG_TICKET_NET_AGREE = "REG:TC:NETWORK:" + AppConstants.Telegram.CONFIRM_AGREE,
+            REG_TICKET_NET_DISAGREE = "REG:TC:NETWORK:" + AppConstants.Telegram.CONFIRM_DISAGREE;
+
+    public static final String
+            REG_TICKET_PARAM_AGREE = "REG:TC:PARAM:" + AppConstants.Telegram.CONFIRM_AGREE,
+            REG_TICKET_PARAM_DISAGREE = "REG:TC:PARAM:" + AppConstants.Telegram.CONFIRM_DISAGREE;
 
     public static final List<InlineKeyboardButton> UNREGISTERED_USER = List.of(
             InlineKeyboardButton.builder()
@@ -25,14 +29,28 @@ public class ReplyKeyboardConstant {
                     .build()
     );
 
-    public static final InlineKeyboardButton
-            BTN_AGREE = InlineKeyboardButton.builder()
-                .text(Translator.tr("Ya"))
-                .callbackData(AppConstants.Telegram.CONFIRM_AGREE)
-                .build(),
-            BTN_DISAGREE = InlineKeyboardButton.builder()
-                    .text(Translator.tr("Tidak"))
-                    .callbackData(AppConstants.Telegram.CONFIRM_DISAGREE)
-                    .build();
+
+    public static final List<InlineKeyboardButton> NETWORK_AGGREEMENT = List.of(
+            InlineKeyboardButton.builder()
+                    .callbackData(REG_TICKET_NET_AGREE)
+                    .text("Sudah")
+                    .build(),
+            InlineKeyboardButton.builder()
+                    .callbackData(REG_TICKET_NET_DISAGREE)
+                    .text("Belum")
+                    .build()
+    );
+
+
+    public static final List<InlineKeyboardButton> PARAM_AGGREEMENT = List.of(
+            InlineKeyboardButton.builder()
+                    .callbackData(REG_TICKET_PARAM_AGREE)
+                    .text("Sudah")
+                    .build(),
+            InlineKeyboardButton.builder()
+                    .callbackData(REG_TICKET_PARAM_DISAGREE)
+                    .text("Belum")
+                    .build()
+    );
 
 }

@@ -12,7 +12,7 @@ import java.util.Optional;
 public interface UserService {
     UserRepresentation findByTelegramId(long telegramId) throws IllegalStateException;
 
-    Optional<UserRepresentation> findByTelegramIdOpt(long telegramId);
+    Optional<UserRepresentation> findByTelegramIdOpt(Long telegramId);
 
     UserRepresentation findById(String id);
 

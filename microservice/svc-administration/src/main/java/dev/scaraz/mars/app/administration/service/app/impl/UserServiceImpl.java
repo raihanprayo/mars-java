@@ -74,12 +74,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<UserRepresentation> findByTelegramIdOpt(long telegramId) {
-        try {
-            UserRepresentation user = findByTelegramId(telegramId);
-            return Optional.of(user);
-        }
-        catch (IllegalStateException ex) {
+    public Optional<UserRepresentation> findByTelegramIdOpt(Long telegramId) {
+        if (telegramId != null) {
+            try {
+                UserRepresentation user = findByTelegramId(telegramId);
+                return Optional.of(user);
+            }
+            catch (IllegalStateException ex) {
+            }
         }
         return Optional.empty();
     }

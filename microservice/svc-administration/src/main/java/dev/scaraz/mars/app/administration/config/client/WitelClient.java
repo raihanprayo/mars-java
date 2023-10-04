@@ -1,8 +1,10 @@
 package dev.scaraz.mars.app.administration.config.client;
 
+import dev.scaraz.mars.app.administration.config.telegram.AuthorizeduserInterceptor;
 import dev.scaraz.mars.app.administration.domain.cache.ImpersonateTokenCache;
 import dev.scaraz.mars.app.administration.service.TokenExchangeService;
 import dev.scaraz.mars.app.administration.service.app.UserService;
+import dev.scaraz.mars.app.administration.web.dto.UserAccount;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.telegram.config.TelegramContextHolder;
@@ -13,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.keycloak.KeycloakPrincipal;
 import org.keycloak.KeycloakSecurityContext;
 import org.keycloak.adapters.springsecurity.token.KeycloakAuthenticationToken;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.openfeign.support.SpringMvcContract;
@@ -43,8 +44,9 @@ public class WitelClient {
                 .logLevel(Logger.Level.BASIC)
                 .requestInterceptor(template -> {
                     if (TelegramContextHolder.hasContext()) {
-                        UserRepresentation user = userService.findByTelegramId(TelegramContextHolder.getUserId());
-                        ImpersonateTokenCache exchange = tokenExchangeService.exchange(user.getId(), witel);
+                        UserAccount account = (UserAccount) TelegramContextHolder.getAttribute(AuthorizeduserInterceptor.ATTRIBUTE);
+//                        UserRepresentation user = userService.findByTelegramId(TelegramContextHolder.getUserId());
+                        ImpersonateTokenCache exchange = tokenExchangeService.exchange(account.getId(), witel);
                         template.header("Authorization", bearer(exchange.getAccessToken()));
                     }
                     else if (SecurityContextHolder.getContext() != null) {
