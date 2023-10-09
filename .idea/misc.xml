@@ -4,7 +4,7 @@
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/gateway-svc" />
     <file type="web" url="file://$PROJECT_DIR$/microservice/svc-discovery" />
-    <file type="web" url="file://$PROJECT_DIR$/svc-core" />
+    <file type="web" url="file://$PROJECT_DIR$/origin/svc-core" />
     <file type="web" url="file://$PROJECT_DIR$/v1-impl/mars-admin" />
     <file type="web" url="file://$PROJECT_DIR$/v1-impl/mars-core" />
   </component>
@@ -15,6 +15,7 @@
         <option value="$PROJECT_DIR$/core-svc/pom.xml" />
         <option value="$PROJECT_DIR$/libs-telegram/pom.xml" />
         <option value="$PROJECT_DIR$/lib-telegram/pom.xml" />
+        <option value="$PROJECT_DIR$/origin/svc-core/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
