@@ -19,6 +19,7 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.zalando.problem.jackson.ProblemModule;
 
@@ -56,6 +57,10 @@ public class WebConfiguration implements WebMvcConfigurer {
         converters.add(new ResourceHttpMessageConverter());
         converters.add(new ByteArrayHttpMessageConverter());
         WebMvcConfigurer.super.configureMessageConverters(converters);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
     }
 
     @Bean

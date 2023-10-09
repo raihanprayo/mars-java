@@ -1,6 +1,7 @@
 package dev.scaraz.mars.app.administration.service;
 
 import dev.scaraz.mars.app.administration.config.CacheConfiguration;
+import dev.scaraz.mars.app.administration.service.app.RoleService;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.RealmConstant;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,6 +32,8 @@ import java.util.stream.Stream;
 public class RealmService {
 
     private static final Map<String, Object> INITIALIZER = new LinkedHashMap<>();
+
+    private static final List<String> PROTOCOL_MAPPER = List.of("witel", "sto", "phone", "telegram");
     public static final String
             CLIENT_IMPERSONATOR = "client-impersonator",
             USER_IMPERSONATED = "user-impersonated";
@@ -40,6 +44,8 @@ public class RealmService {
     private final Keycloak keycloak;
     private final RealmResource realmResource;
     private final KeycloakSpringBootProperties keycloakProperties;
+
+    private final RoleService roleService;
 
     @Cacheable(
             value = CacheConfiguration.CACHE_KEYCLOAK_CLIENT,
@@ -52,10 +58,30 @@ public class RealmService {
         return realmResource.clients().get(getRealmManagement().getId());
     }
 
+    private void createBaseManagementRole() {
+        List<String> list = realmResource.roles().list().stream()
+                .map(RoleRepresentation::getName)
+                .collect(Collectors.toList());
+
+        for (String role : RealmConstant.PERMISSIONS.keySet()) {
+            if (list.contains(role)) continue;
+            String description = RealmConstant.PERMISSIONS.get(role);
+
+
+            RoleRepresentation rep = new RoleRepresentation();
+            rep.setName(role);
+            rep.setDescription(description);
+
+            roleService.createInternal(rep);
+        }
+    }
+
     @Async
     public void createAdministration() {
         if (INITIALIZER.containsKey(INIT_KEY_ADMIN)) return;
         INITIALIZER.put(INIT_KEY_ADMIN, 1);
+
+        createBaseManagementRole();
 
         RolesResource roles = realmResource.roles();
         Set<String> realmRoles = roles.list().stream()
@@ -67,11 +93,12 @@ public class RealmService {
             ClientResource rmcr = getRealmManagementClientResource();
             List<RoleRepresentation> rmRoles = rmcr.roles().list();
 
-            RoleRepresentation adminRole = new RoleRepresentation();
-            adminRole.setName(RealmConstant.ROLE_COMPOSITE_ADMINISTRATOR);
-            adminRole.setDescription("admin role");
-            adminRole.setComposite(true);
-            roles.create(adminRole);
+
+            roleService.createInternal(role -> {
+                role.setName(RealmConstant.ROLE_COMPOSITE_ADMINISTRATOR);
+                role.setDescription("admin role");
+                role.setComposite(true);
+            });
 
             RoleResource adminRoleResource = roles.get(RealmConstant.ROLE_COMPOSITE_ADMINISTRATOR);
             adminRoleResource.addComposites(rmRoles);
@@ -113,6 +140,8 @@ public class RealmService {
             String adminId = CreatedResponseUtil.getCreatedId(createAdminResponse);
             users.get(adminId).roles().realmLevel().add(List.of(adminRole));
         }
+
+        removeClientLoginEvent();
     }
 
     @Async
@@ -197,6 +226,101 @@ public class RealmService {
                 scopePermissionResource.update(permission);
             }
         }
+    }
+
+
+    @Async
+    public void createClientScopeDetails() {
+        List<ClientScopeRepresentation> clientScopes = realmResource.clientScopes().findAll();
+
+        Optional<ClientScopeRepresentation> profileScopeOpt = clientScopes.stream()
+                .filter(e -> e.getName().equals("profile"))
+                .findFirst();
+        Optional<ClientScopeRepresentation> roleScopeOpt = clientScopes.stream()
+                .filter(e -> e.getName().equals("roles"))
+                .findFirst();
+
+        if (profileScopeOpt.isPresent()) {
+            ClientScopeRepresentation cs = profileScopeOpt.get();
+            List<String> mappers = cs.getProtocolMappers().stream()
+                    .map(ProtocolMapperRepresentation::getName)
+                    .collect(Collectors.toList());
+
+            List<ProtocolMapperRepresentation> newMappers = PROTOCOL_MAPPER.stream()
+                    .filter(e -> !mappers.contains(e))
+                    .map(mapperName -> {
+                        ProtocolMapperRepresentation pm = new ProtocolMapperRepresentation();
+                        pm.setName(mapperName);
+                        pm.setProtocol("openid-connect");
+                        pm.setProtocolMapper("oidc-usermodel-attribute-mapper");
+                        LinkedHashMap<String, String> config = new LinkedHashMap<>();
+                        config.put("claim.name", mapperName);
+                        config.put("user.attribute", mapperName);
+                        config.put("id.token.claim", "true");
+                        config.put("access.token.claim", "true");
+                        config.put("userinfo.token.claim", "true");
+                        pm.setConfig(config);
+                        return pm;
+                    })
+                    .collect(Collectors.toList());
+
+            if (!newMappers.isEmpty()) {
+                realmResource.clientScopes()
+                        .get(cs.getId())
+                        .getProtocolMappers()
+                        .createMapper(newMappers);
+            }
+        }
+        if (roleScopeOpt.isPresent()) {
+            ClientScopeRepresentation cs = roleScopeOpt.get();
+            Map<String, ProtocolMapperRepresentation> mappers = cs.getProtocolMappers()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            ProtocolMapperRepresentation::getName,
+                            d -> d
+                    ));
+
+            Consumer<ProtocolMapperRepresentation> update = protocol -> {
+                boolean hasUpdate = false;
+                if (Boolean.FALSE.toString().equals(protocol.getConfig().get("id.token.claim"))) {
+                    protocol.getConfig().put("id.token.claim", "true");
+                    hasUpdate = true;
+                }
+                if (Boolean.FALSE.toString().equals(protocol.getConfig().get("userinfo.token.claim"))) {
+                    protocol.getConfig().put("userinfo.token.claim", "true");
+                    hasUpdate = true;
+                }
+
+                if (hasUpdate) {
+                    realmResource.clientScopes()
+                            .get(cs.getId())
+                            .getProtocolMappers()
+                            .update(cs.getId(), protocol);
+                }
+            };
+
+            if (mappers.containsKey("realm roles")) {
+                ProtocolMapperRepresentation protocol = mappers.get("realm roles");
+                update.accept(protocol);
+            }
+            if (mappers.containsKey("client roles")) {
+                ProtocolMapperRepresentation protocol = mappers.get("client roles");
+                update.accept(protocol);
+            }
+        }
+    }
+
+    public void removeClientLoginEvent() {
+        RealmEventsConfigRepresentation realmEventsConfig = realmResource.getRealmEventsConfig();
+
+        boolean hasUpdate = false;
+        if (!realmEventsConfig.isEventsEnabled()) {
+            realmEventsConfig.setEventsEnabled(true);
+            hasUpdate = true;
+        }
+
+        if (hasUpdate)
+            realmResource.updateRealmEventsConfig(realmEventsConfig);
     }
 
 

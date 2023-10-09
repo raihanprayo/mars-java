@@ -1,11 +1,13 @@
 package dev.scaraz.mars.app.administration.service.app.impl;
 
 import dev.scaraz.mars.app.administration.config.event.app.ConfigUpdateEvent;
+import dev.scaraz.mars.app.administration.config.security.SecurityUtil;
 import dev.scaraz.mars.app.administration.domain.db.Config;
 import dev.scaraz.mars.app.administration.domain.db.ConfigTag;
 import dev.scaraz.mars.app.administration.repository.db.ConfigRepo;
 import dev.scaraz.mars.app.administration.repository.db.ConfigTagRepo;
 import dev.scaraz.mars.app.administration.service.app.ConfigService;
+import dev.scaraz.mars.app.administration.web.dto.UserAccount;
 import dev.scaraz.mars.common.domain.ConfigDTO;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.Witel;
@@ -65,8 +67,15 @@ public class ConfigServiceImpl implements ConfigService {
 
     @Override
     public Config get(Witel witel, String key) {
-        String format = String.format("%s-%s", witel.name().toLowerCase(), key);
-        return repo.findById(format).orElseGet(()-> get(key));
+        if (witel == Witel.ROC) return get(key);
+
+        String format = String.format("%s:%s", witel.name().toLowerCase(), key);
+        return repo.findById(format).orElseGet(() -> {
+            Config config = get(key);
+            config.setKey(format);
+            config.setWitel(witel);
+            return repo.save(config);
+        });
     }
 
     @Override
@@ -154,7 +163,9 @@ public class ConfigServiceImpl implements ConfigService {
     @Override
     @Transactional
     public Config update(ConfigDTO dto) {
-        Config config = get(dto.getKey());
+        UserAccount account = SecurityUtil.getAccount();
+
+        Config config = get(account.getWitel(), dto.getKey());
         String oldValue = config.getValue();
 
         boolean anyUpdate = false;

@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.domain.dynamic.DynamicType;
 import dev.scaraz.mars.common.domain.dynamic.DynamicValue;
 import dev.scaraz.mars.common.domain.dynamic.DynamicValueSerializer;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,6 +22,8 @@ import java.util.List;
 @Table(name = "t_config")
 public class Config extends AuditableEntity implements DynamicValue {
 
+    public static final String TAG_TELEGRAM = "telegram";
+
     public static final String
             USER_REGISTRATION_APPROVAL_BOOL = "user-registration-approval",
             USER_REGISTRATION_APPROVAL_DRT = "user-registration-approval-duration",
@@ -30,6 +33,10 @@ public class Config extends AuditableEntity implements DynamicValue {
     @Id
     @Column(name = "id")
     private String key;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private Witel witel;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "tag_id")
