@@ -10,4 +10,9 @@ public interface AuthorityConstant {
 
     String HAS_ROLE_ADMIN = "hasRole('" + ADMIN_ROLE + "')";
     String HAS_ROLE_AGENT = "hasRole('" + AGENT_ROLE + "')";
+
+
+    String ROLE_CREATE_TICKET = "create-ticket",
+            ROLE_QUERY_TICKET = "query-ticket";
+
 }
