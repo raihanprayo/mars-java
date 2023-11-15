@@ -3,7 +3,7 @@
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/gateway-svc" />
-    <file type="web" url="file://$PROJECT_DIR$/microservice/svc-discovery" />
+    <file type="web" url="file://$PROJECT_DIR$/microservice/api-discovery" />
     <file type="web" url="file://$PROJECT_DIR$/origin/svc-core" />
     <file type="web" url="file://$PROJECT_DIR$/v1-impl/mars-admin" />
     <file type="web" url="file://$PROJECT_DIR$/v1-impl/mars-core" />
