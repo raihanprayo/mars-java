@@ -1,4 +1,0 @@
-package dev.scaraz.mars.app.administration.service.query;
-
-public interface StoQueryService {
-}

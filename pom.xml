@@ -19,7 +19,6 @@
         <module>lib-telegram</module>
         <module>lib-security</module>
         <module>lib-csv</module>
-        <module>microservice</module>
         <module>origin</module>
     </modules>
 
