@@ -9,9 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.lang.reflect.Field;
 import java.util.Map;
-import java.util.TreeMap;
 
 @Data
 @NoArgsConstructor
@@ -27,7 +25,7 @@ public class TicketBotForm {
 
     @FormDescriptor(
             required = true,
-            alias = {"no incident", "incidentno", "Tiket NOSSA"})
+            alias = {"no incident", "incidentno", "Tiket NOSSA", "No Tiket"})
     private String incident;
 
     @FormDescriptor(
@@ -59,13 +57,7 @@ public class TicketBotForm {
     private static final Map<String, FormDescriptor> descriptors;
     public static Map<String, FormDescriptor> getDescriptors() {
         if (descriptors != null) return descriptors;
-
-        Map<String, FormDescriptor> map = new TreeMap<>();
-        for (Field field : TicketBotForm.class.getDeclaredFields()) {
-            FormDescriptor desc = field.getAnnotation(FormDescriptor.class);
-            if (desc != null) map.put(field.getName(), desc);
-        }
-        return map;
+        return FormDescriptor.Util.collectFieldDescriptors(TicketBotForm.class);
     }
 
     static {

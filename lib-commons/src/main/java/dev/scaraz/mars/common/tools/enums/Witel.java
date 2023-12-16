@@ -7,6 +7,8 @@ import java.util.List;
 
 public enum Witel {
     ROC,
+    ROC_VOICE,
+    ROC_TIAL,
     BANTEN,
     BEKASI,
     BOGOR,

@@ -26,8 +26,16 @@ public class ChartServiceImpl implements ChartService {
         Map<String, PieChartDTO<String>> category = createCategoryMap();
         Instant now = Instant.now();
 
-        for (TicketSummary summary : summaries)
-            groupAndPush(now, summary.getCreatedAt(), category);
+        for (TicketSummary summary : summaries){
+            switch (summary.getStatus()) {
+                case CLOSED:
+                    groupAndPush(summary.getCreatedAt(), summary.getUpdatedAt(), category);
+                    break;
+                default:
+                    groupAndPush(now, summary.getCreatedAt(), category);
+                    break;
+            }
+        }
 
         return new ArrayList<>(category.values());
     }
@@ -94,9 +102,9 @@ public class ChartServiceImpl implements ChartService {
         return category;
     }
 
-    private void groupAndPush(Instant now, @Nullable Instant dataCreatedAt, Map<String, PieChartDTO<String>> category) {
-        long durationMili = now.toEpochMilli() - Optional.ofNullable(dataCreatedAt)
-                .orElse(now)
+    private void groupAndPush(Instant lastOrCurrrentTime, @Nullable Instant dataCreatedAt, Map<String, PieChartDTO<String>> category) {
+        long durationMili = lastOrCurrrentTime.toEpochMilli() - Optional.ofNullable(dataCreatedAt)
+                .orElse(lastOrCurrrentTime)
                 .toEpochMilli();
 
         if (durationMili <= MILI_15_MINUTES.toMillis()) {

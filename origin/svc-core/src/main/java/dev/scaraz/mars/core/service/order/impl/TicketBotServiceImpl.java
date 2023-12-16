@@ -1,26 +1,25 @@
 package dev.scaraz.mars.core.service.order.impl;
 
+import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
+import dev.scaraz.mars.common.exception.telegram.TgError;
+import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.annotation.FormDescriptor;
-import dev.scaraz.mars.common.domain.general.TicketBotForm;
-import dev.scaraz.mars.common.exception.telegram.TgError;
-import dev.scaraz.mars.common.exception.telegram.TgInvalidFormError;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
-import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.credential.Account;
+import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
-//import dev.scaraz.mars.core.service.AppConfigService;
 import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
@@ -334,10 +333,14 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .build();
 
         synchronized (ISSUES_BUTTON_LIST) {
-            int colCount = configService.get(ConfigConstants.TG_START_CMD_ISSUE_COLUMN_INT)
+            if (ISSUES_BUTTON_LIST.isEmpty())
+                throw new BadRequestException("Pilihan Isu kosong, Silahkan menghubungi admin MARS, untuk menambahkan isu");
+
+            int colCount = configService
+                    .get(ConfigConstants.TG_START_CMD_ISSUE_COLUMN_INT)
                     .getAsInt();
 
-            LinkedMultiValueMap<Product, InlineKeyboardButton> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
+            Map<Product, List<InlineKeyboardButton>> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
             List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
             for (Product product : all.keySet()) {
                 buttons.add(List.of(InlineKeyboardButton.builder()
@@ -483,7 +486,7 @@ public class TicketBotServiceImpl implements TicketBotService {
                         .text(TelegramUtil.esc(
                                 String.format("*[%s]* Mohon input request order sesuai format:", name),
                                 "",
-                                "Tiket NOSSA: _(required)_",
+                                "No Tiket: _(required)_",
                                 "No Service: _(required)_",
                                 "Witel: _(opt)_",
                                 "STO: _(opt)_",

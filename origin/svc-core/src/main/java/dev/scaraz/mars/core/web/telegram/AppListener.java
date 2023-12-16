@@ -72,6 +72,7 @@ public class AppListener {
             @Text String text,
             @TgAuth() Account marsAccount
     ) {
+
         log.info("{}", gson.toJson(update));
 
         if (marsAccount == null) {

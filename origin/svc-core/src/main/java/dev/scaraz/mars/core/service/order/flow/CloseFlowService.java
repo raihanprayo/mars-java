@@ -67,6 +67,9 @@ public class CloseFlowService {
         else if (!summary.getWipBy().equals(MarsUserContext.getId()))
             throw BadRequestException.args("error.ticket.update.stat.agent");
 
+        if (form.getSolution() == null)
+            throw new BadRequestException("Harap masukkan actsol sebelum menutup tiket");
+
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
         Agent agent = workspace.getAgent();
 

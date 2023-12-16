@@ -322,6 +322,8 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
                             registration.getSto().toUpperCase())
                     .build());
 
+
+            registrationRepo.deleteById(registration.getId());
             if (!needApproval) {
                 return SendMessage.builder()
                         .chatId(registration.getId())
@@ -329,15 +331,16 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
                         .text(TelegramUtil.WELCOME_MESSAGE())
                         .build();
             }
-
-            registrationRepo.deleteById(registration.getId());
+            return null;
         }
+        else {
 
-        botService.getClient().execute(SendMessage.builder()
-                .chatId(registration.getId())
-                .text("Mengulang pertanyaan registrasi")
-                .build());
-        return start(registration.getId(), registration.getUsername());
+            botService.getClient().execute(SendMessage.builder()
+                    .chatId(registration.getId())
+                    .text("Mengulang pertanyaan registrasi")
+                    .build());
+            return start(registration.getId(), registration.getUsername());
+        }
     }
 
 }

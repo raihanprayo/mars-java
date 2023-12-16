@@ -16,13 +16,14 @@ import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.repository.db.credential.RoleRepo;
 import dev.scaraz.mars.core.repository.db.order.IssueRepo;
 import dev.scaraz.mars.core.repository.db.order.StoRepo;
-import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.credential.AccountService;
+import dev.scaraz.mars.core.service.credential.RoleService;
 import dev.scaraz.mars.core.service.order.IssueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,15 +36,17 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 
-import static dev.scaraz.mars.common.utils.AuthorityConstant.*;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
 import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
+import static dev.scaraz.mars.common.utils.AuthorityConstant.*;
 import static dev.scaraz.mars.common.utils.ConfigConstants.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class Initializer {
+
+    private final Environment env;
 
     private final MarsProperties marsProperties;
 
@@ -156,6 +159,7 @@ public class Initializer {
 
     @Transactional
     public void importIssue() {
+        if (!env.acceptsProfiles(p -> p.test("dev"))) return;
         Map<String, Product> names = Map.of("lambat", Product.INTERNET,
                 "intermittent", Product.INTERNET,
                 "tbb", Product.INTERNET,
