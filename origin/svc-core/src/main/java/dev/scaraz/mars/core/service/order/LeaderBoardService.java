@@ -42,7 +42,7 @@ public class LeaderBoardService {
     private final LeaderBoardFragmentRepo repo;
     private final LeaderBoardSpecBuilder specBuilder;
 
-    public List<LeaderBoardDTO> findAll(LeaderBoardCriteria criteria) {
+    public List<LeaderBoardDTO> getLeaderboard(LeaderBoardCriteria criteria) {
         List<Account> accounts = accountQueryService.findAll(UserCriteria.builder()
                 .name(criteria.getName())
                 .nik(criteria.getNik())

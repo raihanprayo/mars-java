@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.domain.request.CreateIssueDTO;
 import dev.scaraz.mars.common.domain.request.UpdateIssueDTO;
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
 import dev.scaraz.mars.core.domain.order.Issue;
@@ -17,8 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-import static dev.scaraz.mars.common.utils.AppConstants.RESET_ISSUE_INLINE_BTN_EVENT;
 
 @RequiredArgsConstructor
 
@@ -49,8 +48,15 @@ public class IssueResource {
         );
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getById(@PathVariable long id) {
+        Issue issue = queryService.findById(id)
+                .orElseThrow(() -> NotFoundException.args("Isu ID tidak ditemukan"));
+        return ResponseEntity.ok(issue);
+    }
+
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(
+    public ResponseEntity<?> updateById(
             @PathVariable long id,
             @RequestBody UpdateIssueDTO issue
     ) {

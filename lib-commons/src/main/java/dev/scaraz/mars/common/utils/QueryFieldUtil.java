@@ -7,8 +7,6 @@ import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import dev.scaraz.mars.common.utils.spec.*;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.metamodel.SingularAttribute;
-
 public class QueryFieldUtil {
 
 
@@ -38,14 +36,14 @@ public class QueryFieldUtil {
             spec = Specification.where(null);
 
             if (filter.getGt() != null)
-                spec.and(GreaterThanSpec.spec(filter.getGt(), false, targetPath));
+                spec = spec.and(GreaterThanSpec.spec(filter.getGt(), false, targetPath));
             else if (filter.getGte() != null)
-                spec.and(GreaterThanSpec.spec(filter.getGt(), true, targetPath));
+                spec = spec.and(GreaterThanSpec.spec(filter.getGt(), true, targetPath));
 
             if (filter.getLt() != null)
-                spec.and(LessThanSpec.spec(filter.getLt(), false, targetPath));
+                spec = spec.and(LessThanSpec.spec(filter.getLt(), false, targetPath));
             else if (filter.getLte() != null)
-                spec.and(LessThanSpec.spec(filter.getLte(), true, targetPath));
+                spec = spec.and(LessThanSpec.spec(filter.getLte(), true, targetPath));
         }
         return spec;
     }

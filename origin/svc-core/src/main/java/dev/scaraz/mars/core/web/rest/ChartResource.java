@@ -46,7 +46,7 @@ public class ChartResource {
 
     @GetMapping("/leaderboard")
     public ResponseEntity<?> getLeaderBoard(LeaderBoardCriteria criteria) {
-        List<LeaderBoardDTO> page = leaderBoardService.findAll(criteria);
+        List<LeaderBoardDTO> page = leaderBoardService.getLeaderboard(criteria);
         return new ResponseEntity<>(page, HttpStatus.OK);
     }
 
