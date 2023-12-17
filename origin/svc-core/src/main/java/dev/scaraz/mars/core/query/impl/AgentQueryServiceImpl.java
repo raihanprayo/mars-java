@@ -96,7 +96,7 @@ public class AgentQueryServiceImpl implements AgentQueryService {
         return workspaceRepo.findFirstByTicketIdOrderByCreatedAtDesc(ticketId)
                 .map(workspace -> {
                     if (workspace.getStatus() == AgStatus.CLOSED)
-                        throw new BadRequestException("Agen Workspace telah ditutup");
+                        throw new BadRequestException("Workspace Agent telah ditutup");
                     return workspace;
                 })
                 .orElseThrow(() -> NotFoundException.entity(AgentWorkspace.class, "ticket", ticketId));

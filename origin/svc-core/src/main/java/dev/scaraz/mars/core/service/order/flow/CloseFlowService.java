@@ -9,6 +9,7 @@ import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AgentQueryService;
+import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.repository.db.order.AgentRepo;
@@ -52,6 +53,8 @@ public class CloseFlowService {
     private final AgentService agentService;
     private final AgentQueryService agentQueryService;
 
+    private final SolutionQueryService solutionQueryService;
+
     private final NotifierService notifierService;
     private final StorageService storageService;
 
@@ -75,10 +78,12 @@ public class CloseFlowService {
 
         workspace.getLastWorklog().ifPresent(worklog -> {
             worklog.setCloseStatus(TcStatus.CLOSED);
-            worklog.setSolution(form.getSolution());
             worklog.setMessage(form.getNote());
-            agentService.save(worklog);
 
+            Solution solution = solutionQueryService.findById(form.getSolution());
+            worklog.setSolution(solution.getName());
+
+            agentService.save(worklog);
             storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());
         });
 

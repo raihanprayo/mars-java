@@ -5,8 +5,10 @@ import dev.scaraz.mars.common.tools.filter.RangeFilter;
 import dev.scaraz.mars.common.tools.filter.ReadableFilter;
 import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import dev.scaraz.mars.common.utils.spec.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
+@Slf4j
 public class QueryFieldUtil {
 
 
@@ -36,9 +38,9 @@ public class QueryFieldUtil {
             spec = Specification.where(null);
 
             if (filter.getGt() != null)
-                spec = spec.and(GreaterThanSpec.spec(filter.getGt(), false, targetPath));
+                spec = GreaterThanSpec.spec(filter.getGt(), false, targetPath);
             else if (filter.getGte() != null)
-                spec = spec.and(GreaterThanSpec.spec(filter.getGt(), true, targetPath));
+                spec = GreaterThanSpec.spec(filter.getGte(), true, targetPath);
 
             if (filter.getLt() != null)
                 spec = spec.and(LessThanSpec.spec(filter.getLt(), false, targetPath));

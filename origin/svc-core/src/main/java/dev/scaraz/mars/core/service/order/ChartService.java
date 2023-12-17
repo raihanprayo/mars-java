@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.service.order;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 
 import java.time.Duration;
@@ -28,6 +29,8 @@ public interface ChartService {
     List<PieChartDTO<String>> pieTicketByAge(List<TicketSummary> summaries);
 
     List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries);
+
+    List<PieChartDTO<TcStatus>> pieTicketByStatus(List<TicketSummary> summaries);
 
     Instant[] rangeConvert(LocalDate from, LocalDate to);
 }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -32,7 +31,7 @@ public class AgentWorklog extends TimestampEntity {
     private TcStatus closeStatus;
 
     @Column
-    private Long solution;
+    private String solution;
 
     @Column
     private String message;

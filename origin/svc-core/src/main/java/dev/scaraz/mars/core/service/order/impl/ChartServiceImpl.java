@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.service.order.ChartService;
 import lombok.RequiredArgsConstructor;
@@ -23,16 +24,16 @@ public class ChartServiceImpl implements ChartService {
     @Override
     @Transactional(readOnly = true)
     public List<PieChartDTO<String>> pieTicketByAge(List<TicketSummary> summaries) {
-        Map<String, PieChartDTO<String>> category = createCategoryMap();
+        Map<String, PieChartDTO<String>> category = createDurationCategoryMap();
         Instant now = Instant.now();
 
-        for (TicketSummary summary : summaries){
+        for (TicketSummary summary : summaries) {
             switch (summary.getStatus()) {
                 case CLOSED:
-                    groupAndPush(summary.getCreatedAt(), summary.getUpdatedAt(), category);
+                    groupAgeAndPush(summary.getCreatedAt(), summary.getUpdatedAt(), category);
                     break;
                 default:
-                    groupAndPush(now, summary.getCreatedAt(), category);
+                    groupAgeAndPush(now, summary.getCreatedAt(), category);
                     break;
             }
         }
@@ -43,11 +44,11 @@ public class ChartServiceImpl implements ChartService {
     @Override
     @Transactional(readOnly = true)
     public List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries) {
-        Map<String, PieChartDTO<String>> category = createCategoryMap();
+        Map<String, PieChartDTO<String>> category = createDurationCategoryMap();
         Instant now = Instant.now();
 
         for (TicketSummary summary : summaries) {
-            groupAndPush(now, summary.getAge().getAction(), category);
+            groupAgeAndPush(now, summary.getAge().getAction(), category);
         }
 
         return new ArrayList<>(category.values());
@@ -56,11 +57,23 @@ public class ChartServiceImpl implements ChartService {
     @Override
     @Transactional(readOnly = true)
     public List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries) {
-        Map<String, PieChartDTO<String>> category = createCategoryMap();
+        Map<String, PieChartDTO<String>> category = createDurationCategoryMap();
         for (TicketSummary summary : summaries) {
-            groupAndPush(summary.getCreatedAt(), summary.getAge().getResponse(), category);
+            groupAgeAndPush(summary.getCreatedAt(), summary.getAge().getResponse(), category);
         }
 
+        return new ArrayList<>(category.values());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<PieChartDTO<TcStatus>> pieTicketByStatus(List<TicketSummary> summaries) {
+        Map<TcStatus, PieChartDTO<TcStatus>> category = createStatusCategoryMap();
+        for (TicketSummary summary : summaries) {
+            TcStatus status = summary.getStatus();
+            PieChartDTO<TcStatus> chart = category.get(status);
+            chart.setValue(chart.getValue() + 1);
+        }
         return new ArrayList<>(category.values());
     }
 
@@ -74,7 +87,7 @@ public class ChartServiceImpl implements ChartService {
         return new Instant[]{startInst, endInst};
     }
 
-    private Map<String, PieChartDTO<String>> createCategoryMap() {
+    private Map<String, PieChartDTO<String>> createDurationCategoryMap() {
         Map<String, PieChartDTO<String>> category = new TreeMap<>();
         category.put(CATEGORY_15_MINUTES, PieChartDTO.<String>builder()
                 .type(CATEGORY_15_MINUTES)
@@ -102,7 +115,14 @@ public class ChartServiceImpl implements ChartService {
         return category;
     }
 
-    private void groupAndPush(Instant lastOrCurrrentTime, @Nullable Instant dataCreatedAt, Map<String, PieChartDTO<String>> category) {
+    private Map<TcStatus, PieChartDTO<TcStatus>> createStatusCategoryMap() {
+        Map<TcStatus, PieChartDTO<TcStatus>> category = new TreeMap<>();
+        for (TcStatus value : TcStatus.values())
+            category.put(value, new PieChartDTO<>(value));
+        return category;
+    }
+
+    private void groupAgeAndPush(Instant lastOrCurrrentTime, @Nullable Instant dataCreatedAt, Map<String, PieChartDTO<String>> category) {
         long durationMili = lastOrCurrrentTime.toEpochMilli() - Optional.ofNullable(dataCreatedAt)
                 .orElse(lastOrCurrrentTime)
                 .toEpochMilli();
@@ -132,5 +152,6 @@ public class ChartServiceImpl implements ChartService {
             });
         }
     }
+
 
 }

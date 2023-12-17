@@ -8,13 +8,12 @@ import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.domain.order.Ticket;
+import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.repository.db.credential.AccountSettingRepo;
-import dev.scaraz.mars.core.repository.db.order.SolutionRepo;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -42,8 +41,9 @@ public class NotifierService {
 //    private final AppConfigService appConfigService;
     private final ConfigService configService;
 
-    @Lazy
-    private final SolutionRepo solutionRepo;
+//    @Lazy
+//    private final SolutionRepo solutionRepo;
+    private final SolutionQueryService solutionQueryService;
 
     public void sendTaken(Ticket ticket, String username) {
         send(ticket.getSenderId(), "tg.ticket.wip",
@@ -76,7 +76,7 @@ public class NotifierService {
                             "",
                             "Actual Solution: " + optForm
                                     .map(TicketStatusFormDTO::getSolution)
-                                    .flatMap(solutionRepo::findById)
+                                    .map(solutionQueryService::findById)
                                     .map(Solution::getName)
                                     .orElse("-")
                             ,
@@ -125,7 +125,7 @@ public class NotifierService {
                             pendingDuration,
                             replyDuration,
                             optForm.map(TicketStatusFormDTO::getSolution)
-                                    .flatMap(solutionRepo::findById)
+                                    .map(solutionQueryService::findById)
                                     .map(Solution::getName)
                                     .orElse("-"),
                             optForm.map(TicketStatusFormDTO::getNote)

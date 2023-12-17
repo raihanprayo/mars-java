@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.web.telegram;
 
 import dev.scaraz.mars.common.domain.general.TicketBotForm;
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
@@ -139,19 +140,20 @@ public class TicketListener {
 
     @TelegramCommand("/confirm")
     public void resume(@TgAuth Account account, @Text String text) {
-        // Melanjutkan tiket dengan status pending
-
         if (StringUtils.isNoneBlank(text)) {
+            log.debug("Confirm Pending: {}", text);
             Optional<TicketConfirm> confirmOpt = confirmRepo.findByValueAndStatus(text, TicketConfirm.POST_PENDING);
             if (confirmOpt.isPresent()) {
                 boolean ticketExist = queryService.exist(TicketCriteria.builder()
-                        .no(new StringFilter().setEq(text))
+                        .no(new StringFilter().setEq(text.trim()))
                         .senderId(new LongFilter().setEq(account.getTg().getId()))
                         .status(new TcStatusFilter().setEq(TcStatus.PENDING))
                         .build());
 
                 if (ticketExist) botService.endPendingEarly(confirmOpt.get().getId(), text);
+
             }
+            else throw new BadRequestException("Gagal melakukan konfirmasi tiket (konfirmasi tidak ditemukan)");
         }
     }
 

@@ -9,10 +9,7 @@ import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
-import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.AgentQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
+import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
@@ -54,6 +51,8 @@ public class PendingFlowService {
 
     private final AccountQueryService accountQueryService;
 
+    private final SolutionQueryService solutionQueryService;
+
     private final NotifierService notifierService;
     private final StorageService storageService;
 
@@ -69,25 +68,26 @@ public class PendingFlowService {
         else if (!summary.getWipBy().equals(MarsUserContext.getId()))
             throw BadRequestException.args("error.ticket.update.stat.agent");
 
+        if (form.getSolution() == null)
+            throw new BadRequestException("Harap masukkan actsol sebelum melakukan PENDING tiket");
+
         final TcStatus prevStatus = ticket.getStatus();
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
         Agent agent = workspace.getAgent();
 
         workspace.getLastWorklog().ifPresent(worklog -> {
             worklog.setCloseStatus(TcStatus.PENDING);
-            worklog.setSolution(form.getSolution());
             worklog.setMessage(form.getNote());
 
-            agentService.save(worklog);
+            Solution solution = solutionQueryService.findById(form.getSolution());
+            worklog.setSolution(solution.getName());
 
+            agentService.save(worklog);
         });
 
         if (form.getNote() == null || StringUtils.isBlank(form.getNote().trim()))
             throw BadRequestException.args("Pending worklog cannot be empty");
 
-
-//        Duration duration = appConfigService.getCloseConfirm_drt()
-//                .getAsDuration();
         Duration duration = configService.get(ConfigConstants.TG_CONFIRMATION_DRT)
                 .getAsDuration();
 

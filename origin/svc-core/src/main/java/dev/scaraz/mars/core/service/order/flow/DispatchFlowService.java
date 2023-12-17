@@ -3,11 +3,9 @@ package dev.scaraz.mars.core.service.order.flow;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace;
-import dev.scaraz.mars.core.domain.order.LogTicket;
-import dev.scaraz.mars.core.domain.order.Ticket;
-import dev.scaraz.mars.core.domain.order.Agent;
+import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.query.AgentQueryService;
+import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.service.NotifierService;
@@ -35,6 +33,8 @@ public class DispatchFlowService {
     private final AgentService agentService;
     private final AgentQueryService agentQueryService;
 
+    private final SolutionQueryService solutionQueryService;
+
     private final NotifierService notifierService;
     private final StorageService storageService;
 
@@ -50,11 +50,15 @@ public class DispatchFlowService {
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
         Agent agent = workspace.getAgent();
 
+        workspace.setStatus(AgStatus.CLOSED);
         workspace.getLastWorklog().ifPresent(worklog -> {
             worklog.setCloseStatus(TcStatus.DISPATCH);
-            worklog.setSolution(form.getSolution());
             worklog.setMessage(form.getNote());
-            workspace.setStatus(AgStatus.CLOSED);
+
+            if (form.getSolution() != null) {
+                Solution solution = solutionQueryService.findById(form.getSolution());
+                worklog.setSolution(solution.getName());
+            }
 
             agentService.save(workspace);
             storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());

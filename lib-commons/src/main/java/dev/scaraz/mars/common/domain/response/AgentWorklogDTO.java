@@ -21,7 +21,7 @@ public class AgentWorklogDTO implements Serializable {
 
     private TcStatus closeStatus;
 
-    private Long solution;
+    private String solution;
 
     private String message;
 

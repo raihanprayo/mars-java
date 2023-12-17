@@ -2,7 +2,6 @@ package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
 import dev.scaraz.mars.common.domain.response.TicketPieChartDTO;
-import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.utils.ResourceUtil;
@@ -10,8 +9,8 @@ import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.LeaderBoardCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
-import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.ChartService;
+import dev.scaraz.mars.core.service.order.ExportService;
 import dev.scaraz.mars.core.service.order.LeaderBoardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,12 +24,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-
-import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,8 +37,9 @@ public class ChartResource {
 
     private final ChartService chartService;
     private final LeaderBoardService leaderBoardService;
-    private final TicketSummaryQueryService summaryQueryService;
-    private final StorageService storageService;
+    private final TicketSummaryQueryService ticketSummaryQueryService;
+
+    private final ExportService exportService;
 
     @GetMapping("/leaderboard")
     public ResponseEntity<?> getLeaderBoard(LeaderBoardCriteria criteria) {
@@ -56,12 +53,13 @@ public class ChartResource {
             Pageable pageable
     ) {
         TicketPieChartDTO chart = new TicketPieChartDTO();
-        chart.getCount().setTotal(summaryQueryService.count(criteria));
+        chart.getCount().setTotal(ticketSummaryQueryService.count(criteria));
         chart.getCount().setInternet(count(Product.INTERNET, criteria));
         chart.getCount().setIptv(count(Product.IPTV, criteria));
         chart.getCount().setVoice(count(Product.VOICE, criteria));
 
-        Page<TicketSummary> all = summaryQueryService.findAll(criteria, pageable);
+        Page<TicketSummary> all = ticketSummaryQueryService.findAll(criteria, pageable);
+        chart.setStatus(chartService.pieTicketByStatus(all.getContent()));
         chart.setAge(chartService.pieTicketByAge(all.getContent()));
         chart.setActionAge(chartService.pieTicketByActionAge(all.getContent()));
         chart.setResponseAge(chartService.pieTicketByResponseAge(all.getContent()));
@@ -74,53 +72,15 @@ public class ChartResource {
     }
 
     @GetMapping("/ticket/report/download")
-    public ResponseEntity<?> getTicketReportsDownload(
-            TicketSummaryCriteria criteria
-    ) throws IOException {
-        List<TicketSummary> all = summaryQueryService.findAll(criteria);
-
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
-        List<String> rows = new ArrayList<>();
-        rows.add(String.join(";", CSV_HEADER));
-
-        for (TicketSummary s : all) {
-            rows.add(String.join(";", new String[]{
-                    s.getNo(),
-                    s.getWitel().name(),
-                    s.getSto(),
-                    s.getIncidentNo(),
-                    s.getServiceNo(),
-                    s.getSource().name(),
-                    s.isGaul() ? "Y" : "N",
-                    s.getSenderName(),
-                    s.getIssue().getName(),
-                    s.getProduct().name(),
-                    s.getCreatedBy(),
-                    s.getCreatedAt().atZone(ZONE_LOCAL).format(format),
-                    Objects.requireNonNullElse(s.getUpdatedBy(), "-"),
-                    Optional.ofNullable(s.getUpdatedAt())
-                            .map(t -> t.atZone(ZONE_LOCAL).format(format))
-                            .orElse("-"),
-            }));
-        }
-
-        File file = storageService.createFile(DirectoryAlias.TMP, "report", UUID.randomUUID() + ".csv");
-        try (FileWriter wr = new FileWriter(file)) {
-            for (String row : rows) {
-                wr.write(row + "\n");
-            }
-            wr.flush();
-        }
+    public ResponseEntity<?> getTicketReportsDownload(TicketSummaryCriteria criteria) throws IOException {
+        File file = exportService.exportToCSV(criteria);
         return ResourceUtil.downloadAndDelete(file);
     }
 
     private long count(Product product, TicketSummaryCriteria criteria) {
-        return summaryQueryService.count(criteria.toBuilder()
+        return ticketSummaryQueryService.count(criteria.toBuilder()
                 .product(new ProductFilter().setEq(product))
                 .build());
     }
 
-    private static final String[] CSV_HEADER = {
-            "No", "Witel", "STO", "Tiket NOSSA", "No Service", "Source", "Gaul", "Requestor", "Isu/Masalah", "Produk", "Dibuat Oleh", "Tgl Dibuat", "Diubah Oleh", "Tgl Diubah"
-    };
 }
