@@ -5,6 +5,7 @@ import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ConfigConstants;
+import dev.scaraz.mars.common.utils.Util;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.domain.order.Ticket;
@@ -19,9 +20,11 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -141,13 +144,14 @@ public class NotifierService {
         }
     }
 
-    public int sendPostPendingConfirmation(Ticket ticket, long minute) {
+    public int sendPostPendingConfirmation(Ticket ticket, Duration duration) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(CONFIRMATION_POST_PENDING)
                     .build();
 
-            String replyDuration = minute + " " + Translator.tr("date.minute");
+//            String replyDuration = duration + " " + Translator.tr("date.minute");
+            String replyDuration = Util.durationDescribe(duration);
 
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
@@ -169,6 +173,10 @@ public class NotifierService {
     }
 
     public int send(long telegramId, String codeOrMessage, Object... args) {
+        return send(telegramId, codeOrMessage, null, args);
+    }
+
+    public int send(long telegramId, String codeOrMessage, ReplyKeyboard keyboard, Object... args) {
         try {
             log.info("SENDING MESSAGE TO TELEGRAM USER {}", telegramId);
 
@@ -177,6 +185,7 @@ public class NotifierService {
                             .chatId(telegramId)
                             .text(TelegramUtil.esc(message))
                             .parseMode(ParseMode.MARKDOWNV2)
+                            .replyMarkup(keyboard)
                             .build())
                     .getMessageId();
         }
@@ -186,12 +195,28 @@ public class NotifierService {
     }
 
     public int sendRaw(long telegramId, String... messages) {
+        return sendRaw(telegramId, null, messages);
+//        try {
+//            log.info("SENDING MESSAGE TO TELEGRAM USER {}", telegramId);
+//            return botService.getClient().execute(SendMessage.builder()
+//                            .chatId(telegramId)
+//                            .text(TelegramUtil.esc(messages))
+//                            .parseMode(ParseMode.MARKDOWNV2)
+//                            .build())
+//                    .getMessageId();
+//        }
+//        catch (TelegramApiException ex) {
+//            throw InternalServerException.args(ex, "error.unable.to.notify.user");
+//        }
+    }
+    public int sendRaw(long telegramId, ReplyKeyboard keyboard, String... messages) {
         try {
             log.info("SENDING MESSAGE TO TELEGRAM USER {}", telegramId);
             return botService.getClient().execute(SendMessage.builder()
                             .chatId(telegramId)
                             .text(TelegramUtil.esc(messages))
                             .parseMode(ParseMode.MARKDOWNV2)
+                            .replyMarkup(keyboard)
                             .build())
                     .getMessageId();
         }
