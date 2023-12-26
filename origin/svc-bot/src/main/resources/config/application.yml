@@ -1,6 +1,6 @@
 server:
   # port random karena emang ga perlu akses http
-  port: ${random.int(10000, 30000)}
+  port: ${MARS_BOT_PORT:10921}
 
 spring:
   application:
@@ -53,3 +53,9 @@ management:
     web:
       exposure:
         include: *
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${MARS_DISCOVERY_HOST:localhost}:${MARS_DISCOVERY_PORT:10919}/eureka/
+    fetch-registry: true
+    register-with-eureka: true

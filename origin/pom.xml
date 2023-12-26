@@ -15,6 +15,7 @@
     <modules>
         <module>svc-core</module>
         <module>svc-bot</module>
+        <module>api-discovery</module>
     </modules>
 
     <properties>
