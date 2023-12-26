@@ -259,6 +259,7 @@ public class TicketBotServiceImpl implements TicketBotService {
     }
 
     @Override
+    @Transactional
     public void endPendingEarly(long messageId, String ticketNo) {
         pendingFlowService.askPostPending(ticketNo);
         confirmService.deleteById(messageId);

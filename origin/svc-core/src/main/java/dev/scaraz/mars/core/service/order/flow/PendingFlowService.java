@@ -5,7 +5,9 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ConfigConstants;
+import dev.scaraz.mars.common.utils.Util;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
@@ -26,8 +28,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -136,23 +141,33 @@ public class PendingFlowService {
 //            int minute = appConfigService.getPostPending_drt()
 //                    .getAsNumber()
 //                    .intValue();
-            long minute = configService.get(ConfigConstants.TG_PENDING_CONFIRMATION_DRT)
-                    .getAsDuration()
-                    .toMinutes();
+            Duration duration = configService.get(ConfigConstants.TG_PENDING_CONFIRMATION_DRT)
+                    .getAsDuration();
+//                    .toMinutes();
 
-            int messageId = notifierService.sendRaw(ticket.getSenderId(),
-                    String.format("Tiket *%s*:", ticket.getNo()),
-                    "status berubah ke  *PENDING*",
-                    "",
-                    "_MARS akan kembali dalam " + minute + " menit_",
-                    "_Ketik */confirm " + ticket.getNo() + "* untuk konfirmasi_"
+            int messageId = notifierService.send(
+                    ticket.getSenderId(),
+                    "tg.ticket.pending.confirmed",
+                    InlineKeyboardMarkup.builder()
+                            .keyboardRow(List.of(InlineKeyboardButton.builder()
+                                    .text("Konfirmasi")
+                                    .callbackData(AppConstants.Telegram.TICKET_FINISH_PENDING)
+                                    .build()))
+                            .build(),
+                    ticket.getNo(),
+                    Util.durationDescribe(duration)
+//                    String.format("Tiket *%s*:", ticket.getNo()),
+//                    "status berubah ke  *PENDING*",
+//                    "",
+//                    "_MARS akan kembali dalam " + minute + " menit_",
+//                    "_Ketik */confirm " + ticket.getNo() + "* untuk konfirmasi_"
             );
 
             confirmService.save(TicketConfirm.builder()
                     .id(messageId)
                     .value(ticket.getNo())
                     .status(TicketConfirm.POST_PENDING)
-                    .ttl(minute)
+                    .ttl(duration.toMinutes())
                     .build());
 
             ticket.setConfirmPendingMessageId((long) messageId);
@@ -210,7 +225,7 @@ public class PendingFlowService {
         Duration duration = configService.get(ConfigConstants.TG_CONFIRMATION_DRT)
                 .getAsDuration();
 
-        int messageId = notifierService.sendPostPendingConfirmation(ticket, duration.toMinutes());
+        int messageId = notifierService.sendPostPendingConfirmation(ticket, duration);
         confirmService.save(TicketConfirm.builder()
                 .id(messageId)
                 .value(ticketNo)

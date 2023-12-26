@@ -4,20 +4,17 @@ import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.TcSource;
-import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.common.tools.filter.type.LongFilter;
-import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
+import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.criteria.TicketCriteria;
-import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
+import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketFormService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
+import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.annotation.context.Text;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
@@ -36,17 +33,20 @@ import java.util.Optional;
 @TelegramBot
 public class TicketListener {
 
-    private final TicketBotService botService;
-    private final TicketConfirmRepo confirmRepo;
-    private final TicketFormService formService;
-    private final TicketQueryService queryService;
+    private final TicketBotService ticketBotService;
+//    private final TicketConfirmRepo ticketConfirmRepo;
+
+    private final TicketFormService ticketFormService;
+    private final TicketQueryService ticketQueryService;
+
+    private final ConfirmService confirmService;
 
     @TelegramCommand("/tiket")
     public SendMessage ticketInfo(@TgAuth Account account, @Text String text) {
         if (StringUtils.isBlank(text))
             throw new IllegalArgumentException("argument <no-tiket> tidak boleh kosong");
 
-        return botService.info(text);
+        return ticketBotService.info(text);
     }
 
     @TelegramCommand(commands = {"/report", "/lapor"}, description = "Register new ticker/order")
@@ -56,13 +56,13 @@ public class TicketListener {
             Message message
     ) {
         try {
-            TicketBotForm form = formService.parseTicketRegistration(text);
-            formService.parseTicketNote(form, text, null);
+            TicketBotForm form = ticketFormService.parseTicketRegistration(text);
+            ticketFormService.parseTicketNote(form, text, null);
 
             log.info("Validation Ticket Form {}", form);
-            botService.validateForm(form);
+            ticketBotService.validateForm(form);
 
-            Ticket ticket = botService.registerForm(
+            Ticket ticket = ticketBotService.registerForm(
                     form.toBuilder()
                             .source(TcSource.fromType(message.getChat().getType()))
                             .senderId(account.getTg().getId())
@@ -101,7 +101,7 @@ public class TicketListener {
     public SendMessage takeTicket(@TgAuth Account account, @Text String text) {
         try {
             log.info("TAKE ACTION BY {}", account.getTg().getId());
-            Ticket ticket = botService.take(text);
+            Ticket ticket = ticketBotService.take(text);
 
             return SendMessage.builder()
                     .chatId(account.getTg().getId())
@@ -131,30 +131,42 @@ public class TicketListener {
                     .getReplyToMessage()
                     .getMessageId();
 
-            confirmRepo.findById(messageId).ifPresent(confirm -> {
+
+            confirmService.findByIdOpt(messageId).ifPresent(confirm -> {
                 log.info("TICKET REOPEN CONFIRMATION -- MESSAGE ID={}", messageId);
-                botService.confirmedClose(messageId, false, text, message.getPhoto());
+                ticketBotService.confirmedClose(messageId, false, text, message.getPhoto());
             });
         }
     }
 
-    @TelegramCommand("/confirm")
-    public void resume(@TgAuth Account account, @Text String text) {
-        if (StringUtils.isNoneBlank(text)) {
-            log.debug("Confirm Pending: {}", text);
-            Optional<TicketConfirm> confirmOpt = confirmRepo.findByValueAndStatus(text, TicketConfirm.POST_PENDING);
-            if (confirmOpt.isPresent()) {
-                boolean ticketExist = queryService.exist(TicketCriteria.builder()
-                        .no(new StringFilter().setEq(text.trim()))
-                        .senderId(new LongFilter().setEq(account.getTg().getId()))
-                        .status(new TcStatusFilter().setEq(TcStatus.PENDING))
-                        .build());
+//    @TelegramCommand("/confirm")
+//    public void resume(@TgAuth Account account, @Text String text) {
+//        if (StringUtils.isNoneBlank(text)) {
+//            log.debug("Confirm Pending: {}", text);
+//            Optional<TicketConfirm> confirmOpt = confirmRepo.findByValueAndStatus(text, TicketConfirm.POST_PENDING);
+//            if (confirmOpt.isPresent()) {
+//                boolean ticketExist = queryService.exist(TicketCriteria.builder()
+//                        .no(new StringFilter().setEq(text.trim()))
+//                        .senderId(new LongFilter().setEq(account.getTg().getId()))
+//                        .status(new TcStatusFilter().setEq(TcStatus.PENDING))
+//                        .build());
+//
+//                if (ticketExist) botService.endPendingEarly(confirmOpt.get().getId(), text);
+//
+//            }
+//            else throw new BadRequestException("Gagal melakukan konfirmasi tiket (konfirmasi tidak ditemukan)");
+//        }
+//    }
 
-                if (ticketExist) botService.endPendingEarly(confirmOpt.get().getId(), text);
+    @TelegramCallbackQuery(AppConstants.Telegram.TICKET_FINISH_PENDING)
+    public void resumePendingTicket(Message message) {
+        int messageId = message.getMessageId();
+        Optional<TicketConfirm> optional = confirmService.findByIdOpt(messageId);
 
-            }
-            else throw new BadRequestException("Gagal melakukan konfirmasi tiket (konfirmasi tidak ditemukan)");
-        }
+        if (optional.isPresent())
+            ticketBotService.endPendingEarly(messageId, optional.get().getValue());
+        else
+            throw new BadRequestException("Tiket dengan status *PENDING* tidak ditemukan!");
     }
 
 //    @TelegramCommand(commands = "/close", description = "close ticket")

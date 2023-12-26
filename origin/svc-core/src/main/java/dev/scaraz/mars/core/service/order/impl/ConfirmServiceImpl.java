@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static dev.scaraz.mars.common.utils.AppConstants.Cache;
@@ -167,8 +168,12 @@ public class ConfirmServiceImpl implements ConfirmService {
 
     @Override
     public TicketConfirm findById(long id) {
-        return repo.findById(id)
-                .orElseThrow();
+        return findByIdOpt(id).orElseThrow();
+    }
+
+    @Override
+    public Optional<TicketConfirm> findByIdOpt(long id) {
+        return repo.findById(id);
     }
 
     @Override
