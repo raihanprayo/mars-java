@@ -67,6 +67,7 @@ public class IssueServiceImpl implements IssueService {
                 .alias(dto.getCode())
                 .product(dto.getProduct())
                 .description(dto.getDescription())
+                .score(dto.getScore())
                 .build();
 
         for (IssueParamDTO param : dto.getParams()) {

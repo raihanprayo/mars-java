@@ -40,7 +40,7 @@ public enum Witel {
                 row = new ArrayList<>();
             }
 
-            String text = witel.name();
+            String text = witel.name().replace("_", " ").toUpperCase();
             if (witel != ROC)
                 text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
 

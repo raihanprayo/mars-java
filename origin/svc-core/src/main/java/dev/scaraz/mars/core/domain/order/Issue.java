@@ -54,7 +54,8 @@ public class Issue extends AuditableEntity {
     private List<IssueParam> params = new ArrayList<>();
 
     @Column
-    private BigDecimal score;
+    @Builder.Default
+    private BigDecimal score = BigDecimal.ZERO;
 
     @Column
     @Builder.Default

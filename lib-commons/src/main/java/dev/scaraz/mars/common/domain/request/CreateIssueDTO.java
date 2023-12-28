@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,9 @@ public class CreateIssueDTO {
 
     @NotNull
     private String description;
+
+    @NotNull
+    private BigDecimal score;
 
     @Builder.Default
     private List<IssueParamDTO> params = new ArrayList<>();

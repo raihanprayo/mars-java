@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.query.criteria;
 
 import dev.scaraz.mars.common.tools.TimestampCriteria;
 import dev.scaraz.mars.common.tools.filter.type.LongFilter;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -16,7 +17,7 @@ public class AgentWorklogCriteria extends TimestampCriteria {
 
     private LongFilter id;
 
-    private LongFilter solution;
+    private StringFilter solution;
 
     private TcStatusFilter takeStatus;
 
