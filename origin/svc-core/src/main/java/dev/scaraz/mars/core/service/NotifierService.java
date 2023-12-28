@@ -100,22 +100,20 @@ public class NotifierService {
         }
     }
 
-    public int sendPendingConfirmation(Ticket ticket, long pendingDurationMinute, TicketStatusFormDTO form) {
+    public int sendPendingConfirmation(Ticket ticket, Duration replyDuration, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(List.of(BTN_PENDING, BTN_PENDING_CLOSE))
                     .build();
 
-            String replyDuration = pendingDurationMinute + " " + Translator.tr("date.minute");
 
-            long pendingMinute = configService.get(ConfigConstants.TG_PENDING_CONFIRMATION_DRT)
-                    .getAsDuration()
-                    .toMinutes();
+            Duration pendingDuration = configService.get(ConfigConstants.TG_PENDING_CONFIRMATION_DRT)
+                    .getAsDuration();
 
-            String pendingDuration = String.format("%s %s",
-                    pendingMinute,
-                    Translator.tr("date.minute")
-            );
+//            String pendingDuration = String.format("%s %s",
+//                    pendingMinute,
+//                    Translator.tr("date.minute")
+//            );
 
             Optional<TicketStatusFormDTO> optForm = Optional.ofNullable(form);
             SendMessage send = SendMessage.builder()
@@ -125,8 +123,8 @@ public class NotifierService {
                     .text(TelegramUtil.esc(Translator.tr(
                             "tg.ticket.pending.confirm",
                             ticket.getNo(),
-                            pendingDuration,
-                            replyDuration,
+                            Util.durationDescribe(pendingDuration),
+                            Util.durationDescribe(replyDuration),
                             optForm.map(TicketStatusFormDTO::getSolution)
                                     .map(solutionQueryService::findById)
                                     .map(Solution::getName)
@@ -144,14 +142,11 @@ public class NotifierService {
         }
     }
 
-    public int sendPostPendingConfirmation(Ticket ticket, Duration duration) {
+    public int sendPostPendingConfirmation(Ticket ticket, Duration replyDuration) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(CONFIRMATION_POST_PENDING)
                     .build();
-
-//            String replyDuration = duration + " " + Translator.tr("date.minute");
-            String replyDuration = Util.durationDescribe(duration);
 
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
@@ -160,7 +155,7 @@ public class NotifierService {
                     .text(TelegramUtil.esc(Translator.tr(
                             "tg.ticket.post.pending.confirm",
                             ticket.getNo(),
-                            replyDuration
+                            Util.durationDescribe(replyDuration)
                     )))
                     .build();
 

@@ -15,8 +15,7 @@ public class DurationSerializer extends JsonSerializer<Duration> {
 
     @Override
     public void serialize(Duration duration, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-        String s = duration.toString();
-        List<Double> result = writeAsArray(s);
+        List<Double> result = writeAsArray(duration);
 
         log.debug("Duration origin: {}", duration);
         log.debug("Duration parsed: {}", result);
@@ -28,7 +27,7 @@ public class DurationSerializer extends JsonSerializer<Duration> {
         );
     }
 
-    private List<Double> writeAsArray(String duration) {
+    private List<Double> writeAsArray(Duration duration) {
         List<Double> result = new ArrayList<>(List.of(
                 0d,
                 0d,
@@ -36,7 +35,7 @@ public class DurationSerializer extends JsonSerializer<Duration> {
                 0d
         ));
 
-        String text = duration.replaceAll("[PT]", "")
+        String text = duration.toString().replaceAll("[PT]", "")
                 .toLowerCase();
         int length = text.length();
 

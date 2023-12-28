@@ -96,7 +96,7 @@ public class PendingFlowService {
         Duration duration = configService.get(ConfigConstants.TG_CONFIRMATION_DRT)
                 .getAsDuration();
 
-        int messageId = notifierService.sendPendingConfirmation(ticket, duration.toMinutes(), form);
+        int messageId = notifierService.sendPendingConfirmation(ticket, duration, form);
         ticket.setStatus(TcStatus.CONFIRMATION);
         ticket.setConfirmMessageId((long) messageId);
 
