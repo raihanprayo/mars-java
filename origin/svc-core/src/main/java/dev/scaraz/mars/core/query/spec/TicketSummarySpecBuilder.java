@@ -1,9 +1,12 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
+import dev.scaraz.mars.core.domain.order.AgentWorkspace_;
+import dev.scaraz.mars.core.domain.order.Agent_;
 import dev.scaraz.mars.core.domain.order.Issue_;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.domain.view.TicketSummary_;
+import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import org.springframework.data.jpa.domain.Specification;
@@ -36,6 +39,14 @@ public class TicketSummarySpecBuilder extends AuditableSpec<TicketSummary, Ticke
             if (criteria.getIssue() != null) {
                 IssueCriteria issue = criteria.getIssue();
                 chain.pick(issue.getId(), r -> r.get(TicketSummary_.issue).get(Issue_.id));
+            }
+
+            if (criteria.getWorkspace() != null) {
+                AgentWorkspaceCriteria workspace = criteria.getWorkspace();
+                chain.pick(workspace.getUserId(), r -> r.join(TicketSummary_.workspaces)
+                        .get(AgentWorkspace_.agent)
+                        .get(Agent_.userId)
+                );
             }
         }
 

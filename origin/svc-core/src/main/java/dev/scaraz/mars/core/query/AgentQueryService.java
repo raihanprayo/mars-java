@@ -9,6 +9,7 @@ import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface AgentQueryService extends BaseQueryService<Agent, AgentCriteria> {
 
@@ -23,6 +24,10 @@ public interface AgentQueryService extends BaseQueryService<Agent, AgentCriteria
     List<AgentWorklog> findWorklogsByTicketIdOrNo(String ticketIdOrNo);
 
     AgentWorkspace getLastWorkspace(String ticketId) throws BadRequestException, NotFoundException;
+
+    AgentWorkspace getLastWorkspace(String ticketId, boolean bypass);
+
+    Optional<AgentWorkspace> getLastWorkspaceOptional(String ticketId);
 
     boolean isWorkInProgress(String ticketId);
 }

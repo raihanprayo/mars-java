@@ -44,7 +44,6 @@ public class UserResource {
     private final AccountApprovalRepo accountApprovalRepo;
 
     @GetMapping
-    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "false") boolean plain,
             @RequestParam(defaultValue = "false") boolean mapped,

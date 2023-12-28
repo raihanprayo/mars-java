@@ -41,7 +41,10 @@ public class CacheConfiguration {
 
             listeners.stream().filter(lst -> lst.getNamespace().equals(ns))
                     .findFirst()
-                    .ifPresent(listener -> listener.onExpired(suffix));
+                    .ifPresent(listener -> {
+                        log.info("Expired Cache Key: {}", key);
+                        listener.onExpired(suffix);
+                    });
         }, new PatternTopic("__keyevent@*__:expired"));
         return container;
     }

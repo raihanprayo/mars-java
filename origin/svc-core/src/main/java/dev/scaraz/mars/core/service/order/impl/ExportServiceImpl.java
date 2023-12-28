@@ -1,9 +1,12 @@
 package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
+import dev.scaraz.mars.common.utils.Util;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
@@ -12,12 +15,14 @@ import dev.scaraz.mars.core.service.order.ExportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 
@@ -30,7 +35,10 @@ public class ExportServiceImpl implements ExportService {
     private final TicketSummaryQueryService ticketSummaryQueryService;
     private final StorageService storageService;
 
+    private final AccountQueryService accountQueryService;
+
     @Override
+    @Transactional(readOnly = true)
     public File exportToCSV(TicketSummaryCriteria criteria) throws IOException {
         List<TicketSummary> all = ticketSummaryQueryService.findAll(criteria);
 
@@ -38,8 +46,11 @@ public class ExportServiceImpl implements ExportService {
         List<String> rows = new ArrayList<>();
         rows.add(String.join(";", CSV_HEADER));
 
+        Map<String, Account> accounts = accountQueryService.findAll().stream()
+                .collect(Collectors.toMap(Account::getNik, a -> a));
+
         for (TicketSummary s : all) {
-            AgentWorkspace workspace = agentQueryService.getLastWorkspace(s.getId());
+            log.debug("Export {} / {}", s.getId(), s.getWorkspaces());
             List<String> row = new ArrayList<>();
 
             row.add(s.getNo());
@@ -50,25 +61,38 @@ public class ExportServiceImpl implements ExportService {
             row.add(s.getServiceNo());
             row.add(s.getSource().name());
             row.add(s.isGaul() ? "Y" : "N");
-            row.add(s.getAge().getAge().toString());
+            row.add(Util.durationDescribe(s.getAge().getAge()));
             row.add(s.getSenderName());
             row.add(s.getIssue().getName());
             row.add(s.getProduct().name());
 
-            Optional<AgentWorklog> lastWorklog = workspace.getLastWorklog();
-            if (lastWorklog.isPresent()) {
-                AgentWorklog worklog = lastWorklog.get();
-                row.add(worklog.getSolution());
-                row.add(worklog.getMessage());
+            Optional<AgentWorkspace> workspaceOpt = agentQueryService.getLastWorkspaceOptional(s.getId());
+            if (workspaceOpt.isPresent()) {
+                Optional<AgentWorklog> lastWorklog = workspaceOpt.get().getLastWorklog();
+                if (lastWorklog.isPresent()) {
+                    AgentWorklog worklog = lastWorklog.get();
+                    row.add(worklog.getSolution());
+                    row.add(worklog.getMessage());
+                }
+                else {
+                    row.add(null);
+                    row.add(null);
+                }
             }
             else {
                 row.add(null);
                 row.add(null);
             }
 
-            row.add(s.getCreatedBy());
+//            row.add(s.getCreatedBy());
+            row.add(Optional.ofNullable(s.getCreatedBy())
+                    .map(nik -> accounts.get(nik).getName())
+                    .orElse("-"));
             row.add(s.getCreatedAt().atZone(ZONE_LOCAL).format(format));
-            row.add(Objects.requireNonNullElse(s.getUpdatedBy(), "-"));
+
+            row.add(Optional.ofNullable(s.getUpdatedBy())
+                    .map(nik -> accounts.get(nik).getName())
+                    .orElse("-"));
             row.add(Optional.ofNullable(s.getUpdatedAt())
                     .map(t -> t.atZone(ZONE_LOCAL).format(format))
                     .orElse("-"));
@@ -101,9 +125,11 @@ public class ExportServiceImpl implements ExportService {
             "Requestor",
             "Isu/Masalah",
             "Produk",
+            "Solusi",
+            "Pesan",
             "Dibuat Oleh",
             "Tgl Dibuat",
             "Diubah Oleh",
-            "Tgl Diubah"
+            "Tgl Diubah",
     };
 }

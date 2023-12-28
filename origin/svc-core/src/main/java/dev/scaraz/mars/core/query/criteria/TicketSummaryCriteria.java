@@ -36,6 +36,8 @@ public class TicketSummaryCriteria extends AuditableCriteria {
 
     private IssueCriteria issue;
 
+    private AgentWorkspaceCriteria workspace;
+
     public TicketSummaryCriteria copy() {
         return TicketSummaryCriteria.builder()
                 .id(id)

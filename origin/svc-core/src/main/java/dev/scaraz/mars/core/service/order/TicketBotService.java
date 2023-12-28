@@ -39,6 +39,7 @@ public interface TicketBotService {
     void confirmedPending(long messageId, boolean pendingTicket);
 
     void confirmedPostPending(long messageId, String text, @Nullable Collection<PhotoSize> photos);
+    void confirmedPostPendingConfirmation(long messageId, boolean agree, String text, @Nullable Collection<PhotoSize> photos);
 
 
     void endPendingEarly(long messageId, String ticketNo);

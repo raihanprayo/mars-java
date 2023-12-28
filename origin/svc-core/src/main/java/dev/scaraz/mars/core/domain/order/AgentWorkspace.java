@@ -10,7 +10,6 @@ import java.util.*;
 
 @Getter
 @Setter
-@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,16 +28,16 @@ public class AgentWorkspace extends TimestampEntity {
 
     @ManyToOne
     @JsonIgnore
-    @ToString.Exclude
+//    @ToString.Exclude
     @JoinColumn(name = "ref_ticket_id", updatable = false)
     private Ticket ticket;
 
     @ManyToOne
-    @ToString.Exclude
+//    @ToString.Exclude
     @JoinColumn(name = "ref_agent_id", updatable = false)
     private Agent agent;
 
-    @ToString.Exclude
+//    @ToString.Exclude
     @Builder.Default
     @OrderBy("id ASC")
     @OneToMany(mappedBy = "workspace", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
@@ -51,4 +50,13 @@ public class AgentWorkspace extends TimestampEntity {
         return Optional.ofNullable(wls.get(worklogs.size() - 1));
     }
 
+    @Override
+    public String toString() {
+        return "AgentWorkspace{" +
+                "id=" + id +
+                ", status=" + status +
+                ", ticket=" + ticket.getId() +
+                ", agent=" + agent.getId() +
+                '}';
+    }
 }

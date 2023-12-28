@@ -223,8 +223,8 @@ public class AppListener {
             ticketBotService.confirmedPostPending(messageId, null, null);
         }
         else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING_CONFIRMATION)) {
-            log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", TicketConfirm.POST_PENDING_CONFIRMATION, messageId, agree);
-            ticketBotService.confirmedPostPending(messageId, null, null);
+            log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", TicketConfirm.POST_PENDING_CONFIRMATION, messageId, agree);
+            ticketBotService.confirmedPostPendingConfirmation(messageId, agree, null, null);
         }
         else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_NETWORK)) {
             log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);

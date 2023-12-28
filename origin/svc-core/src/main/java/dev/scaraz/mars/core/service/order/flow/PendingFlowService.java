@@ -325,4 +325,97 @@ public class PendingFlowService {
         return service.save(ticket);
     }
 
+    public Ticket confirmPostPendingConfirmation(String ticketNo, TicketStatusFormDTO form) {
+        Ticket ticket = queryService.findByIdOrNo(ticketNo);
+        TcStatus prevStatus = ticket.getStatus();
+
+        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
+        Agent agent = workspace.getAgent();
+
+        log.info("CONFIRM POST PENDING: {}", ticketNo);
+        // Requestor menjawab belum
+        if (form.getStatus() == TcStatus.REOPEN) {
+            ticket.setStatus(TcStatus.REOPEN);
+            ticket.setConfirmMessageId(null);
+
+            String reopenDesc = StringUtils.isNoneBlank(form.getNote()) ?
+                    form.getNote() :
+                    "<no description>";
+
+            AgentWorklog worklog = agentService.save(AgentWorklog.builder()
+                    .workspace(workspace)
+                    .takeStatus(TcStatus.REOPEN)
+                    .reopenMessage(reopenDesc)
+                    .build());
+
+            logTicketService.add(LogTicket.builder()
+                    .ticket(ticket)
+                    .prev(prevStatus)
+                    .curr(ticket.getStatus())
+                    .message(LogTicketService.LOG_REOPEN)
+                    .build());
+
+            notifierService.safeSend(
+                    agent.getTelegramId(),
+                    "tg.ticket.confirm.reopen.agent",
+                    ticket.getNo(),
+                    reopenDesc);
+
+            if (form.getPhotos() != null) {
+                storageService.addTelegramAssets(ticket, worklog, form.getPhotos(), "requestor");
+            }
+        }
+        // Requestor menjawab sudah
+        else {
+            ticket.setConfirmMessageId(null);
+
+            String logMessage;
+            if (TelegramContextHolder.hasContext()) {
+                ticket.setStatus(TcStatus.REOPEN);
+                logMessage = LogTicketService.LOG_CONFIRMED_CLOSE;
+
+                agentService.save(AgentWorklog.builder()
+                        .workspace(workspace)
+                        .takeStatus(TcStatus.REOPEN)
+                        .reopenMessage("(system) " + logMessage)
+                        .build());
+
+                Optional<Account> userOpt = accountQueryService.findByIdOpt(agent.getUserId());
+                notifierService.sendRaw(ticket.getSenderId(),
+                        "Tiket: *" + ticketNo + "*: ",
+                        "",
+                        "Sebelum penutupan tiket, agent akan melakukan beberapa pengecekan",
+                        String.format("Harap segera mengkonfirmasi jika nantinya ada chat mengenai penutupan tiket *%s*", ticketNo)
+                );
+
+                if (userOpt.isPresent()) {
+                    notifierService.safeSend(
+                            agent.getTelegramId(),
+                            "tg.ticket.confirm.reopen-pending.agent",
+                            ticket.getNo()
+                    );
+                }
+            }
+            else {
+                ticket.setStatus(TcStatus.CLOSED);
+                logMessage = LogTicketService.LOG_AUTO_CLOSE;
+                notifierService.send(ticket.getSenderId(),
+                        "tg.ticket.confirm.auto-closed",
+                        ticket.getNo());
+                workspace.setStatus(AgStatus.CLOSED);
+            }
+
+            agentService.save(workspace);
+
+            logTicketService.add(LogTicket.builder()
+                    .ticket(ticket)
+                    .prev(prevStatus)
+                    .curr(ticket.getStatus())
+                    .message(logMessage)
+                    .build());
+        }
+
+        return service.save(ticket);
+    }
+
 }

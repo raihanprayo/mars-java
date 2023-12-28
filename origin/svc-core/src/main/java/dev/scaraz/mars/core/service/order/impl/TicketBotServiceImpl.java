@@ -253,8 +253,25 @@ public class TicketBotServiceImpl implements TicketBotService {
                 .note(text)
                 .build();
 
-        if (photos != null && !photos.isEmpty()) form.setPhotos(new ArrayList<>(photos));
+        if (photos != null && !photos.isEmpty())
+            form.setPhotos(new ArrayList<>(photos));
+
         pendingFlowService.confirmPostPending(confirmData.getValue(), form);
+        confirmService.deleteById(messageId);
+    }
+
+    @Override
+    public void confirmedPostPendingConfirmation(long messageId, boolean agree, @Nullable String text, @Nullable Collection<PhotoSize> photos) {
+        TicketConfirm confirmData = confirmService.findById(messageId);
+        TicketStatusFormDTO form = TicketStatusFormDTO.builder()
+                .status(text == null ? TcStatus.CLOSED : TcStatus.REOPEN)
+                .note(text)
+                .build();
+
+        if (photos != null && !photos.isEmpty())
+            form.setPhotos(new ArrayList<>(photos));
+
+        pendingFlowService.confirmPostPendingConfirmation(confirmData.getValue(), form);
         confirmService.deleteById(messageId);
     }
 

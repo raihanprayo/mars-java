@@ -10,6 +10,8 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -70,20 +72,25 @@ public class Util {
         String text = duration.toString();
         Matcher matcher = DURATION_PATTERN.matcher(text);
 
+
         String[] units = {"date.day", "date.hour", "date.minute", "date.second"};
         String[] converted = new String[units.length];
+
+        BiFunction<String, Integer, String> formatter = (s,i) ->
+                converted[i] = String.format("%s %s", (long) Double.parseDouble(s.replaceAll("[a-zA-Z]", "")), Translator.tr(units[i]));;
+
         for (String s : text.replaceAll("[PTpt]", " ").trim().replaceAll("([HMShms])", "$1 ").trim().split(" ")) {
             if (StringUtils.isBlank(s)) continue;
 
             s = s.toUpperCase();
             if (s.endsWith("D"))
-                converted[0] = String.format("%s %s", s.replace("D", ""), Translator.tr(units[0]));
+                formatter.apply(s, 0);
             else if (s.endsWith("H"))
-                converted[1] = String.format("%s %s", s.replace("H", ""), Translator.tr(units[1]));
+                formatter.apply(s, 1);
             else if (s.endsWith("M"))
-                converted[2] = String.format("%s %s", s.replace("M", ""), Translator.tr(units[2]));
+                formatter.apply(s, 2);
             else if (s.endsWith("S"))
-                converted[3] = String.format("%s %s", s.replace("S", ""), Translator.tr(units[3]));
+                formatter.apply(s, 3);
         }
 
         return Arrays.stream(converted)

@@ -69,7 +69,7 @@ public class ConfirmServiceImpl implements ConfirmService {
                     pendingFlowService.askPostPending(confirm.getValue());
                     break;
                 case TicketConfirm.POST_PENDING_CONFIRMATION:
-                    pendingFlowService.confirmPostPending(confirm.getValue(), new TicketStatusFormDTO());
+                    pendingFlowService.confirmPostPendingConfirmation(confirm.getValue(), new TicketStatusFormDTO());
                     break;
             }
         }
