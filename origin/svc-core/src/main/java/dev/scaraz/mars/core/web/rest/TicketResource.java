@@ -2,8 +2,10 @@ package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.domain.response.UserContactDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -77,6 +79,13 @@ public class TicketResource {
         else {
             HttpHeaders headers = new HttpHeaders();
             attachProductCountHeader(headers, criteria.copy(), true);
+
+            if (criteria.getStatus() == null) {
+                criteria.setStatus(new TcStatusFilter()
+                        .setIn(List.of(TcStatus.CLOSED))
+                        .setNegated(true)
+                );
+            }
 
             Page<TicketSummary> page = summaryQueryService.findAll(criteria, pageable);
             return ResourceUtil.pagination(page, headers, "/api/ticket/inbox");

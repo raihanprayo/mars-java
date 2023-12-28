@@ -1,14 +1,14 @@
 package dev.scaraz.mars.core.web.rest;
 
+import dev.scaraz.mars.common.utils.Util;
 import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.Duration;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -20,12 +20,9 @@ public class AppResource {
     private final AccountQueryService queryService;
 
     @GetMapping("/test")
-    public ResponseEntity<?> testRoute(UserCriteria criteria) {
-        log.info("CRITERIA {}", criteria);
-        return new ResponseEntity<>(
-                queryService.findAll(criteria),
-                HttpStatus.OK
-        );
+    public void testRoute() {
+        Duration duration = Duration.ofHours(1);
+        log.debug("{}", Util.durationDescribe(duration));
     }
 
 }

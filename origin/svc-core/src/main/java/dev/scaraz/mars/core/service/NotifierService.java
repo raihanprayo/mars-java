@@ -60,13 +60,13 @@ public class NotifierService {
                 username);
     }
 
-    public int sendCloseConfirmation(Ticket ticket, long closeDurationMinute, TicketStatusFormDTO form) {
+    public int sendCloseConfirmation(Ticket ticket, Duration duration, TicketStatusFormDTO form) {
         try {
             InlineKeyboardMarkup markup = InlineKeyboardMarkup.builder()
                     .keyboardRow(List.of(BTN_AGREE))
                     .build();
 
-            String expireMinute = closeDurationMinute + " " + Translator.tr("date.minute");
+            String expired = Util.durationDescribe(duration);
             Optional<TicketStatusFormDTO> optForm = Optional.ofNullable(form);
             SendMessage send = SendMessage.builder()
                     .chatId(ticket.getSenderId())
@@ -88,7 +88,7 @@ public class NotifierService {
                                     .orElse("-"),
                             "",
                             "_*Balas pesan ini dengan mengreply command /reopen dan tambahkan deskripsi jika diperlukan, atau menekan tombol yang disediakan.\n",
-                            "Jika dalam " + expireMinute + " tidak ada respon, tiket akan close secara otomatis*_"
+                            "Jika dalam " + expired + " tidak ada respon, tiket akan close secara otomatis*_"
                     ))
                     .build();
 
