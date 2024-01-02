@@ -54,7 +54,7 @@ public class ForgotPasswordService {
     public ForgotPassword generate(ForgotReqDTO.Send send, Account account) {
         Optional<ForgotPassword> fpOpt = repo.findById(account.getId());
         if (fpOpt.isEmpty()) {
-            Duration expDuration = Duration.of(2, ChronoUnit.HOURS);
+            Duration expDuration = Duration.of(10, ChronoUnit.MINUTES);
 
             Instant iss = Instant.now();
             Instant expired = iss.plus(expDuration);
@@ -73,6 +73,7 @@ public class ForgotPasswordService {
                         .uid(account.getId())
                         .token(ffs.getToken())
                         .otp(otp)
+                        .expiredAt(ffs.getExpiredAt().toEpochMilli())
                         .ttl(expDuration.getSeconds())
                         .build());
             }
@@ -134,7 +135,6 @@ public class ForgotPasswordService {
             return false;
         }
     }
-
 
 
     @Transactional

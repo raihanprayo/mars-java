@@ -259,6 +259,7 @@ public class AuthServiceImpl implements AuthService {
             return ForgotResDTO.builder()
                     .token(fp.getToken())
                     .length(fp.getOtp().length())
+                    .expiredAt(fp.getExpiredAt())
                     .next(ForgotReqDTO.State.VALIDATE)
                     .build();
         }

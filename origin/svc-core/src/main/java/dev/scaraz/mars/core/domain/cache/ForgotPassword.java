@@ -21,6 +21,8 @@ public class ForgotPassword {
     private String token;
     private String otp;
 
+    private long expiredAt;
+
     @TimeToLive
     private long ttl;
 
