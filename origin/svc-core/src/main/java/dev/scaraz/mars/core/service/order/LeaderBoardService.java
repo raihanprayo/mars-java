@@ -7,11 +7,16 @@ import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
+import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
 import dev.scaraz.mars.core.query.AccountQueryService;
+import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.criteria.*;
+import dev.scaraz.mars.core.query.criteria.LeaderBoardCriteria;
+import dev.scaraz.mars.core.query.criteria.RoleCriteria;
+import dev.scaraz.mars.core.query.criteria.SolutionCriteria;
+import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.query.spec.LeaderBoardSpecBuilder;
 import dev.scaraz.mars.core.repository.db.view.LeaderBoardFragmentRepo;
 import dev.scaraz.mars.core.service.ConfigService;
@@ -42,6 +47,8 @@ public class LeaderBoardService {
     private final LeaderBoardFragmentRepo repo;
     private final LeaderBoardSpecBuilder specBuilder;
 
+    private final SolutionQueryService solutionQueryService;
+
     public List<LeaderBoardDTO> getLeaderboard(LeaderBoardCriteria criteria) {
         List<Account> accounts = accountQueryService.findAll(UserCriteria.builder()
                 .name(criteria.getName())
@@ -54,10 +61,19 @@ public class LeaderBoardService {
         List<Long> solutionsId = configService.get(ConfigConstants.APP_SOLUTION_REPORT_EXCLUDE_LIST)
                 .getAsLongList();
 
-        if (solutionsId != null)
-            criteria.setSolution(new LongFilter()
+        if (solutionsId != null && !solutionsId.isEmpty()) {
+
+            List<String> solutions = solutionQueryService.findAll(SolutionCriteria.builder()
+                    .id(new LongFilter().setIn(solutionsId))
+                    .build())
+                    .stream()
+                    .map(Solution::getName)
+                    .collect(Collectors.toList());
+
+            criteria.setSolution(new StringFilter()
                     .setNegated(true)
-                    .setIn(solutionsId));
+                    .setIn(solutions));
+        }
 
         return accounts.stream()
                 .map(this.getLeaderBoard(criteria))

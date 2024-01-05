@@ -6,6 +6,7 @@ import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.LogTicket;
@@ -14,13 +15,16 @@ import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
+import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.repository.db.order.TicketRepo;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketService;
+import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,10 +47,13 @@ import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 @Service
 public class TicketServiceImpl implements TicketService {
 
+    private final ApplicationContext applicationContext;
+
     private final MarsProperties marsProperties;
     private final AccountQueryService accountQueryService;
 
     private final TicketRepo repo;
+    private final TicketConfirmRepo ticketConfirmRepo;
 
     private final TicketQueryService queryService;
 
@@ -160,6 +167,28 @@ public class TicketServiceImpl implements TicketService {
             }
 
             return tmpFile;
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public void resendPending() {
+        List<Ticket> tickets = queryService.findAll(TicketCriteria.builder()
+                .status(new TcStatusFilter().setIn(List.of(TcStatus.PENDING)))
+                .build());
+
+        for (Ticket ticket : tickets) {
+            log.info("- Check Ticket NO {}", ticket.getNo());
+            if (!ticketConfirmRepo.existsByValueIgnoreCase(ticket.getNo())) {
+                try {
+                    applicationContext.getBean(PendingFlowService.class)
+                            .askPostPending(ticket.getNo());
+                }
+                catch (Exception ex) {
+
+                }
+            }
         }
     }
 

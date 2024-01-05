@@ -12,6 +12,8 @@ public interface TicketConfirmRepo extends JpaRepository<TicketConfirm, Long> {
 
     Optional<TicketConfirm> findByValueAndStatus(String value, String status);
 
+    boolean existsByValueIgnoreCase(String value);
+
     boolean existsByIdAndStatusIn(long messageId, Collection<String> statuses);
     boolean existsByIdAndStatus(long messageId, String status);
 

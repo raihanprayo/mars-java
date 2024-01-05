@@ -92,6 +92,11 @@ public class TicketResource {
         }
     }
 
+    @GetMapping("/resend/pending")
+    public void fixPendingTickets() {
+        service.resendPending();
+    }
+
     @GetMapping("/detail/{ticketIdOrNo}")
     public ResponseEntity<?> findById(@PathVariable String ticketIdOrNo) {
         TicketSummary ticket = summaryQueryService.findByIdOrNo(ticketIdOrNo);

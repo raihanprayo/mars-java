@@ -44,7 +44,7 @@ public class NotifierService {
 //    private final AppConfigService appConfigService;
     private final ConfigService configService;
 
-//    @Lazy
+    //    @Lazy
 //    private final SolutionRepo solutionRepo;
     private final SolutionQueryService solutionQueryService;
 
@@ -96,6 +96,7 @@ public class NotifierService {
             return msg.getMessageId();
         }
         catch (TelegramApiException ex) {
+            log.error("TelegramApiException:", ex);
             throw InternalServerException.args(ex, "error.unable.to.notify.user");
         }
     }
@@ -138,6 +139,7 @@ public class NotifierService {
             return msg.getMessageId();
         }
         catch (TelegramApiException ex) {
+            log.error("TelegramApiException:", ex);
             throw InternalServerException.args(ex, "error.unable.to.notify.user");
         }
     }
@@ -163,6 +165,7 @@ public class NotifierService {
             return msg.getMessageId();
         }
         catch (TelegramApiException ex) {
+            log.error("TelegramApiException:", ex);
             throw InternalServerException.args(ex, "error.unable.to.notify.user");
         }
     }
@@ -185,6 +188,7 @@ public class NotifierService {
                     .getMessageId();
         }
         catch (TelegramApiException ex) {
+            log.error("TelegramApiException:", ex);
             throw InternalServerException.args(ex, "error.unable.to.notify.user");
         }
     }
@@ -204,6 +208,7 @@ public class NotifierService {
 //            throw InternalServerException.args(ex, "error.unable.to.notify.user");
 //        }
     }
+
     public int sendRaw(long telegramId, ReplyKeyboard keyboard, String... messages) {
         try {
             log.info("SENDING MESSAGE TO TELEGRAM USER {}", telegramId);
@@ -216,6 +221,7 @@ public class NotifierService {
                     .getMessageId();
         }
         catch (TelegramApiException ex) {
+            log.error("TelegramApiException:", ex);
             throw InternalServerException.args(ex, "error.unable.to.notify.user");
         }
     }

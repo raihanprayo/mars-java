@@ -18,4 +18,7 @@ public interface TicketService {
     Ticket create(TicketDashboardForm form);
 
     File report(TicketCriteria criteria) throws IOException;
+
+    @Transactional
+    void resendPending();
 }

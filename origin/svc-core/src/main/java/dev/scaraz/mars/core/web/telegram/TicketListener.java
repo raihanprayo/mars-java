@@ -4,11 +4,17 @@ import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.TcSource;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.LongFilter;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.query.TicketQueryService;
+import dev.scaraz.mars.core.query.criteria.TicketCriteria;
+import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.ConfirmService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketFormService;
@@ -34,10 +40,11 @@ import java.util.Optional;
 public class TicketListener {
 
     private final TicketBotService ticketBotService;
-//    private final TicketConfirmRepo ticketConfirmRepo;
+    private final TicketConfirmRepo ticketConfirmRepo;
 
     private final TicketFormService ticketFormService;
     private final TicketQueryService ticketQueryService;
+
 
     private final ConfirmService confirmService;
 
@@ -140,33 +147,29 @@ public class TicketListener {
     }
 
 //    @TelegramCommand("/confirm")
-//    public void resume(@TgAuth Account account, @Text String text) {
-//        if (StringUtils.isNoneBlank(text)) {
-//            log.debug("Confirm Pending: {}", text);
-//            Optional<TicketConfirm> confirmOpt = confirmRepo.findByValueAndStatus(text, TicketConfirm.POST_PENDING);
-//            if (confirmOpt.isPresent()) {
-//                boolean ticketExist = queryService.exist(TicketCriteria.builder()
-//                        .no(new StringFilter().setEq(text.trim()))
-//                        .senderId(new LongFilter().setEq(account.getTg().getId()))
-//                        .status(new TcStatusFilter().setEq(TcStatus.PENDING))
-//                        .build());
-//
-//                if (ticketExist) botService.endPendingEarly(confirmOpt.get().getId(), text);
-//
-//            }
-//            else throw new BadRequestException("Gagal melakukan konfirmasi tiket (konfirmasi tidak ditemukan)");
-//        }
-//    }
+    public void resume(@TgAuth Account account, @Text String text) {
+        if (StringUtils.isNoneBlank(text)) {
+            log.debug("Confirm Pending: {}", text);
+            Optional<TicketConfirm> confirmOpt = ticketConfirmRepo.findByValueAndStatus(text, TicketConfirm.POST_PENDING);
+            if (confirmOpt.isPresent()) {
+                boolean ticketExist = ticketQueryService.exist(TicketCriteria.builder()
+                        .no(new StringFilter().setEq(text.trim()))
+                        .senderId(new LongFilter().setEq(account.getTg().getId()))
+                        .status(new TcStatusFilter().setEq(TcStatus.PENDING))
+                        .build());
+
+                if (ticketExist) ticketBotService.endPendingEarly(confirmOpt.get().getId(), text);
+
+            }
+            else throw new BadRequestException("Gagal melakukan konfirmasi tiket (konfirmasi tidak ditemukan)");
+        }
+    }
 
     @TelegramCallbackQuery(AppConstants.Telegram.TICKET_FINISH_PENDING)
     public void resumePendingTicket(Message message) {
         int messageId = message.getMessageId();
-        Optional<TicketConfirm> optional = confirmService.findByIdOpt(messageId);
-
-        if (optional.isPresent())
-            ticketBotService.endPendingEarly(messageId, optional.get().getValue());
-        else
-            throw new BadRequestException("Tiket dengan status *PENDING* tidak ditemukan!");
+        confirmService.findByIdOpt(messageId)
+                .ifPresent(ticketConfirm -> ticketBotService.endPendingEarly(messageId, ticketConfirm.getValue()));
     }
 
 //    @TelegramCommand(commands = "/close", description = "close ticket")

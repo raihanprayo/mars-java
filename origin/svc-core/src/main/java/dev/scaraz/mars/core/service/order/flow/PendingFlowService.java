@@ -211,6 +211,7 @@ public class PendingFlowService {
     }
 
     @Async
+    @Transactional
     public void confirmPendingAsync(String ticketIdOrNo, boolean doPending, TicketStatusFormDTO form) {
         confirmPending(ticketIdOrNo, doPending, form);
     }

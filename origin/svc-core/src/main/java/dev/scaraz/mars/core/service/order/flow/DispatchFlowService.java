@@ -60,9 +60,9 @@ public class DispatchFlowService {
                 worklog.setSolution(solution.getName());
             }
 
-            agentService.save(workspace);
             storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());
         });
+        agentService.save(workspace);
 
 //        if (form.getFiles() != null)
 //            storageService.addPhotoForAgentAsync(ticket, agent, List.of(form.getFiles()));
@@ -70,7 +70,7 @@ public class DispatchFlowService {
         ticket.setStatus(TcStatus.DISPATCH);
 
         log.info("NOTIFY SENDER -- ID {}", ticket.getSenderId());
-        notifierService.send(ticket.getSenderId(),
+        notifierService.safeSend(ticket.getSenderId(),
                 "tg.ticket.update.dispatch",
                 ticket.getNo());
 

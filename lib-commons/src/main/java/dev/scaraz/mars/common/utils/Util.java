@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -77,7 +76,10 @@ public class Util {
         String[] converted = new String[units.length];
 
         BiFunction<String, Integer, String> formatter = (s,i) ->
-                converted[i] = String.format("%s %s", (long) Double.parseDouble(s.replaceAll("[a-zA-Z]", "")), Translator.tr(units[i]));;
+                converted[i] = String.format("%s %s",
+                        (long) Double.parseDouble(s.replaceAll("[a-zA-Z]", "")),
+                        Translator.tr(units[i])
+                );
 
         for (String s : text.replaceAll("[PTpt]", " ").trim().replaceAll("([HMShms])", "$1 ").trim().split(" ")) {
             if (StringUtils.isBlank(s)) continue;

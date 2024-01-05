@@ -26,7 +26,7 @@ public class LeaderBoardFragment {
     private long id;
 
     @Column(name = "solution_id")
-    private Long solution;
+    private String solution;
 
     @ManyToOne
     @JoinColumn(name = "ticket_id")
