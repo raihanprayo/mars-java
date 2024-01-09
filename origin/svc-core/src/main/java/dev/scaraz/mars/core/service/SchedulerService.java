@@ -98,11 +98,18 @@ public class SchedulerService {
 
         for (Ticket ticket : tickets) {
             log.info("- Check Ticket NO {}", ticket.getNo());
-            if (ticketConfirmRepo.existsByValueIgnoreCase(ticket.getNo())) {
-                continue;
-            }
+            try {
+                if (ticketConfirmRepo.existsByValueIgnoreCase(ticket.getNo())) {
+                    log.info("-- Skip Check PENDING Ticket - {}", ticket.getNo());
+                    continue;
+                }
 
-            pendingFlowService.askPostPending(ticket.getNo());
+                log.info("- Send PostPending Confirmation - {}", ticket.getNo());
+                pendingFlowService.askPostPending(ticket.getNo());
+            }
+            catch (Exception ex) {
+                log.error("Failed check PENDING ticket - {}", ticket.getNo(), ex);
+            }
         }
     }
 

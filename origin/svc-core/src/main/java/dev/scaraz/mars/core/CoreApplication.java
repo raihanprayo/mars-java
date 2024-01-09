@@ -2,6 +2,7 @@ package dev.scaraz.mars.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
+import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
 import dev.scaraz.mars.core.service.Initializer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,5 +62,7 @@ public class CoreApplication implements CommandLineRunner {
             initializer.importRolesAndAdminAccount();
             initializer.importSto();
         }
+
+        applicationEventPublisher.publishEvent(new RefreshIssueInlineButtons());
     }
 }

@@ -84,14 +84,15 @@ public class ExportServiceImpl implements ExportService {
                 row.add(null);
             }
 
-//            row.add(s.getCreatedBy());
             row.add(Optional.ofNullable(s.getCreatedBy())
-                    .map(nik -> accounts.get(nik).getName())
+                    .map(accounts::get)
+                    .map(Account::getName)
                     .orElse("-"));
             row.add(s.getCreatedAt().atZone(ZONE_LOCAL).format(format));
 
             row.add(Optional.ofNullable(s.getUpdatedBy())
-                    .map(nik -> accounts.get(nik).getName())
+                    .map(accounts::get)
+                    .map(Account::getName)
                     .orElse("-"));
             row.add(Optional.ofNullable(s.getUpdatedAt())
                     .map(t -> t.atZone(ZONE_LOCAL).format(format))
