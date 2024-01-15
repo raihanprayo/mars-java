@@ -376,7 +376,9 @@ public class TicketBotServiceImpl implements TicketBotService {
                         buttons.add(row);
                     }
 
-                    row.add(defined.get(i));
+                    InlineKeyboardButton e = defined.get(i);
+                    log.debug("Issue Inline Button: {}", e);
+                    row.add(e);
                 }
 
                 if (row.size() < colCount) {

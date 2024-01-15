@@ -1,5 +1,6 @@
 package dev.scaraz.mars.common.tools.enums;
 
+import dev.scaraz.mars.common.exception.web.BadRequestException;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.util.ArrayList;
@@ -41,8 +42,19 @@ public enum Witel {
             }
 
             String text = witel.name().replace("_", " ").toUpperCase();
-            if (witel != ROC)
-                text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+            switch (witel) {
+                case ROC:
+                    break;
+                case ROC_TIAL:
+                    text = "ROC Tial";
+                    break;
+                case ROC_VOICE:
+                    text = "ROC Voice";
+                    break;
+                default:
+                    text = text.substring(0, 1).toUpperCase() + text.substring(1).toLowerCase();
+                    break;
+            }
 
             row.add(InlineKeyboardButton.builder()
                     .text(text)
@@ -55,9 +67,11 @@ public enum Witel {
 
 
     public static Witel fromCallbackData(String callbackData) throws IllegalArgumentException {
-        String[] split = callbackData.split("_");
-        if (split.length != 2) throw new IllegalArgumentException("Invalid Witel callback data");
-        return valueOf(split[1].toUpperCase());
+        if (!callbackData.toUpperCase().startsWith("WITEL_"))
+            throw BadRequestException.args("Invalid Witel callback data");
+
+        String clean = callbackData.substring("WITEL_".length());
+        return valueOf(clean.toUpperCase());
     }
 
 }

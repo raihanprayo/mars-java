@@ -227,10 +227,9 @@ public class Initializer {
                 List<InlineKeyboardButton> buttons = new ArrayList<>();
                 List<Issue> issues = Objects.requireNonNull(issuesMap.get(product));
                 for (Issue issue : issues) {
-                    String name = Objects.requireNonNullElse(
-                            issue.getAlias(),
-                            issue.getName()
-                    );
+                    String name = StringUtils.isNotBlank(issue.getAlias()) ?
+                            issue.getAlias() : issue.getName();
+
                     buttons.add(InlineKeyboardButton.builder()
                             .text(name)
                             .callbackData(REPORT_ISSUE + issue.getId())
