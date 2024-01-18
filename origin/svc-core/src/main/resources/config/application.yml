@@ -85,6 +85,7 @@ logging:
     file: utf-8
 
 mars:
+  timestamp: @timestamp@
   secret: ${JWT_SECRET:}
   cors:
     max-age: 3600

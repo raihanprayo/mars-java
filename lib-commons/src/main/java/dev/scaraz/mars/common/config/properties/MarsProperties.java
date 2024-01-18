@@ -22,6 +22,8 @@ public class MarsProperties {
 
     private Witel witel = Witel.ROC;
 
+    private String timestamp;
+
     private String secret;
 
     @Setter(AccessLevel.NONE)

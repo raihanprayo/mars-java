@@ -16,6 +16,7 @@
     <properties>
         <akka.sbt.version>2.13</akka.sbt.version>
         <akka.version>2.7.0</akka.version>
+        <timestamp>${maven.build.timestamp}</timestamp>
     </properties>
 
     <dependencies>

@@ -33,12 +33,14 @@ public class CoreApplication implements CommandLineRunner {
         log.info("\n--------------------------------------------------------------\n" +
                         "   Application\t\t: {}\n" +
                         "   Witel\t\t\t: {}\n" +
+                        "   Build\t\t\t: {}\n" +
                         "   Profiles\t\t\t: {}\n" +
                         "   Host Local\t\t: http://localhost:{}\n" +
                         "   Host External\t: http://{}:{}\n" +
                         "--------------------------------------------------------------",
                 environment.getProperty("spring.application.name"),
                 environment.getProperty("mars.witel").toUpperCase(),
+                environment.getProperty("mars.timestamp"),
                 environment.getActiveProfiles(),
                 port,
                 InetAddress.getLocalHost().getHostAddress(),

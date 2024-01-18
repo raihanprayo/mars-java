@@ -32,13 +32,15 @@ public enum Witel {
         Witel[] values = Witel.values();
         List<List<InlineKeyboardButton>> keyboards = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
+        keyboards.add(row);
+
 
         for (int i = 0; i < values.length; i++) {
             Witel witel = values[i];
 
             if (i % 3 == 0) {
-                keyboards.add(row);
                 row = new ArrayList<>();
+                keyboards.add(row);
             }
 
             String text = witel.name().replace("_", " ").toUpperCase();
