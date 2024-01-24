@@ -77,7 +77,6 @@ public class Account extends AuditableEntity implements AuthenticatedPrincipal, 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "t_roles",
-            schema = "mars",
             joinColumns = @JoinColumn(name = "ref_user_id"),
             inverseJoinColumns = @JoinColumn(name = "ref_role_id"))
     private Set<Role> roles = new LinkedHashSet<>();

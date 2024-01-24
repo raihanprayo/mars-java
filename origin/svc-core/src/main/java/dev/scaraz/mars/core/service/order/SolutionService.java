@@ -8,4 +8,6 @@ public interface SolutionService {
     Solution save(Solution solution);
 
     void deleteByIds(List<Long> ids);
+
+    Solution update(long id, Solution update);
 }

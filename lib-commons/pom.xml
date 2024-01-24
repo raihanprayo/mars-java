@@ -121,11 +121,6 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>com.github.avew</groupId>
-            <artifactId>csv-validator</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

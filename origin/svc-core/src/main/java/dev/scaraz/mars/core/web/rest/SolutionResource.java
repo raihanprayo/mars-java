@@ -10,7 +10,6 @@ import dev.scaraz.mars.core.repository.db.order.SolutionRepo;
 import dev.scaraz.mars.core.service.order.SolutionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -62,11 +61,9 @@ public class SolutionResource {
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable long id,
-            Solution update
+            @RequestBody Solution update
     ) {
-        Solution solution = queryService.findById(id);
-        BeanUtils.copyProperties(update, solution, "id", "createdAt", "updatedAt", "createdBy", "updatedBy");
-        return ResponseEntity.ok(repo.save(solution));
+        return ResponseEntity.ok(service.update(id, update));
     }
 
     @DeleteMapping
