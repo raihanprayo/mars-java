@@ -5,6 +5,10 @@ import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,6 +30,11 @@ public class LogTicketService {
     public LogTicket add(LogTicket history) {
         log.debug("ADD UPDATE HISTORY -- TICKET NO {}", history.getTicket().getNo());
         return repo.save(history);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<LogTicket> getLogByTicketIdAndBelow(String ticketId, Instant belowTimstamp) {
+        return repo.findFirstByTicketIdAndCreatedAtLessThanOrderByCreatedAtDesc(ticketId, belowTimstamp);
     }
 
 }

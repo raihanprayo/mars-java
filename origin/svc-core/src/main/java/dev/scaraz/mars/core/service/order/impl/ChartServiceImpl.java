@@ -2,8 +2,14 @@ package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.domain.view.WorklogSummary;
+import dev.scaraz.mars.core.query.WorklogSummaryQueryService;
+import dev.scaraz.mars.core.query.criteria.WorklogSummaryCriteria;
+import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import dev.scaraz.mars.core.service.order.ChartService;
+import dev.scaraz.mars.core.service.order.LogTicketService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +26,10 @@ import java.util.*;
 
 @Service
 public class ChartServiceImpl implements ChartService {
+
+    private final LogTicketRepo logTicketRepo;
+    private final LogTicketService logTicketService;
+    private final WorklogSummaryQueryService worklogSummaryQueryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -43,12 +53,25 @@ public class ChartServiceImpl implements ChartService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries) {
+    public List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries, WorklogSummaryCriteria criteria) {
         Map<String, PieChartDTO<String>> category = createDurationCategoryMap();
         Instant now = Instant.now();
 
         for (TicketSummary summary : summaries) {
-            groupAgeAndPush(now, summary.getAge().getAction(), category);
+            List<WorklogSummary> wls = worklogSummaryQueryService.findAll(
+                    criteria.setTicketId(new StringFilter().setEq(summary.getId())));
+
+
+            for (WorklogSummary wl : wls) {
+                switch (wl.getStatus()) {
+                    case PROGRESS:
+                        groupAgeAndPush(now, wl.getWlCreatedAt(), category);
+                        break;
+                    default:
+                        groupAgeAndPush(wl.getWlUpdatedAt(), wl.getWlCreatedAt(), category);
+                        break;
+                }
+            }
         }
 
         return new ArrayList<>(category.values());
@@ -56,11 +79,25 @@ public class ChartServiceImpl implements ChartService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries) {
+    public List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries, WorklogSummaryCriteria criteria) {
         Map<String, PieChartDTO<String>> category = createDurationCategoryMap();
+
         for (TicketSummary summary : summaries) {
-            groupAgeAndPush(summary.getCreatedAt(), summary.getAge().getResponse(), category);
+            List<WorklogSummary> wls = worklogSummaryQueryService.findAll(
+                    criteria.setTicketId(new StringFilter().setEq(summary.getId())));
+            for (WorklogSummary wl : wls) {
+                switch (wl.getTakeStatus()) {
+                    case OPEN:
+                        groupAgeAndPush(wl.getWlCreatedAt(), summary.getCreatedAt(), category);
+                        break;
+                    case DISPATCH:
+                        logTicketService.getLogByTicketIdAndBelow(summary.getId(), wl.getWlCreatedAt())
+                                .ifPresent(lt -> groupAgeAndPush(wl.getWlCreatedAt(), lt.getCreatedAt(), category));
+                        break;
+                }
+            }
         }
+
 
         return new ArrayList<>(category.values());
     }

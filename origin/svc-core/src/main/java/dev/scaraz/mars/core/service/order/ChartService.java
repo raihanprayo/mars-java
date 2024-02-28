@@ -3,6 +3,8 @@ package dev.scaraz.mars.core.service.order;
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
+import dev.scaraz.mars.core.query.criteria.WorklogSummaryCriteria;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -19,16 +21,17 @@ public interface ChartService {
             CATEGORY_60_MINUTES = "30-60 menit",
             CATEGORY_MORE_THAN_60_MINUTES = "60+ menit";
 
-    List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries);
-
-//    CompletableFuture<Page<UserLeaderboardDTO>> getLeaderBoard(
-//            LeaderboardCriteria criteria,
-//            Pageable pageable
-//    );
-
     List<PieChartDTO<String>> pieTicketByAge(List<TicketSummary> summaries);
 
-    List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries);
+//    List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries);
+//
+//    List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries);
+
+    @Transactional(readOnly = true)
+    List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries, WorklogSummaryCriteria criteria);
+
+    @Transactional(readOnly = true)
+    List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries, WorklogSummaryCriteria criteria);
 
     List<PieChartDTO<TcStatus>> pieTicketByStatus(List<TicketSummary> summaries);
 

@@ -9,6 +9,7 @@ import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
 import dev.scaraz.mars.core.query.criteria.LeaderBoardCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
+import dev.scaraz.mars.core.query.criteria.WorklogSummaryCriteria;
 import dev.scaraz.mars.core.service.order.ChartService;
 import dev.scaraz.mars.core.service.order.ExportService;
 import dev.scaraz.mars.core.service.order.LeaderBoardService;
@@ -105,11 +106,22 @@ public class ChartResource {
         chart.getCount().setIptv(count(Product.IPTV, criteria));
         chart.getCount().setVoice(count(Product.VOICE, criteria));
 
+
+        WorklogSummaryCriteria worklogSummaryCriteria = new WorklogSummaryCriteria();
+        if (criteria.getWorkspace() != null)
+            worklogSummaryCriteria.setUserId(criteria.getWorkspace().getUserId());
+
+        log.trace("With workspace.userId ? {}", worklogSummaryCriteria.getUserId() != null);
+
         Page<TicketSummary> all = ticketSummaryQueryService.findAll(criteria, pageable);
         chart.setStatus(chartService.pieTicketByStatus(all.getContent()));
         chart.setAge(chartService.pieTicketByAge(all.getContent()));
-        chart.setActionAge(chartService.pieTicketByActionAge(all.getContent()));
-        chart.setResponseAge(chartService.pieTicketByResponseAge(all.getContent()));
+        chart.setActionAge(chartService.pieTicketByActionAge(
+                all.getContent(),
+                worklogSummaryCriteria));
+        chart.setResponseAge(chartService.pieTicketByResponseAge(
+                all.getContent(),
+                worklogSummaryCriteria));
 
         HttpHeaders headers = ResourceUtil.generatePaginationHeader(all, "/chart/ticket/report");
         return new ResponseEntity<>(Map.of(

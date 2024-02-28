@@ -58,4 +58,5 @@ public class TicketSummaryCriteria extends AuditableCriteria {
                 .wipBy(wipBy)
                 .build();
     }
+
 }

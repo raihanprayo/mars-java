@@ -17,8 +17,8 @@ public class DurationSerializer extends JsonSerializer<Duration> {
     public void serialize(Duration duration, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         List<Double> result = writeAsArray(duration);
 
-        log.debug("Duration origin: {}", duration);
-        log.debug("Duration parsed: {}", result);
+//        log.debug("Duration origin: {}", duration);
+//        log.debug("Duration parsed: {}", result);
         jsonGenerator.writeArray(
                 result.stream()
                         .mapToDouble(d -> d)
