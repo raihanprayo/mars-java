@@ -33,7 +33,7 @@ public class AccountApprovalServiceImpl implements AccountApprovalService {
     private final RegistrationApprovalRepo cacheRepo;
     private final StringRedisTemplate stringRedisTemplate;
 
-//    @Lazy
+    //    @Lazy
 //    private final AppConfigService appConfigService;
     private final ConfigService configService;
 
@@ -57,13 +57,14 @@ public class AccountApprovalServiceImpl implements AccountApprovalService {
             repo.deleteById(id);
             cacheRepo.deleteById(id);
         }
-        catch (Exception ex) {}
+        catch (Exception ex) {
+            log.warn("unable to delete user registration", ex);
+        }
     }
 
     @Override
     public void delete(AccountApproval approval) {
-        repo.deleteById(approval.getId());
-        cacheRepo.deleteById(approval.getId());
+        delete(approval.getId());
     }
 
     @Override
