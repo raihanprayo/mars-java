@@ -5,10 +5,10 @@ import dev.scaraz.mars.common.tools.filter.RangeFilter;
 import dev.scaraz.mars.common.tools.filter.ReadableFilter;
 import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import dev.scaraz.mars.common.utils.spec.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.metamodel.SingularAttribute;
-
+@Slf4j
 public class QueryFieldUtil {
 
 
@@ -38,14 +38,14 @@ public class QueryFieldUtil {
             spec = Specification.where(null);
 
             if (filter.getGt() != null)
-                spec.and(GreaterThanSpec.spec(filter.getGt(), false, targetPath));
+                spec = GreaterThanSpec.spec(filter.getGt(), false, targetPath);
             else if (filter.getGte() != null)
-                spec.and(GreaterThanSpec.spec(filter.getGt(), true, targetPath));
+                spec = GreaterThanSpec.spec(filter.getGte(), true, targetPath);
 
             if (filter.getLt() != null)
-                spec.and(LessThanSpec.spec(filter.getLt(), false, targetPath));
+                spec = spec.and(LessThanSpec.spec(filter.getLt(), false, targetPath));
             else if (filter.getLte() != null)
-                spec.and(LessThanSpec.spec(filter.getLte(), true, targetPath));
+                spec = spec.and(LessThanSpec.spec(filter.getLte(), true, targetPath));
         }
         return spec;
     }

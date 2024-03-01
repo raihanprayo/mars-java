@@ -6,9 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
-import java.time.Duration;
-
 @Getter
 @Builder
 @NoArgsConstructor
@@ -18,6 +15,8 @@ public class ForgotResDTO {
     private int length;
 
     private String token;
+
+    private long expiredAt;
 
     private ForgotReqDTO.State next;
 

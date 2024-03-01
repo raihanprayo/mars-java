@@ -3,6 +3,7 @@ package dev.scaraz.mars.common.domain;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.scaraz.mars.common.domain.dynamic.*;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 
 import java.util.List;
@@ -15,6 +16,8 @@ import java.util.List;
 public class ConfigDTO implements DynamicValue {
 
     private String key;
+
+    private Witel witel;
 
     @Setter(AccessLevel.NONE)
     private String value;

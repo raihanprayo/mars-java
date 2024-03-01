@@ -1,6 +1,7 @@
 package dev.scaraz.mars.telegram.config.processor;
 
 import dev.scaraz.mars.telegram.model.TelegramHandler;
+import dev.scaraz.mars.telegram.model.TelegramHandlerResult;
 import dev.scaraz.mars.telegram.model.TelegramHandlers;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
@@ -9,7 +10,6 @@ import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Map;
@@ -34,7 +34,7 @@ public class MessageProcessor extends TelegramProcessor {
     }
 
     @Override
-    public Optional<BotApiMethod<?>> process(TelegramBotService bot, Update update) throws Exception {
+    public Optional<TelegramHandlerResult> process(TelegramBotService bot, Update update) throws Exception {
         TelegramMessageCommand command = new TelegramMessageCommand(update);
         Optional<TelegramHandler> optionalCommandHandler;
         OptionalLong userKey = Util.optionalOf(update.getMessage().getChatId());
@@ -68,17 +68,15 @@ public class MessageProcessor extends TelegramProcessor {
         }
 
         log.debug("Command handler: {}", optionalCommandHandler);
-        if (optionalCommandHandler.isPresent()) {
-            TelegramHandler handler = optionalCommandHandler.get();
-            return bot.processHandler(handler, makeArgumentList(
-                    bot,
-                    handler,
-                    update,
-                    command
-            ));
-        }
-
-        return Optional.empty();
+        return optionalCommandHandler.map(handler -> new TelegramHandlerResult(
+                handler,
+                makeArgumentList(
+                        bot,
+                        handler,
+                        update,
+                        command
+                )
+        ));
     }
 
     private Optional<TelegramHandler> findCommandIgnoreCase(TelegramHandlers handlers, TelegramMessageCommand tgCommand) {

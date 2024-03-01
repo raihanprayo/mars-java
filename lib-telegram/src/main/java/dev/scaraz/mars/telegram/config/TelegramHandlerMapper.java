@@ -100,7 +100,7 @@ public class TelegramHandlerMapper implements BeanPostProcessor {
         return handlers.get(OptionalLong.empty());
     }
 
-    private void addHandlers(OptionalLong key, Consumer<TelegramHandlers> handlersConsumer) {
+    public void addHandlers(OptionalLong key, Consumer<TelegramHandlers> handlersConsumer) {
         handlersConsumer.accept(handlers.computeIfAbsent(key, k -> new TelegramHandlers()));
     }
 

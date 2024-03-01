@@ -15,4 +15,8 @@ public class PieChartDTO<T> {
 
     private String color;
 
+    public PieChartDTO(T type) {
+        this.type = type;
+    }
+
 }

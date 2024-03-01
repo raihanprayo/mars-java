@@ -41,7 +41,7 @@ public class TelegramHandlers {
     }
 
     public TelegramHandler getDefaultCallbackQueryHandler() {
-        if (this.defaultMessageHandler != null) log.warn("Override existing default CallbackQuery Handler!");
+        if (this.defaultMessageHandler != null) log.warn("Using default CallbackQuery Handler!");
         return defaultCallbackQueryHandler;
     }
 

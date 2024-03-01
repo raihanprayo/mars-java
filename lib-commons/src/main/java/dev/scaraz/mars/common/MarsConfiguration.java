@@ -19,9 +19,7 @@ import java.nio.file.Path;
         "dev.scaraz.mars.common.config",
         "dev.scaraz.mars.common.tools"
 })
-@EnableConfigurationProperties({
-        MarsProperties.class
-})
+@EnableConfigurationProperties({MarsProperties.class})
 public class MarsConfiguration {
 
     private final MarsProperties marsProperties;

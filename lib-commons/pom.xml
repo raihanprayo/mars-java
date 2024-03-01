@@ -121,20 +121,10 @@
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>com.github.avew</groupId>
-            <artifactId>csv-validator</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.bsc.maven</groupId>
-                <artifactId>maven-processor-plugin</artifactId>
-                <version>4.5</version>
-            </plugin>
         </plugins>
     </build>
 

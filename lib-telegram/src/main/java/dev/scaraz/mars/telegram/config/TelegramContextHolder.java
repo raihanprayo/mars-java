@@ -15,10 +15,18 @@ import java.util.function.Consumer;
 import static dev.scaraz.mars.telegram.config.InternalTelegram.CONTEXT_ATTRIBUTE;
 
 public class TelegramContextHolder {
+    public static final String
+            TG_USER = "tg-user",
+            TG_CHAT = "tg-chat",
+            TG_CHAT_SOURCE = "tg-chat-source";
 
     public static TelegramProcessContext get() {
         return Optional.ofNullable(CONTEXT_ATTRIBUTE.get())
                 .orElseThrow(() -> new IllegalStateException("No telegram update bounded to current thread"));
+    }
+
+    public static Object getAttribute(String key) {
+        return get().getAttribute(key);
     }
 
     public static void getIfAvailable(Consumer<TelegramProcessContext> consumer) {
@@ -46,11 +54,7 @@ public class TelegramContextHolder {
         TelegramProcessContext context = CONTEXT_ATTRIBUTE.get();
         if (context == null) return null;
 
-        Message message = getMessage(context.getType(), context.getUpdate());
-        return Optional.ofNullable(message)
-                .map(Message::getFrom)
-                .map(User::getId)
-                .orElse(null);
+        return ((User) context.getAttribute(TG_USER)).getId();
     }
 
     @Nullable
@@ -58,10 +62,11 @@ public class TelegramContextHolder {
         TelegramProcessContext context = CONTEXT_ATTRIBUTE.get();
         if (context == null) return null;
 
-        Message message = getMessage(context.getType(), context.getUpdate());
-        return Optional.ofNullable(message)
-                .map(Message::getChatId)
-                .orElse(null);
+        return ((Chat) context.getAttribute(TG_CHAT)).getId();
+//        Message message = getMessage(context.getType(), context.getUpdate());
+//        return Optional.ofNullable(message)
+//                .map(Message::getChatId)
+//                .orElse(null);
     }
 
     @Nullable
@@ -69,16 +74,10 @@ public class TelegramContextHolder {
         TelegramProcessContext context = CONTEXT_ATTRIBUTE.get();
         if (context == null) return null;
 
-        Message message = getMessage(context.getType(), context.getUpdate());
-        return Optional.ofNullable(message)
-                .map(Message::getChat)
-                .map(Chat::getType)
-                .map(ChatSource::fromType)
-                .orElse(null);
+        return ((ChatSource) context.getAttribute(TG_CHAT_SOURCE));
     }
 
     private static Message getMessage(HandlerType type, Update update) {
-        Message message;
         switch (type) {
             case CALLBACK_QUERY:
                 return update.getCallbackQuery().getMessage();
