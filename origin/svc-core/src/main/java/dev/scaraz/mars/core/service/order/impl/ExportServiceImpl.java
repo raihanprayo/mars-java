@@ -9,7 +9,6 @@ import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.query.TicketSummaryQueryService;
-import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.ExportService;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +38,8 @@ public class ExportServiceImpl implements ExportService {
 
     @Override
     @Transactional(readOnly = true)
-    public File exportToCSV(TicketSummaryCriteria criteria) throws IOException {
-        List<TicketSummary> all = ticketSummaryQueryService.findAll(criteria);
+    public File exportToCSV(List<TicketSummary> all) throws IOException {
+//        List<TicketSummary> all = ticketSummaryQueryService.findAll(criteria);
 
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
         List<String> rows = new ArrayList<>();
@@ -51,56 +50,60 @@ public class ExportServiceImpl implements ExportService {
 
         for (TicketSummary s : all) {
             log.debug("Export {} / {}", s.getId(), s.getWorkspaces());
-            List<String> row = new ArrayList<>();
+            try {
+                List<String> row = new ArrayList<>();
 
-            row.add(s.getNo());
-            row.add(s.getStatus().name());
-            row.add(s.getWitel().name());
-            row.add(s.getSto());
-            row.add(s.getIncidentNo());
-            row.add(s.getServiceNo());
-            row.add(s.getSource().name());
-            row.add(s.isGaul() ? "Y" : "N");
-            row.add(Util.durationDescribe(s.getAge().getAge()));
-            row.add(s.getSenderName());
-            row.add(s.getIssue().getName());
-            row.add(s.getProduct().name());
+                row.add(s.getNo());
+                row.add(s.getStatus().name());
+                row.add(s.getWitel().name());
+                row.add(s.getSto());
+                row.add(s.getIncidentNo());
+                row.add(s.getServiceNo());
+                row.add(s.getSource().name());
+                row.add(s.isGaul() ? "Y" : "N");
+                row.add(Util.durationDescribe(s.getAge().getAge()));
+                row.add(s.getSenderName());
+                row.add(s.getIssue().getName());
+                row.add(s.getProduct().name());
 
-            Optional<AgentWorkspace> workspaceOpt = agentQueryService.getLastWorkspaceOptional(s.getId());
-            if (workspaceOpt.isPresent()) {
-                Optional<AgentWorklog> lastWorklog = workspaceOpt.get().getLastWorklog();
-                if (lastWorklog.isPresent()) {
-                    AgentWorklog worklog = lastWorklog.get();
-                    row.add(worklog.getSolution());
-                    row.add(worklog.getMessage());
+                Optional<AgentWorkspace> workspaceOpt = agentQueryService.getLastWorkspaceOptional(s.getId());
+                if (workspaceOpt.isPresent()) {
+                    Optional<AgentWorklog> lastWorklog = workspaceOpt.get().getLastWorklog();
+                    if (lastWorklog.isPresent()) {
+                        AgentWorklog worklog = lastWorklog.get();
+                        row.add(worklog.getSolution());
+                        row.add(worklog.getMessage());
+                    }
+                    else {
+                        row.add(null);
+                        row.add(null);
+                    }
                 }
                 else {
                     row.add(null);
                     row.add(null);
                 }
+
+                row.add(Optional.ofNullable(s.getCreatedBy())
+                        .map(accounts::get)
+                        .map(Account::getName)
+                        .orElse("-"));
+                row.add(s.getCreatedAt().atZone(ZONE_LOCAL).format(format));
+
+                row.add(Optional.ofNullable(s.getUpdatedBy())
+                        .map(accounts::get)
+                        .map(Account::getName)
+                        .orElse("-"));
+                row.add(Optional.ofNullable(s.getUpdatedAt())
+                        .map(t -> t.atZone(ZONE_LOCAL).format(format))
+                        .orElse("-"));
+
+                rows.add(String.join(";", row.stream()
+                        .map(v -> v == null ? "" : v)
+                        .toArray(String[]::new)));
             }
-            else {
-                row.add(null);
-                row.add(null);
+            catch (Exception ex) {
             }
-
-            row.add(Optional.ofNullable(s.getCreatedBy())
-                    .map(accounts::get)
-                    .map(Account::getName)
-                    .orElse("-"));
-            row.add(s.getCreatedAt().atZone(ZONE_LOCAL).format(format));
-
-            row.add(Optional.ofNullable(s.getUpdatedBy())
-                    .map(accounts::get)
-                    .map(Account::getName)
-                    .orElse("-"));
-            row.add(Optional.ofNullable(s.getUpdatedAt())
-                    .map(t -> t.atZone(ZONE_LOCAL).format(format))
-                    .orElse("-"));
-
-            rows.add(String.join(";", row.stream()
-                    .map(v -> v == null ? "" : v)
-                    .toArray(String[]::new)));
         }
         File file = storageService.createFile(DirectoryAlias.TMP, "report", UUID.randomUUID() + ".csv");
         try (FileWriter wr = new FileWriter(file)) {

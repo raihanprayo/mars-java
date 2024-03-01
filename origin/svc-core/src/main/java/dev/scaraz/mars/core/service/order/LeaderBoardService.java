@@ -62,7 +62,6 @@ public class LeaderBoardService {
                 .getAsLongList();
 
         if (solutionsId != null && !solutionsId.isEmpty()) {
-
             List<String> solutions = solutionQueryService.findAll(SolutionCriteria.builder()
                     .id(new LongFilter().setIn(solutionsId))
                     .build())

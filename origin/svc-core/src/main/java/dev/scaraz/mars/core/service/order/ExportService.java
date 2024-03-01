@@ -1,10 +1,12 @@
 package dev.scaraz.mars.core.service.order;
 
-import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
+import dev.scaraz.mars.core.domain.view.TicketSummary;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public interface ExportService {
-    File exportToCSV(TicketSummaryCriteria criteria) throws IOException;
+
+    File exportToCSV(List<TicketSummary> all) throws IOException;
 }

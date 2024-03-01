@@ -31,34 +31,4 @@ public class TicketAgentResource {
         return ResourceUtil.pagination(page, "/api/ticket/agents");
     }
 
-//    @GetMapping("/detail/{ticketIdOrNo}")
-//    public ResponseEntity<?> detailedAgents(
-//            @PathVariable String ticketIdOrNo,
-//            AgentCriteria criteria
-//    ) {
-//        try {
-//            UUID uuid = UUID.fromString(ticketIdOrNo);
-//            criteria.setTicketId(new StringFilter().setEq(ticketIdOrNo));
-//        }
-//        catch (IllegalArgumentException e) {
-//            criteria.setTicketNo(new StringFilter().setEq(ticketIdOrNo));
-//        }
-//
-//        return new ResponseEntity<>(
-//                queryService.findAll(criteria),
-//                HttpStatus.OK
-//        );
-//    }
-
-//    @GetMapping("/leaderboard")
-//    public ResponseEntity<?> getLeaderboardStatistic(
-//            LeaderboardCriteria criteria,
-//            Pageable pageable
-//    ) throws ExecutionException, InterruptedException, TimeoutException {
-//        log.debug("Leaderboard Criteria {}", criteria);
-//        Page<UserLeaderboardDTO> page = chartService.getLeaderBoard(criteria, pageable)
-//                .get(5, TimeUnit.MINUTES);
-//        return ResourceUtil.pagination(page, "/ticket/agent/leaderboard");
-//    }
-
 }
