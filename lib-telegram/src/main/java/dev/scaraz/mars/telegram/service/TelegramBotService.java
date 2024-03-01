@@ -86,7 +86,7 @@ public abstract class TelegramBotService implements AutoCloseable {
 //    }
 
     protected void onUpdateReceived(Update update) {
-        log.debug("Telegram Update: {}", GSON.toJson(update));
+        log.info("Telegram Update: {}", GSON.toJson(update));
         TelegramProcessor processor = getProcessor(update);
 
         try {

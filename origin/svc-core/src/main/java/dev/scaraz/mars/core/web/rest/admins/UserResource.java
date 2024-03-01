@@ -12,7 +12,9 @@ import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.domain.credential.AccountCredential;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.AccountQueryService;
+import dev.scaraz.mars.core.query.criteria.AccountApprovalCriteria;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.spec.AccountApprovalSpecBuilder;
 import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
@@ -41,7 +43,9 @@ public class UserResource {
 
     private final AccountService accountService;
     private final AccountQueryService accountQueryService;
+
     private final AccountApprovalRepo accountApprovalRepo;
+    private final AccountApprovalSpecBuilder accountApprovalSpecBuilder;
 
     @GetMapping
     public ResponseEntity<?> findAll(
@@ -68,8 +72,11 @@ public class UserResource {
 
     @GetMapping("/approvals")
     @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
-    public ResponseEntity<?> findAllApprovals(Pageable pageable) {
-        Page<AccountApproval> page = accountApprovalRepo.findAll(pageable);
+    public ResponseEntity<?> findAllApprovals(AccountApprovalCriteria criteria, Pageable pageable) {
+        Page<AccountApproval> page = accountApprovalRepo.findAll(
+                accountApprovalSpecBuilder.createSpec(criteria),
+                pageable
+        );
         return ResourceUtil.pagination(page, "/user/approvals");
     }
 
