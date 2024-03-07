@@ -8,17 +8,14 @@ import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.domain.credential.AccountApproval;
 import dev.scaraz.mars.core.domain.credential.AccountCredential;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
-import dev.scaraz.mars.core.repository.db.credential.AccountApprovalRepo;
 import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +23,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,7 +37,6 @@ public class UserResource {
 
     private final AccountService accountService;
     private final AccountQueryService accountQueryService;
-    private final AccountApprovalRepo accountApprovalRepo;
 
     @GetMapping
     public ResponseEntity<?> findAll(
@@ -65,25 +60,6 @@ public class UserResource {
         UserDTO userDTO = credentialMapper.toDTO(accountQueryService.findByNik(nik));
         return ResponseEntity.ok(userDTO);
     }
-
-    @GetMapping("/approvals")
-    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
-    public ResponseEntity<?> findAllApprovals(Pageable pageable) {
-        Page<AccountApproval> page = accountApprovalRepo.findAll(pageable);
-        return ResourceUtil.pagination(page, "/user/approvals");
-    }
-
-    @PostMapping("/approvals")
-    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
-    public ResponseEntity<?> approveUsersByApprovalIds(
-            @RequestParam boolean approved,
-            @RequestBody Collection<String> approvalIds
-    ) {
-        log.info("ACCEPTING APPROVALS -- APPROVED={} DATA={}", approved, approvalIds);
-        approvalIds.forEach(id -> accountService.approval(id, approved));
-        return ResponseEntity.ok().build();
-    }
-
 
     @PostMapping("/register")
     @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
