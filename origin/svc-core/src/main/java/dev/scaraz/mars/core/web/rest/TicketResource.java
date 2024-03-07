@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.domain.response.UserContactDTO;
+import dev.scaraz.mars.common.domain.response.UserTgDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
@@ -112,7 +113,10 @@ public class TicketResource {
                 .nik(account.getNik())
                 .name(account.getName())
                 .phone(account.getPhone())
-                .telegram(account.getTg().getId())
+                .tg(UserTgDTO.builder()
+                        .id(account.getTg().getId())
+                        .username(account.getTg().getUsername())
+                        .build())
                 .build();
 
         return ResponseEntity.ok(contact);

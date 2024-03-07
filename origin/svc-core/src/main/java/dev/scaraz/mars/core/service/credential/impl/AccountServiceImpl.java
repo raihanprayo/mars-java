@@ -393,7 +393,8 @@ public class AccountServiceImpl implements AccountService {
         boolean selfUpdate = MarsUserContext.getId().equals(account.getId());
         String accessType = selfUpdate ? "WEB_UPDATE_PROFILE" : "WEB_ADMIN_UPDATE_PROFILE";
 
-        if (dto.getNik() != null) account.setNik(dto.getNik());
+//        if (dto.getNik() != null) account.setNik(dto.getNik());
+        if (dto.getName() != null) account.setName(dto.getName());
         if (dto.getPhone() != null) account.setPhone(dto.getPhone());
         if (dto.getActive() != null) account.setActive(dto.getActive());
 

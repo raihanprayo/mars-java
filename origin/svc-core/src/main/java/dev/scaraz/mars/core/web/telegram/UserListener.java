@@ -17,11 +17,9 @@ import dev.scaraz.mars.telegram.annotation.TelegramCommand;
 import dev.scaraz.mars.telegram.annotation.context.CallbackData;
 import dev.scaraz.mars.telegram.annotation.context.Text;
 import dev.scaraz.mars.telegram.annotation.context.UserId;
-import dev.scaraz.mars.telegram.config.TelegramHandlerMapper;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -50,8 +48,8 @@ public class UserListener {
     private final AccountRegistrationBotService accountRegistrationBotService;
     private final BotRegistrationRepo registrationRepo;
 
-    @Lazy
-    private final TelegramHandlerMapper telegramHandlerMapper;
+//    @Lazy
+//    private final TelegramHandlerMapper telegramHandlerMapper;
 
     @TelegramCommand(commands = {"/register", "/reg"})
     public SendMessage register(@UserId long telegramId, Message message) {

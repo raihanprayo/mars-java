@@ -15,6 +15,7 @@ import java.util.List;
 public class UpdateUserDashboardDTO {
 
     private String nik;
+    private String name;
     private String phone;
     private Witel witel;
     private String sto;

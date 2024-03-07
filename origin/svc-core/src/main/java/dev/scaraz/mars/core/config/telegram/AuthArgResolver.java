@@ -59,4 +59,5 @@ public class AuthArgResolver implements TelegramAnnotationArgResolver {
         }
         throw new IllegalStateException("Unknown handler type");
     }
+
 }

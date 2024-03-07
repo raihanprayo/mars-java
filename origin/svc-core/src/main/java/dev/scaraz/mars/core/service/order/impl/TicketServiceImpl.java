@@ -122,6 +122,11 @@ public class TicketServiceImpl implements TicketService {
         return ticket;
     }
 
+    public void delete(Ticket ticket) {}
+
+    public void deleteByDateBelow(Instant createdAt) {
+    }
+
     @Override
     @Transactional(readOnly = true)
     public File report(TicketCriteria criteria) throws IOException {
