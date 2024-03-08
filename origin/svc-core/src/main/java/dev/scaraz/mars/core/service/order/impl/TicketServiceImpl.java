@@ -11,6 +11,7 @@ import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.LogTicket;
+import dev.scaraz.mars.core.domain.order.TcIssue;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AccountQueryService;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,6 +77,19 @@ public class TicketServiceImpl implements TicketService {
         return repo.save(ticket);
     }
 
+    @Async
+    @Transactional
+    @Override
+    public void updateTicketIssue(Issue issue) {
+        repo.updateIssueByIssueId(
+                issue.getId(),
+                issue.getName(),
+                issue.getDescription(),
+                issue.getProduct(),
+                issue.getScore()
+        );
+    }
+
     @Override
     public String generateTicketNo() {
         LocalDate todayLd = LocalDate.now();
@@ -101,7 +116,7 @@ public class TicketServiceImpl implements TicketService {
         Ticket ticket = save(Ticket.builder()
                 .witel(Objects.requireNonNullElse(form.getWitel(), marsProperties.getWitel()))
                 .sto(form.getSto())
-                .issue(issue)
+                .issue(TcIssue.from(issue))
                 .incidentNo(form.getIncidentNo())
                 .serviceNo(form.getServiceNo())
                 .source(TcSource.PRIVATE)
@@ -122,11 +137,6 @@ public class TicketServiceImpl implements TicketService {
         return ticket;
     }
 
-    public void delete(Ticket ticket) {}
-
-    public void deleteByDateBelow(Instant createdAt) {
-    }
-
     @Override
     @Transactional(readOnly = true)
     public File report(TicketCriteria criteria) throws IOException {
@@ -136,9 +146,14 @@ public class TicketServiceImpl implements TicketService {
 
         List<List<String>> rows = tickets.stream()
                 .map(ticket -> {
-                    String issueName = StringUtils.isBlank(ticket.getIssue().getAlias()) ?
-                            ticket.getIssue().getName() :
-                            ticket.getIssue().getAlias();
+                    String issueName = ticket.getIssue().getName();
+                    Optional<Issue> issueOpt = issueQueryService.findById(ticket.getIssue().getId());
+                    if (issueOpt.isPresent()) {
+                        issueName = StringUtils.isBlank(issueOpt.get().getAlias()) ?
+                                issueOpt.get().getName() :
+                                issueOpt.get().getAlias();
+                    }
+
 
                     List<String> row = new ArrayList<>();
                     row.add(ticket.getNo());

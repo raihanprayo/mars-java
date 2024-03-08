@@ -3,14 +3,13 @@ package dev.scaraz.mars.core.domain.order;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.Product;
-import lombok.*;
-import org.hibernate.annotations.*;
-
 import jakarta.persistence.*;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import java.math.BigDecimal;
+import lombok.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
+import org.hibernate.annotations.SQLDelete;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,8 +53,7 @@ public class Issue extends AuditableEntity {
     private List<IssueParam> params = new ArrayList<>();
 
     @Column
-    @Builder.Default
-    private BigDecimal score = BigDecimal.ZERO;
+    private double score;
 
     @Column
     @Builder.Default

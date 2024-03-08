@@ -5,11 +5,12 @@ import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.enums.Witel;
-import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
-
 import jakarta.persistence.*;
-import java.util.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -69,9 +70,11 @@ public class Ticket extends AuditableEntity {
     @Column(name = "con_pending_message_id")
     private Long confirmPendingMessageId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "ref_issue_id", updatable = false)
-    private Issue issue;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "ref_issue_id", updatable = false)
+//    private Issue issue;
+
+    private TcIssue issue;
 
     @OneToOne(fetch = FetchType.EAGER, mappedBy = "ticket")
     private TicketAsset assets;
@@ -82,6 +85,9 @@ public class Ticket extends AuditableEntity {
     @OrderBy("id asc")
     @OneToMany(mappedBy = "ticket", fetch = FetchType.EAGER)
     private Set<LogTicket> logs = new HashSet<>();
+
+    @Column(name = "closed_at")
+    private Instant closedAt;
 
     public boolean isGaul() {
         return gaul > 0;

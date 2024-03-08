@@ -52,7 +52,7 @@ public class AgentWorklogSpecBuilder extends TimestampSpec<AgentWorklog, AgentWo
                             .pick(tc.getGaul(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.gaul))
                             .pick(tc.getSenderId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.senderId))
                             .pick(tc.getSenderName(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.senderName))
-                            .pick(tc.getProduct(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.issue).get(Issue_.product));
+                            .pick(tc.getProduct(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.ticket).get(Ticket_.issue).get(TcIssue_.product));
                 }
             }
         }

@@ -195,7 +195,7 @@ public class TicketBotServiceImpl implements TicketBotService {
         Ticket ticket = service.save(Ticket.builder()
                 .witel(form.getWitel() == null ? account.getWitel() : form.getWitel())
                 .sto(form.getSto() == null ? account.getSto() : form.getSto())
-                .issue(issue)
+                .issue(TcIssue.from(issue))
                 .incidentNo(form.getIncident())
                 .serviceNo(form.getService())
                 .source(form.getSource())

@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 
 import static dev.scaraz.mars.core.service.order.LogTicketService.*;
@@ -172,6 +173,7 @@ public class CloseFlowService {
         else {
             ticket.setStatus(TcStatus.CLOSED);
             ticket.setConfirmMessageId(null);
+            ticket.setClosedAt(Instant.now());
 
             String logMessage;
             if (TelegramContextHolder.hasContext()) {

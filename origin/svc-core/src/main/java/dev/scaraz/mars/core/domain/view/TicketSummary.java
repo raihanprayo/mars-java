@@ -2,11 +2,13 @@ package dev.scaraz.mars.core.domain.view;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.*;
-import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.order.TcIssue;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.Instant;
 
 @Getter
 @NoArgsConstructor
@@ -57,13 +59,11 @@ public class TicketSummary extends AuditableEntity {
     @Column(name = "gaul")
     private int gaulCount = 0;
 
-    @ManyToOne
-    @JoinColumn(name = "ref_issue_id")
-    private Issue issue;
-
-    @Column
-    @Enumerated(EnumType.STRING)
-    private Product product;
+//    @ManyToOne
+//    @JoinColumn(name = "ref_issue_id")
+//    private Issue issue;
+    @AttributeOverride(name = "product", column = @Column(name = "product"))
+    private TcIssue issue;
 
     @Column(name = "agent_count")
     private int agentCount;
@@ -81,8 +81,10 @@ public class TicketSummary extends AuditableEntity {
     @Column(name = "wip_by")
     private String wipBy;
 
-    @Embedded
-    private TicketAge age;
+    @Column(name = "closed_at")
+    private Instant closedAt;
+//    @Embedded
+//    private TicketAge age;
 
 //    @JsonIgnore
 //    @OrderBy("createdAt desc")

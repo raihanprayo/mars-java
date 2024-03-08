@@ -13,15 +13,16 @@ import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.repository.db.order.IssueParamRepo;
 import dev.scaraz.mars.core.repository.db.order.IssueRepo;
 import dev.scaraz.mars.core.service.order.IssueService;
+import dev.scaraz.mars.core.service.order.TicketService;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.Nullable;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -33,6 +34,8 @@ import java.util.stream.StreamSupport;
 
 @Service
 public class IssueServiceImpl implements IssueService {
+
+    private final ApplicationContext applicationContext;
 
     private final IssueRepo repo;
     private final IssueParamRepo paramRepo;
@@ -55,7 +58,6 @@ public class IssueServiceImpl implements IssueService {
         return save(Issue.builder()
                 .name(name.toLowerCase())
                 .product(product)
-                .score(BigDecimal.ZERO)
                 .description(description)
                 .build());
     }
@@ -132,7 +134,9 @@ public class IssueServiceImpl implements IssueService {
             issue.setParams(params);
         }
 
-        return save(issue);
+        issue = save(issue);
+        applicationContext.getBean(TicketService.class).updateTicketIssue(issue);
+        return issue;
     }
 
     @Override

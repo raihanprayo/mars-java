@@ -104,9 +104,9 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
     @Override
     public long countByProduct(Product product, boolean currentUser) {
         if (currentUser && MarsUserContext.isUserPresent()) {
-            return repo.countByProductAndWipBy(product, MarsUserContext.getId());
+            return repo.countByIssueProductAndWipBy(product, MarsUserContext.getId());
         }
-        return repo.countByProductAndWipIsFalse(product);
+        return repo.countByIssueProductAndWipIsFalse(product);
     }
 
     @Override

@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.service.order;
 
 import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
+import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import org.springframework.transaction.annotation.Propagation;
@@ -12,6 +13,10 @@ import java.io.IOException;
 
 public interface TicketService {
     Ticket save(Ticket ticket);
+
+    //    @Async
+    //    @Transactional
+    void updateTicketIssue(Issue issue);
 
     String generateTicketNo();
 

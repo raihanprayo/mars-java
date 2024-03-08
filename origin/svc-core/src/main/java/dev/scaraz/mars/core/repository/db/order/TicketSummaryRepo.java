@@ -23,7 +23,7 @@ public interface TicketSummaryRepo extends
 
     Optional<TicketSummary> findByIdOrNo(String id, String no);
 
-    long countByProductAndWipIsFalse(Product product);
+    long countByIssueProductAndWipIsFalse(Product product);
 
-    long countByProductAndWipBy(Product product, String userId);
+    long countByIssueProductAndWipBy(Product product, String userId);
 }

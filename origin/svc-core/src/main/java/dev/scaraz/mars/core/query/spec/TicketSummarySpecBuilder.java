@@ -1,12 +1,9 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace_;
-import dev.scaraz.mars.core.domain.order.Agent_;
-import dev.scaraz.mars.core.domain.order.Issue_;
+import dev.scaraz.mars.core.domain.order.TcIssue_;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.domain.view.TicketSummary_;
-import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,23 +28,16 @@ public class TicketSummarySpecBuilder extends AuditableSpec<TicketSummary, Ticke
                     .pick(TicketSummary_.gaulCount, criteria.getGaulCount())
                     .pick(TicketSummary_.senderId, criteria.getSenderId())
                     .pick(TicketSummary_.senderName, criteria.getSenderName())
-                    .pick(TicketSummary_.product, criteria.getProduct())
+                    .pick(criteria.getProduct(), path(TicketSummary_.issue, TcIssue_.product))
                     .pick(TicketSummary_.wip, criteria.getWip())
                     .pick(TicketSummary_.wipBy, criteria.getWipBy())
                     .extend(s -> auditSpec(s, criteria));
 
             if (criteria.getIssue() != null) {
                 IssueCriteria issue = criteria.getIssue();
-                chain.pick(issue.getId(), r -> r.get(TicketSummary_.issue).get(Issue_.id));
+                chain.pick(issue.getId(), r -> r.get(TicketSummary_.issue).get(TcIssue_.id));
             }
 
-            if (criteria.getWorkspace() != null) {
-                AgentWorkspaceCriteria workspace = criteria.getWorkspace();
-                chain.pick(workspace.getUserId(), r -> r.join(TicketSummary_.workspaces)
-                        .get(AgentWorkspace_.agent)
-                        .get(Agent_.userId)
-                );
-            }
         }
 
         return chain.specification();

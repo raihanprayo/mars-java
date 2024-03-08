@@ -8,7 +8,6 @@ import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
-import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.ExportService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,7 +33,6 @@ public class ExportServiceImpl implements ExportService {
 
     private final AccountQueryService accountQueryService;
     private final AgentQueryService agentQueryService;
-    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
     private final StorageService storageService;
 
 
@@ -48,6 +48,7 @@ public class ExportServiceImpl implements ExportService {
         Map<String, Account> accounts = accountQueryService.findAll().stream()
                 .collect(Collectors.toMap(Account::getNik, a -> a));
 
+        Instant currentTimestamp = Instant.now();
         for (TicketSummary s : all) {
 //            agentWorkspaceQueryService.findAll(AgentWorkspaceCriteria.builder().build())
 //            log.debug("Export {} / {}", s.getId(), ticket.getWorkspaces());
@@ -62,10 +63,14 @@ public class ExportServiceImpl implements ExportService {
                 row.add(s.getServiceNo());
                 row.add(s.getSource().name());
                 row.add(s.isGaul() ? "Y" : "N");
-                row.add(Util.durationDescribe(s.getAge().getAge()));
+                row.add(Util.durationDescribe(Duration.ofMillis(
+                        Optional.ofNullable(s.getClosedAt())
+                                .map(Instant::toEpochMilli)
+                                .orElseGet(currentTimestamp::toEpochMilli) - currentTimestamp.toEpochMilli()
+                )));
                 row.add(s.getSenderName());
                 row.add(s.getIssue().getName());
-                row.add(s.getProduct().name());
+                row.add(s.getIssue().getProduct().name());
 
                 Optional<AgentWorkspace> workspaceOpt = agentQueryService.getLastWorkspaceOptional(s.getId());
                 if (workspaceOpt.isPresent()) {

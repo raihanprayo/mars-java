@@ -290,7 +290,7 @@ public class AuthServiceImpl implements AuthService {
             Assert.isTrue(StringUtils.isNoneBlank(f.getNewPassword()), "NewPassword cannot be null or empty");
             Assert.isTrue(StringUtils.isNoneBlank(f.getToken()), "Invalid reset request");
 
-            Claims body = JwtUtil.decodeToken(f.getToken()).getBody();
+            Claims body = JwtUtil.decodeToken(f.getToken()).getPayload();
             forgotPasswordService.reset(body.getSubject(), f.getNewPassword());
             return ForgotResDTO.builder()
                     .next(ForgotReqDTO.State.DONE)
