@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

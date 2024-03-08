@@ -3,7 +3,7 @@ package dev.scaraz.mars.common.exception.telegram;
 import dev.scaraz.mars.common.tools.Translator;
 import lombok.Getter;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;

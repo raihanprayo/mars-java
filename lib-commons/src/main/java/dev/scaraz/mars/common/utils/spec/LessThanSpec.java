@@ -1,11 +1,10 @@
 package dev.scaraz.mars.common.utils.spec;
 
 import dev.scaraz.mars.common.utils.lambda.PathSupplier;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
-
-import jakarta.persistence.criteria.*;
-import jakarta.persistence.metamodel.SingularAttribute;
-import java.util.function.Function;
 
 public class LessThanSpec {
 

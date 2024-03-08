@@ -64,7 +64,5 @@ public class CoreApplication implements CommandLineRunner {
             initializer.importRolesAndAdminAccount();
             initializer.importSto();
         }
-
-        applicationEventPublisher.publishEvent(new RefreshIssueInlineButtons());
     }
 }

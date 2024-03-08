@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Pattern;
 
 @Getter

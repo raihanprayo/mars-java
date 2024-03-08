@@ -7,7 +7,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 
-import javax.annotation.Priority;
+import jakarta.annotation.Priority;
 import java.util.ArrayList;
 import java.util.List;
 

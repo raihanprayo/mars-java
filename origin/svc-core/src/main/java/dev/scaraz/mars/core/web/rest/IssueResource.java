@@ -41,7 +41,6 @@ public class IssueResource {
     @PostMapping
     public ResponseEntity<?> create(@RequestBody CreateIssueDTO newIssue) {
         Issue issue = service.create(newIssue);
-        eventPublisher.publishEvent(new RefreshIssueInlineButtons());
         return new ResponseEntity<>(
                 issue,
                 HttpStatus.CREATED
@@ -61,7 +60,6 @@ public class IssueResource {
             @RequestBody UpdateIssueDTO issue
     ) {
         Issue update = service.update(id, issue);
-        eventPublisher.publishEvent(new RefreshIssueInlineButtons());
         return ResponseEntity.ok(update);
     }
 
@@ -76,7 +74,6 @@ public class IssueResource {
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> restoreBulk(@RequestBody List<Long> ids) {
         service.restoreByIds(ids);
-        eventPublisher.publishEvent(new RefreshIssueInlineButtons());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -85,7 +82,6 @@ public class IssueResource {
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> deleteBulk(@RequestBody List<Long> ids) {
         service.deleteByIds(ids);
-        eventPublisher.publishEvent(new RefreshIssueInlineButtons());
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

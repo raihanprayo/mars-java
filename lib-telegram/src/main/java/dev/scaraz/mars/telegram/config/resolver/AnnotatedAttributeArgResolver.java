@@ -13,7 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.List;
 

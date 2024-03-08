@@ -25,7 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -244,11 +243,6 @@ public class Initializer {
     @Async
     @EventListener(classes = RefreshIssueInlineButtons.class)
     public void onResetInlineButton() {
-        createIssueInlineButton();
-    }
-
-    @Scheduled(cron = "0 0/30 * * * ?")
-    public void scheduleResetInlineButton() {
         createIssueInlineButton();
     }
 

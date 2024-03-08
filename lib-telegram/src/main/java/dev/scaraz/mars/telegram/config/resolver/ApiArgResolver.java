@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @Component
 public final class ApiArgResolver implements TelegramTypeArgResolver<TelegramBotsApi> {

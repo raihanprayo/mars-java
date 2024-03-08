@@ -3,7 +3,7 @@ package dev.scaraz.mars.telegram.model;
 import org.springframework.core.MethodParameter;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.lang.reflect.Method;
 
 public interface TelegramTypeArgResolver<T> extends TelegramArgResolver {

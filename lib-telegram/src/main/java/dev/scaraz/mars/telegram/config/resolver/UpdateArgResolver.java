@@ -8,7 +8,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @Component
 public final class UpdateArgResolver implements TelegramTypeArgResolver<Update> {

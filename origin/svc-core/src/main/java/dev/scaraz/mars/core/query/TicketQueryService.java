@@ -5,7 +5,7 @@ import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;

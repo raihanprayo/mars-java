@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.config;
 import dev.scaraz.mars.core.tools.CacheExpireListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
@@ -47,6 +48,11 @@ public class CacheConfiguration {
                     });
         }, new PatternTopic("__keyevent@*__:expired"));
         return container;
+    }
+
+    @Bean
+    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+        return builder -> {};
     }
 
 }

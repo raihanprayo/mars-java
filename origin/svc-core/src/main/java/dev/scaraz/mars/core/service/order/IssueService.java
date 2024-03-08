@@ -6,7 +6,7 @@ import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.core.domain.order.Issue;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public interface IssueService {
     Issue save(Issue issue);
