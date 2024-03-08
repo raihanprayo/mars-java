@@ -9,8 +9,8 @@ import dev.scaraz.mars.common.utils.lambda.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.Path;
-import javax.persistence.metamodel.*;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.metamodel.*;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.BiFunction;

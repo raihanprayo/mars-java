@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.hibernate.annotations.TypeDef;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.Duration;
 import java.time.Instant;
 

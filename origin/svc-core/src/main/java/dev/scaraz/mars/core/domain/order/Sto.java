@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.domain.order;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Getter
 @Setter

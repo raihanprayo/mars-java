@@ -5,7 +5,7 @@ import dev.scaraz.mars.common.domain.TimestampEntity;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Getter
 @Setter

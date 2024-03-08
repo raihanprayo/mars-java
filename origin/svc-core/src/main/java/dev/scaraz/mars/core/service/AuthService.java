@@ -8,7 +8,7 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 public interface AuthService {

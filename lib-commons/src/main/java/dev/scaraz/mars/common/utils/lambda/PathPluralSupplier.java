@@ -1,7 +1,7 @@
 package dev.scaraz.mars.common.utils.lambda;
 
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.PluralJoin;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.PluralJoin;
 import java.util.Collection;
 
 @FunctionalInterface

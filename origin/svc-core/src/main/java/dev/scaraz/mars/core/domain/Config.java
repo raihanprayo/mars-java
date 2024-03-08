@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.domain;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
+import dev.scaraz.mars.common.domain.dynamic.DynamicSqlType;
 import dev.scaraz.mars.common.domain.dynamic.DynamicType;
 import dev.scaraz.mars.common.domain.dynamic.DynamicValue;
 import dev.scaraz.mars.common.domain.dynamic.DynamicValueSerializer;
@@ -10,7 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.List;
 
 @Getter
@@ -30,7 +31,7 @@ public class Config extends AuditableEntity implements DynamicValue {
     private ConfigTag tag;
 
     @Column
-    @Type(type = "dynamic-type")
+    @Type(DynamicSqlType.class)
     private DynamicType type;
 
     @Column

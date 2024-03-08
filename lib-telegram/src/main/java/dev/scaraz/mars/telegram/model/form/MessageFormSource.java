@@ -5,7 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.Pattern;
 
 @Getter
 @Setter

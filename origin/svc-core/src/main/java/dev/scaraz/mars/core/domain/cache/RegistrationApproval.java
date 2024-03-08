@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.TimeToLive;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 import java.util.concurrent.TimeUnit;
 
 @Getter

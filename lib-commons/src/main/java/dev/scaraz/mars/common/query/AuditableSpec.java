@@ -6,7 +6,7 @@ import dev.scaraz.mars.common.tools.AuditableCriteria;
 import dev.scaraz.mars.common.utils.lambda.PluralSupplier;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
 import java.util.Collection;
 
 public abstract class AuditableSpec<E extends AuditableEntity, C extends AuditableCriteria> extends TimestampSpec<E, C> {

@@ -1,8 +1,6 @@
 package dev.scaraz.mars.common.domain.dynamic;
 
-import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.type.StringType;
 import org.hibernate.usertype.UserType;
 
 import java.io.Serializable;
@@ -10,46 +8,46 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.Objects;
 
-public class DynamicSqlType implements UserType {
+public class DynamicSqlType implements UserType<DynamicType> {
+
     @Override
-    public int[] sqlTypes() {
-        return new int[]{Types.VARCHAR};
+    public int getSqlType() {
+        return Types.VARCHAR;
     }
 
     @Override
-    public Class returnedClass() {
+    public Class<DynamicType> returnedClass() {
         return DynamicType.class;
     }
 
     @Override
-    public boolean equals(Object o, Object o1) throws HibernateException {
-        return o.equals(o1);
+    public boolean equals(DynamicType x, DynamicType y) {
+        return Objects.equals(x, y);
     }
 
     @Override
-    public int hashCode(Object o) throws HibernateException {
-        return o.hashCode();
+    public int hashCode(DynamicType x) {
+        return Objects.hashCode(x);
     }
 
     @Override
-    public Object nullSafeGet(ResultSet resultSet, String[] strings, SharedSessionContractImplementor sharedSessionContractImplementor, Object o) throws HibernateException, SQLException {
-        String value = (String) StringType.INSTANCE.get(resultSet, strings[0], sharedSessionContractImplementor);
-        if (value == null) return null;
-        return DynamicType.from(value);
+    public DynamicType nullSafeGet(ResultSet rs, int position, SharedSessionContractImplementor session, Object owner) throws SQLException {
+        String string = rs.getString(position);
+        if (string == null) return null;
+        return DynamicType.from(string);
     }
 
     @Override
-    public void nullSafeSet(PreparedStatement preparedStatement, Object o, int i, SharedSessionContractImplementor sharedSessionContractImplementor) throws HibernateException, SQLException {
-        if (o != null)
-            StringType.INSTANCE.set(preparedStatement, o.toString(), i, sharedSessionContractImplementor);
-        else
-            StringType.INSTANCE.set(preparedStatement, null, i, sharedSessionContractImplementor);
+    public void nullSafeSet(PreparedStatement st, DynamicType value, int index, SharedSessionContractImplementor session) throws SQLException {
+        if (Objects.isNull(value)) st.setNull(index, getSqlType());
+        else st.setString(index, value.toString());
     }
 
     @Override
-    public Object deepCopy(Object o) throws HibernateException {
-        return o;
+    public DynamicType deepCopy(DynamicType value) {
+        return value;
     }
 
     @Override
@@ -58,17 +56,13 @@ public class DynamicSqlType implements UserType {
     }
 
     @Override
-    public Serializable disassemble(Object o) throws HibernateException {
-        return o.toString();
+    public Serializable disassemble(DynamicType value) {
+        return value.toString();
     }
 
     @Override
-    public Object assemble(Serializable serializable, Object o) throws HibernateException {
-        return serializable;
+    public DynamicType assemble(Serializable cached, Object owner) {
+        return DynamicType.from((String) cached);
     }
 
-    @Override
-    public Object replace(Object o, Object o1, Object o2) throws HibernateException {
-        return o;
-    }
 }

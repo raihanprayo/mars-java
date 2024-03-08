@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.scaraz.mars.common.tools.converter.InstantDeserializer;
 import dev.scaraz.mars.common.tools.converter.InstantSerializer;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,7 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.Instant;
 
 @Data
@@ -27,14 +28,14 @@ import java.time.Instant;
 public class AccountEvent {
 
     @Id
-    @GeneratedValue(generator = "uuid")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column
     private String type;
 
     @Column
-    @Type(type = "jsonb")
+    @Type(JsonBinaryType.class)
     private String details;
 
     @CreatedBy

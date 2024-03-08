@@ -9,7 +9,7 @@ import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 @Component
 public class TicketSpecBuilder extends AuditableSpec<Ticket, TicketCriteria> {

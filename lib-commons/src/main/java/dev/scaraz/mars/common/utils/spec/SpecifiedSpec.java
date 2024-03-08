@@ -3,10 +3,10 @@ package dev.scaraz.mars.common.utils.spec;
 import dev.scaraz.mars.common.utils.lambda.PathSupplier;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.criteria.*;
-import javax.persistence.metamodel.ListAttribute;
-import javax.persistence.metamodel.SetAttribute;
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.criteria.*;
+import jakarta.persistence.metamodel.ListAttribute;
+import jakarta.persistence.metamodel.SetAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
 import java.util.function.Function;
 
 public interface SpecifiedSpec {

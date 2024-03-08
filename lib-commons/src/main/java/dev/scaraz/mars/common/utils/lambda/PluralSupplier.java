@@ -1,8 +1,8 @@
 package dev.scaraz.mars.common.utils.lambda;
 
-import javax.persistence.criteria.PluralJoin;
-import javax.persistence.criteria.Root;
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.criteria.PluralJoin;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.metamodel.SingularAttribute;
 import java.util.Collection;
 
 @FunctionalInterface

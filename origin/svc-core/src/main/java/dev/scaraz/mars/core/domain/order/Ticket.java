@@ -8,7 +8,7 @@ import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
 
 @Getter
@@ -22,8 +22,7 @@ import java.util.*;
 public class Ticket extends AuditableEntity {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(name = "no", updatable = false)

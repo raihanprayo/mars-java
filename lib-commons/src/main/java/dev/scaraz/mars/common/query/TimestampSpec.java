@@ -7,7 +7,7 @@ import dev.scaraz.mars.common.utils.QueryBuilder;
 import dev.scaraz.mars.common.utils.lambda.PluralSupplier;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.metamodel.SingularAttribute;
 import java.util.Collection;
 
 public abstract class TimestampSpec<E extends TimestampEntity, C extends TimestampCriteria> extends QueryBuilder<E, C> {

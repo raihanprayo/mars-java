@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.domain.credential;
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import lombok.*;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Getter
 @Setter

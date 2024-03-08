@@ -5,7 +5,7 @@ import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Getter
 @Setter
@@ -22,8 +22,7 @@ public class AccountApproval extends TimestampEntity {
     public static String REQUIRE_DOCUMENT = "REQUIRE_DOCUMENT";
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(updatable = false)

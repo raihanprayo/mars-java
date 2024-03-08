@@ -1,8 +1,8 @@
 package dev.scaraz.mars.common.utils.lambda;
 
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Path;
-import javax.persistence.metamodel.SingularAttribute;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.metamodel.SingularAttribute;
 
 @FunctionalInterface
 public interface PathSingleSupplier<T, E, Z> {

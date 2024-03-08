@@ -8,7 +8,7 @@ import lombok.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
