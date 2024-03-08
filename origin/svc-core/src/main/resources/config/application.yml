@@ -33,12 +33,6 @@ spring:
     generate-ddl: false
     show-sql: ${JPA_SHOW_SQL:false}
     open-in-view: ${JPA_OPEN_IN_VIEW:false}
-  flyway:
-    table: mars_schema_history
-    default-schema: ${DS_SCHEMA:mars}
-    create-schemas: true
-    locations: ${MIGRATION_DIR:classpath:db/migrations}
-    out-of-order: true
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     url: jdbc:postgresql://${DS_HOST:127.0.0.1}:${DS_PORT:15433}/${DS_DATABASE:tr2db}
@@ -48,6 +42,10 @@ spring:
     hikari:
       pool-name: mars-core
       schema: ${DS_SCHEMA:mars}
+  flyway:
+    table: mars_schema_history
+    default-schema: ${DS_SCHEMA:mars}
+    create-schemas: true
   jackson:
     default-property-inclusion: NON_NULL
     locale: id_ID
