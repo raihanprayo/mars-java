@@ -4,6 +4,7 @@ import dev.scaraz.mars.common.config.DataSourceAuditor;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.util.DelegateUser;
 import dev.scaraz.mars.security.authentication.identity.MarsAuthentication;
+import jakarta.persistence.EntityManagerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
@@ -13,12 +14,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = "dev.scaraz.mars.core.repository.db")
+@EnableJpaRepositories(
+        basePackages = "dev.scaraz.mars.core.repository.db",
+        considerNestedRepositories = true)
 @EnableJpaAuditing(
         modifyOnCreate = false,
         dateTimeProviderRef = DataSourceAuditor.BEAN_NAME,
@@ -49,9 +51,7 @@ public class DataSourceConfiguration {
 
     @Bean
     public JpaTransactionManager transactionManager(final EntityManagerFactory entityManagerFactory) {
-        JpaTransactionManager jpaTransactionManager = new JpaTransactionManager();
-        jpaTransactionManager.setEntityManagerFactory(entityManagerFactory);
-        return jpaTransactionManager;
+        return new JpaTransactionManager(entityManagerFactory);
     }
 
 }

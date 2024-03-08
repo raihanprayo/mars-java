@@ -83,7 +83,7 @@ public abstract class TelegramBotService implements AutoCloseable {
                         .processor(processor)
                         .cycle(ProcessCycle.PROCESS)
                         .addAttribute(TelegramContextHolder.TG_USER, InternalTelegram.getUser(processor, update))
-                        .addAttribute(TelegramContextHolder.TG_CHAT, InternalTelegram.getChat(processor, update))
+                        .addAttribute(TelegramContextHolder.TG_CHAT_ID, InternalTelegram.getChatId(processor, update))
                         .addAttribute(TelegramContextHolder.TG_CHAT_SOURCE, InternalTelegram.getChatSource(processor, update))
                         .build());
 

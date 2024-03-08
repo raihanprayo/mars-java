@@ -4,14 +4,13 @@ import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.general.AccessToken;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ClaimsBuilder;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.impl.DefaultClaims;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -39,28 +38,48 @@ public class JwtProvider {
                 .getSecret()
                 .getBytes(StandardCharsets.UTF_8));
 
-        Claims claims = new DefaultClaims();
-        claims.setId(UUID.randomUUID().toString());
-        claims.setSubject(userId);
-        claims.setIssuedAt(currentDate);
-        claims.setExpiration(new Date(currentDate.getTime() + expired));
 
-        claims.put("name", name);
-        claims.put("email", email);
-        claims.put("nik", nik);
-        claims.put("tg", tgId);
+//        Claims claims = new DefaultClaims();
+//        claims.setId(UUID.randomUUID().toString());
+//        claims.setSubject(userId);
+//        claims.setIssuedAt(currentDate);
+//        claims.setExpiration(new Date(currentDate.getTime() + expired));
+//
+//        claims.put("name", name);
+//        claims.put("email", email);
+//        claims.put("nik", nik);
+//        claims.put("tg", tgId);
+//
+//        TreeMap<String, Object> info = new TreeMap<>();
+//        info.put("witel", witel);
+//        if (sto != null) info.put("sto", sto);
+//
+//        claims.put("info", info);
+//        claims.put("roles", authorities.stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .collect(Collectors.toList()));
+
+        ClaimsBuilder cb = Jwts.claims()
+                .id(UUID.randomUUID().toString())
+                .subject(userId)
+                .issuedAt(currentDate)
+                .expiration(new Date(currentDate.getTime() + expired))
+                .add("name", name)
+                .add("email", email)
+                .add("nik", nik)
+                .add("tg", tgId);
 
         TreeMap<String, Object> info = new TreeMap<>();
         info.put("witel", witel);
         if (sto != null) info.put("sto", sto);
 
-        claims.put("info", info);
-        claims.put("roles", authorities.stream()
+        cb.add("info", info);
+        cb.add("roles", authorities.stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
 
         return Jwts.builder()
-                .setClaims(claims)
+                .claims(cb.build())
                 .signWith(secretKey)
                 .compact();
     }
@@ -78,10 +97,10 @@ public class JwtProvider {
         SecretKey secretKey = Keys.hmacShaKeyFor(properties
                 .getSecret()
                 .getBytes(StandardCharsets.UTF_8));
-        return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+        return Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token);
+                .parseSignedClaims(token);
     }
 
     public AccessToken parse(Claims claims) {

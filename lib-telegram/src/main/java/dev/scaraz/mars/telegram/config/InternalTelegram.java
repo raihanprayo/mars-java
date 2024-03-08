@@ -3,7 +3,6 @@ package dev.scaraz.mars.telegram.config;
 import dev.scaraz.mars.telegram.config.processor.TelegramProcessor;
 import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import dev.scaraz.mars.telegram.util.enums.ChatSource;
-import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -30,37 +29,33 @@ public interface InternalTelegram {
     }
 
     static User getUser(TelegramProcessor processor, Update update) {
-        switch (processor.type()) {
-            case MESSAGE:
-                return getMessage(processor.type(), update).getFrom();
-            case CALLBACK_QUERY:
-                return update.getCallbackQuery().getFrom();
-        }
-        return null;
-    }
-    static Chat getChat(TelegramProcessor processor, Update update) {
-        Message message = getMessage(processor.type(), update);
-        return Optional.ofNullable(message)
-                .map(Message::getChat)
-                .orElse(null);
-    }
-    static ChatSource getChatSource(TelegramProcessor processor, Update update) {
-        Message message = getMessage(processor.type(), update);
-        return Optional.ofNullable(message)
-                .map(Message::getChat)
-                .map(Chat::getType)
-                .map(ChatSource::fromType)
-                .orElse(null);
+        return switch (processor.type()) {
+            case MESSAGE -> update.getMessage().getFrom();
+            case CALLBACK_QUERY -> update.getCallbackQuery().getFrom();
+            default -> null;
+        };
     }
 
-    static Message getMessage(HandlerType type, Update update) {
-        switch (type) {
-            case CALLBACK_QUERY:
-                return update.getCallbackQuery().getMessage();
-            case MESSAGE:
-                return update.getMessage();
-        }
-        return null;
+    static Long getChatId(TelegramProcessor processor, Update update) {
+        return switch (processor.type()) {
+            case CALLBACK_QUERY -> update.getCallbackQuery().getMessage().getChatId();
+            case MESSAGE -> update.getMessage().getChatId();
+            case null, default -> null;
+        };
+    }
+
+    static ChatSource getChatSource(TelegramProcessor processor, Update update) {
+        return switch (processor.type()) {
+            case MESSAGE -> {
+                Message message = update.getMessage();
+                yield Optional.ofNullable(message)
+                        .map(Message::getChat)
+                        .map(Chat::getType)
+                        .map(ChatSource::fromType)
+                        .orElse(null);
+            }
+            default -> ChatSource.PRIVATE;
+        };
     }
 
 }

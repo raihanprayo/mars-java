@@ -143,13 +143,12 @@ public class AppListener {
     public SendMessage onCallbackQuery(
             User user,
             CallbackQuery cq,
-            Message message,
             @CallbackData String data,
             @TgAuth Account marsAccount
     ) throws TelegramApiException {
         log.info("{}", gson.toJson(cq));
 
-        int messageId = message.getMessageId();
+        int messageId = cq.getMessage().getMessageId();
         if (data.startsWith(REPORT_ISSUE) && confirmService.existsById(messageId)) {
             long issueId = Long.parseLong(data.substring(data.lastIndexOf(":") + 1));
             ticketBotService.instantForm_answerIssue(messageId, issueId);

@@ -29,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
 import java.util.Optional;
@@ -166,8 +167,8 @@ public class TicketListener {
     }
 
     @TelegramCallbackQuery(AppConstants.Telegram.TICKET_FINISH_PENDING)
-    public void resumePendingTicket(Message message) {
-        int messageId = message.getMessageId();
+    public void resumePendingTicket(CallbackQuery cq) {
+        int messageId = cq.getMessage().getMessageId();
         confirmService.findByIdOpt(messageId)
                 .ifPresent(ticketConfirm -> ticketBotService.endPendingEarly(messageId, ticketConfirm.getValue()));
     }

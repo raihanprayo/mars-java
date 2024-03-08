@@ -29,6 +29,7 @@ import java.util.List;
 @EnableConfigurationProperties(RedisProperties.class)
 @EnableRedisRepositories(
         basePackages = "dev.scaraz.mars.core.repository.cache",
+        considerNestedRepositories = true,
         enableKeyspaceEvents = RedisKeyValueAdapter.EnableKeyspaceEvents.ON_STARTUP,
         shadowCopy = RedisKeyValueAdapter.ShadowCopy.ON)
 public class CacheConfiguration {

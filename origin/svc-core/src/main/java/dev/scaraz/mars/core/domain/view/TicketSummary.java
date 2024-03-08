@@ -1,17 +1,12 @@
 package dev.scaraz.mars.core.domain.view;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.*;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.order.Issue;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import jakarta.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
 
 @Getter
 @NoArgsConstructor
@@ -89,9 +84,9 @@ public class TicketSummary extends AuditableEntity {
     @Embedded
     private TicketAge age;
 
-    @JsonIgnore
-    @OrderBy("createdAt desc")
-    @OneToMany(mappedBy = "ticket")
-    private Set<AgentWorkspace> workspaces = new HashSet<>();
+//    @JsonIgnore
+//    @OrderBy("createdAt desc")
+//    @OneToMany(mappedBy = "ticket")
+//    private Set<AgentWorkspace> workspaces = new HashSet<>();
 
 }

@@ -4,6 +4,7 @@ import dev.scaraz.mars.telegram.annotation.context.Text;
 import dev.scaraz.mars.telegram.model.TelegramAnnotationArgResolver;
 import dev.scaraz.mars.telegram.model.TelegramHandlerContext;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
+import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -21,16 +22,13 @@ public final class TextArgResolver implements TelegramAnnotationArgResolver {
     }
 
     @Override
+    public List<HandlerType> handledFor() {
+        return List.of(HandlerType.MESSAGE);
+    }
+
+    @Override
     public Object resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
-        switch (ctx.getScope()) {
-            case MESSAGE: {
-                return mc.getArgument().orElse("");
-            }
-            case CALLBACK_QUERY: {
-                return update.getCallbackQuery().getMessage().getText();
-            }
-        }
-        return null;
+        return mc.getArgument().orElse("");
     }
 
 }

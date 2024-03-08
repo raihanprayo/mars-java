@@ -7,13 +7,12 @@ import dev.scaraz.mars.telegram.model.TelegramAnnotationArgResolver;
 import dev.scaraz.mars.telegram.model.TelegramHandlerContext;
 import dev.scaraz.mars.telegram.model.TelegramMessageCommand;
 import dev.scaraz.mars.telegram.util.enums.HandlerType;
+import jakarta.annotation.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
-import jakarta.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
@@ -23,7 +22,7 @@ public class AnnotatedAttributeArgResolver implements TelegramAnnotationArgResol
     @Override
     public Object resolve(MethodParameter mp, TelegramHandlerContext ctx, Update update, @Nullable TelegramMessageCommand mc) {
         if (mp.hasParameterAnnotation(ChatId.class))
-            return ((Chat) TelegramContextHolder.getAttribute(TelegramContextHolder.TG_CHAT)).getId();
+            return ((long) TelegramContextHolder.getAttribute(TelegramContextHolder.TG_CHAT_ID));
         if (mp.hasParameterAnnotation(UserId.class))
             return ((User) TelegramContextHolder.getAttribute(TelegramContextHolder.TG_USER)).getId();
         return null;

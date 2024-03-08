@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.Assert;
 
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
@@ -45,8 +46,9 @@ public final class JwtUtil {
                 .id(c.getId())
                 .token(Jwts.builder()
                         .signWith(secret.get())
-                        .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-                        .setClaims(c)
+//                        .header(Header.TYPE, Header.JWT_TYPE)
+                        .header().type(Header.JWT_TYPE).and()
+                        .claims(c)
                         .compact())
                 .expiredAt(c.getExpiration().toInstant())
                 .build();
@@ -62,44 +64,44 @@ public final class JwtUtil {
         Assert.isTrue(ISSUERS.contains(claims.getIss()), "Invalid JWT issuer");
 
         String audience = claims.getAud();
-        Claims c = Jwts.claims()
-                .setId(Objects.requireNonNullElseGet(tokenId, () -> UUID.randomUUID().toString()))
-                .setSubject(claims.getSub())
-                .setIssuer(claims.getIss())
-                .setAudience(audience)
-                .setIssuedAt(claims.getIssuedAt());
+        ClaimsBuilder c = Jwts.claims()
+                .id(Objects.requireNonNullElseGet(tokenId, () -> UUID.randomUUID().toString()))
+                .subject(claims.getSub())
+                .issuer(claims.getIss())
+                .issuedAt(claims.getIssuedAt())
+                .audience().add(audience).and();
 
         if (audience.equalsIgnoreCase(MarsWebToken.ACS)) {
             Assert.isTrue(StringUtils.isNoneBlank(claims.getNik()), "NIK claims cannot be empty/null");
             Assert.notNull(claims.getWitel(), "WITEL claims cannot be null");
 
-            c.put("nik", claims.getNik());
-            c.put("witel", claims.getWitel());
+            c.add("nik", claims.getNik());
+            c.add("witel", claims.getWitel());
 
             if (claims.getExpiredAt() != null)
-                c.setExpiration(claims.getExpiredAt());
+                c.expiration(claims.getExpiredAt());
             else
-                c.setExpiration(Date.from(claims
+                c.expiration(Date.from(claims
                         .getIssuedAt()
                         .toInstant()
                         .plus(accessExpired.get().get().toMillis(), ChronoUnit.MILLIS)));
 
             if (claims.getTelegram() != null)
-                c.put("tg", claims.getTelegram());
+                c.add("tg", claims.getTelegram());
 
             if (StringUtils.isNoneBlank(claims.getSto()))
-                c.put("sto", claims.getSto());
+                c.add("sto", claims.getSto());
 
-            c.put("roles", claims.getRoles().stream()
+            c.add("roles", claims.getRoles().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()));
         }
         else if (audience.equalsIgnoreCase(MarsWebToken.RFS)) {
 
             if (claims.getExpiredAt() != null)
-                c.setExpiration(claims.getExpiredAt());
+                c.expiration(claims.getExpiredAt());
             else
-                c.setExpiration(Date.from(claims
+                c.expiration(Date.from(claims
                         .getIssuedAt()
                         .toInstant()
                         .plus(refreshExpired.get().get().toMillis(), ChronoUnit.MILLIS)));
@@ -114,7 +116,7 @@ public final class JwtUtil {
 //                        .compact())
 //                .expiredAt(c.getExpiration().toInstant())
 //                .build();
-        return encode(c);
+        return encode(c.build());
     }
     public static JwtResult encode(MarsWebToken claims) {
         return encode(null, claims);
@@ -129,7 +131,7 @@ public final class JwtUtil {
                 .rawToken(token);
         try {
             Jws<Claims> jws = decodeToken(token);
-            Claims claims = jws.getBody();
+            Claims claims = jws.getPayload();
 
             if (!ISSUERS.contains(claims.getIssuer()))
                 throw new IllegalStateException("unknown issuer");
@@ -137,15 +139,15 @@ public final class JwtUtil {
             MarsWebToken.MarsWebTokenBuilder cb = MarsWebToken.builder()
                     .sub(claims.getSubject())
                     .iss(claims.getIssuer())
-                    .aud(claims.getAudience())
+                    .aud(String.join("", claims.getAudience()))
                     .expiredAt(claims.getExpiration())
                     .issuedAt(claims.getIssuedAt());
 
-            if (!AUDIENCES.contains(claims.getAudience())) {
+            if (AUDIENCES.stream().noneMatch(aud -> claims.getAudience().contains(aud))) {
                 throw new IllegalStateException("invalid audience");
             }
             else {
-                if (claims.getAudience().equals(MarsWebToken.ACS)) {
+                if (claims.getAudience().contains(MarsWebToken.ACS)) {
                     List<String> roles = claims.get("roles", List.class);
 
                     cb.nik(claims.get("nik", String.class))
@@ -186,22 +188,14 @@ public final class JwtUtil {
     }
 
     public static Jws<Claims> decodeToken(String token) throws ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException, IllegalArgumentException {
-        return Jwts.parserBuilder()
-                .setSigningKey(secret.get())
+        return Jwts.parser()
+                .verifyWith((SecretKey) secret.get())
                 .build()
-                .parseClaimsJws(token);
+                .parseSignedClaims(token);
     }
 
     public static void setSecret(String signingKey) {
         secret.set(Keys.hmacShaKeyFor(signingKey.getBytes()));
-    }
-
-    public static void setAccessTokenExpiredDuration(Duration duration) {
-        accessExpired.set(() -> duration);
-    }
-
-    public static void setRefreshTokenExpiredDuration(Duration duration) {
-        refreshExpired.set(() -> duration);
     }
 
     public static void setAccessTokenExpiredDuration(Supplier<Duration> duration) {

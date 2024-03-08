@@ -60,11 +60,14 @@ public class ForgotPasswordService {
             Instant expired = iss.plus(expDuration);
 
             JwtResult ffs = JwtUtil.encode(Jwts.claims()
-                    .setId(UUID.randomUUID().toString())
-                    .setAudience("ffs")
-                    .setSubject(account.getId())
-                    .setIssuedAt(Date.from(iss))
-                    .setExpiration(Date.from(expired))
+                    .id(UUID.randomUUID().toString())
+                    .subject(account.getId())
+                    .issuedAt(Date.from(iss))
+                    .expiration(Date.from(expired))
+                    .audience()
+                    .add("ffs")
+                    .and()
+                    .build()
             );
             String otp = generateOtp();
 

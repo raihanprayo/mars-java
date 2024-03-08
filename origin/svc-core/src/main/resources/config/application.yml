@@ -6,6 +6,13 @@ server:
     min-response-size: 1024
     mime-types: text/html,text/xml,text/plain,text/css, application/javascript, application/json
 
+dump:
+  datasource:
+    url: "jdbc:postgresql://${DS_HOST:127.0.0.1}:${DS_PORT:15433}/${DS_DATABASE:tr2db}"
+    username: "${DS_USERNAME:mars}"
+    password: "${DS_PASSWORD:12qwaszx}"
+    schema: "${DS_SCHEMA:mars}"
+
 spring:
   application:
     name: mars-roc
@@ -28,6 +35,7 @@ spring:
       database: ${REDIS_DATABASE:0}
       username: ${REDIS_USERNAME:}
       password: ${REDIS_PASSWORD:}
+
   jpa:
     database: postgresql
     generate-ddl: false
@@ -35,17 +43,23 @@ spring:
     open-in-view: ${JPA_OPEN_IN_VIEW:false}
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:postgresql://${DS_HOST:127.0.0.1}:${DS_PORT:15433}/${DS_DATABASE:tr2db}
-    username: ${DS_USERNAME:mars}
-    password: ${DS_PASSWORD:12qwaszx}
     driver-class-name: org.postgresql.Driver
+    url: ${dump.datasource.url}
+    username: ${dump.datasource.username}
+    password: ${dump.datasource.password}
     hikari:
       pool-name: mars-core
-      schema: ${DS_SCHEMA:mars}
+      schema: ${dump.datasource.schema}
   flyway:
     table: mars_schema_history
-    default-schema: ${DS_SCHEMA:mars}
+    schemas: ${dump.datasource.schema}
+    default-schema: ${dump.datasource.schema}
     create-schemas: true
+    baseline-on-migrate: false
+  #  flyway:
+  #    create-schemas: true
+  #    default-schema: ${DS_SCHEMA:mars}
+  #    schemas: ${DS_SCHEMA:mars}
   jackson:
     default-property-inclusion: NON_NULL
     locale: id_ID
@@ -56,6 +70,7 @@ spring:
         core-size: ${ASYNC_CORE_POOL_SIZE:5}
         max-size: ${ASYNC_MAX_POOL_SIZE:20}
 
+
 logging:
   file:
     name: ${LOG_DIRECTORY:D:/webs/mars-java/logs}/${LOG_NAME:${spring.application.name}}.log
@@ -64,10 +79,10 @@ logging:
       max-file-size: 10MB
       file-name-pattern: ${LOG_ARCHIVE:${LOG_DIRECTORY:D:/webs/mars-java/logs}/archive}/${LOG_NAME:${spring.application.name}}-%d{yyyy-MM-dd}.%i.log
   group:
-    spring: org.springframework,com.netflix,io.micrometer,feign,_org.springframework.web,io.undertow,org.xnio,Validator
+    spring: org.springframework,com.netflix,io.micrometer,feign,_org.springframework.web,io.undertow,org.xnio,Validator,serialization
     http: okhttp3,org.apache
     database: com.zaxxer.hikari,io.lettuce,io.netty,org.hibernate,org.postgresql,org.redisson
-    java: sun.net,javax.management,javax.activation,unknown.jul.logger,sun.rmi,sun.rmi.transport,jdk.event,reactor,io.github.resilience4j,sun.awt,com.sun,org.jboss
+    java: sun.net,javax.management,javax.activation,unknown.jul.logger,sun.rmi,sun.rmi.transport,jdk.event,reactor,io.github.resilience4j,sun.awt,com.sun,org.jboss,java.io,org.aspectj.weaver
     swagger: io.swagger,springfox,org.springdoc
     keycloak: org.keycloak
     flyway: org.flywaydb.core
@@ -83,8 +98,10 @@ logging:
     flyway: warn
     mars: ${LOG_MARS_LIB_LEVEL:info}
   pattern:
-    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
-    file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
+    console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${LOGGED_APPLICATION_NAME:}[%15.15t]){faint} %clr(${LOG_CORRELATION_PATTERN:}){faint}%clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+    file: "%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}} ${LOG_LEVEL_PATTERN:%5p} ${LOGGED_APPLICATION_NAME:}[%15.15t] ${LOG_CORRELATION_PATTERN:} %-40.40logger{39}) : %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+  #    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
+  #    file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
   charset:
     console: utf-8
     file: utf-8
@@ -107,7 +124,7 @@ telegram:
   type: long_polling
   name: "mars-roc"
   token: ${TELEGRAM_BOT_TOKEN:709411539:AAHGXOA0nIOYtcpzIQegY7O0NO7Vzu1Uug0}
-  async:
-    core-pool-size: ${TELEGRAM_CORE_POOL:2}
-    max-pool-size: ${TELEGRAM_MAX_POOL:30}
-    queue-capacity: ${TELEGRAM_QUEUE_CAPACITY:1000}
+#  async:
+#    core-pool-size: ${TELEGRAM_CORE_POOL:2}
+#    max-pool-size: ${TELEGRAM_MAX_POOL:30}
+#    queue-capacity: ${TELEGRAM_QUEUE_CAPACITY:1000}

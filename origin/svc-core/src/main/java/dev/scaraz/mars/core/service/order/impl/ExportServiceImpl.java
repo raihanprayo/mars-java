@@ -8,7 +8,7 @@ import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
+import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.ExportService;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +30,11 @@ import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 @RequiredArgsConstructor
 public class ExportServiceImpl implements ExportService {
 
+    private final AccountQueryService accountQueryService;
     private final AgentQueryService agentQueryService;
-    private final TicketSummaryQueryService ticketSummaryQueryService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
     private final StorageService storageService;
 
-    private final AccountQueryService accountQueryService;
 
     @Override
     @Transactional(readOnly = true)
@@ -49,7 +49,8 @@ public class ExportServiceImpl implements ExportService {
                 .collect(Collectors.toMap(Account::getNik, a -> a));
 
         for (TicketSummary s : all) {
-            log.debug("Export {} / {}", s.getId(), s.getWorkspaces());
+//            agentWorkspaceQueryService.findAll(AgentWorkspaceCriteria.builder().build())
+//            log.debug("Export {} / {}", s.getId(), ticket.getWorkspaces());
             try {
                 List<String> row = new ArrayList<>();
 

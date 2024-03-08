@@ -1,6 +1,5 @@
 package dev.scaraz.mars.telegram.util;
 
-import com.google.common.collect.ImmutableSet;
 import dev.scaraz.mars.common.domain.general.TicketBotForm;
 import dev.scaraz.mars.common.exception.telegram.TgError;
 import dev.scaraz.mars.common.exception.web.MarsException;
@@ -11,26 +10,25 @@ import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.telegram.model.TelegramBotCommand;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
 public abstract class TelegramUtil {
-    public static final String TELEGRAM_EXECUTOR = "tg-bot-update-executor";
     public static final String RESERVED_CHAR_REGX = "([\\[\\])(~`>#+=|{}.!\\-])";
 
     public static final Comparator<Map.Entry<String, ?>> KEY_LENGTH_COMPARATOR =
             Comparator.comparing(Map.Entry::getKey, Comparator.comparingInt(String::length));
 
-    public static final Comparator<TelegramBotCommand> TELEGRAM_BOT_COMMAND_COMPARATOR =
-            Comparator.comparing(
-                    TelegramBotCommand::getCommand,
-                    Comparator.comparing(ImmutableSet.of("/license", "/help")::contains)
-            ).thenComparing(TelegramBotCommand::getCommand);
+    public static final Comparator<TelegramBotCommand> TELEGRAM_BOT_COMMAND_COMPARATOR;
+    static {
+        Set<String> commands = Set.of("/license", "/help");
+        TELEGRAM_BOT_COMMAND_COMPARATOR = Comparator.comparing(
+                TelegramBotCommand::getCommand,
+                Comparator.comparing(commands::contains)
+        ).thenComparing(TelegramBotCommand::getCommand);
+    }
 
 
     public static String esc(String... texts) {
