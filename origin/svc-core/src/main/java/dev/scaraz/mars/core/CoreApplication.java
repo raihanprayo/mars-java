@@ -2,8 +2,8 @@ package dev.scaraz.mars.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
-import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
 import dev.scaraz.mars.core.service.Initializer;
+import dev.scaraz.mars.telegram.EnableTelegramSpring;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,8 +21,9 @@ import java.net.UnknownHostException;
 @Slf4j
 @RequiredArgsConstructor
 
-@SpringBootApplication
 @EnableScheduling
+@EnableTelegramSpring
+@SpringBootApplication
 public class CoreApplication implements CommandLineRunner {
     private final Initializer initializer;
 
@@ -60,7 +61,7 @@ public class CoreApplication implements CommandLineRunner {
         if (StringUtils.isNoneBlank(imports)) {
             log.info("Import initialization");
             initializer.importConfig();
-            initializer.importIssue();
+//            initializer.importIssue();
             initializer.importRolesAndAdminAccount();
             initializer.importSto();
         }

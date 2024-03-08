@@ -2,6 +2,8 @@ package dev.scaraz.mars.core.service.impl;
 
 import dev.scaraz.mars.common.domain.ConfigDTO;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
+import dev.scaraz.mars.common.utils.CacheConstant;
+import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.common.utils.ConfigEntry;
 import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
 import dev.scaraz.mars.core.config.event.app.ConfigUpdateEvent;
@@ -14,6 +16,7 @@ import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Async;
@@ -38,6 +41,9 @@ public class ConfigServiceImpl implements ConfigService {
     private final ConfigTagRepo tagRepo;
 
     @Override
+    @CacheEvict(
+            cacheNames = CacheConstant.ISSUES_KEYBOARD,
+            condition = "#c.key == '" + ConfigConstants.TG_START_CMD_ISSUE_COLUMN_INT + "'")
     public Config save(Config c) {
         return repo.save(c);
     }

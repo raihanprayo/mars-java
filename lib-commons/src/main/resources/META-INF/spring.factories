@@ -1,3 +1,0 @@
-
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  dev.scaraz.mars.common.MarsConfiguration

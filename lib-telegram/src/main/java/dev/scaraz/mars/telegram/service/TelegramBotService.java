@@ -71,18 +71,6 @@ public abstract class TelegramBotService implements AutoCloseable {
         return null;
     }
 
-//    public Optional<BotApiMethod<?>> updateProcess(Update update) {
-//        log.debug("Update {} received", update);
-//
-//        for (int i = telegramProcessors.size() - 1; i >= 0; i--) {
-//            TelegramProcessor processor = telegramProcessors.get(i);
-//            if (processor.shouldProcess(update)) return processor.process(this, update);
-//        }
-//
-//        log.warn("No processor can handle current update");
-//        return Optional.empty();
-//    }
-
     protected void onUpdateReceived(Update update) {
         log.info("Telegram Update: {}", GSON.toJson(update));
         TelegramProcessor processor = getProcessor(update);

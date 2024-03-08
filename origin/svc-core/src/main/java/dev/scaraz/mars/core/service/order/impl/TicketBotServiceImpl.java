@@ -13,6 +13,7 @@ import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
+import dev.scaraz.mars.common.utils.CacheConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
@@ -32,11 +33,16 @@ import dev.scaraz.mars.telegram.config.TelegramContextHolder;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import dev.scaraz.mars.telegram.util.enums.ChatSource;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -46,13 +52,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import jakarta.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 
 @Slf4j
@@ -61,6 +66,7 @@ import static dev.scaraz.mars.common.utils.AppConstants.ZONE_LOCAL;
 public class TicketBotServiceImpl implements TicketBotService {
 
     //    private final AppConfigService appConfigService;
+    private final ApplicationContext applicationContext;
     private final ConfigService configService;
     private final TelegramBotService botService;
 
@@ -339,7 +345,6 @@ public class TicketBotServiceImpl implements TicketBotService {
         }
 
         String name = account.getName();
-        InlineKeyboardMarkup markUp = new InlineKeyboardMarkup();
         SendMessage toSend = SendMessage.builder()
                 .parseMode(ParseMode.MARKDOWNV2)
                 .chatId(chatId)
@@ -347,59 +352,15 @@ public class TicketBotServiceImpl implements TicketBotService {
                         String.format("Halo *%s*", name),
                         "Silahkan pilih menu sesuai kendala:"
                 ))
-                .replyMarkup(markUp)
+                .replyMarkup(applicationContext.getBean(TicketBotServiceImpl.class).createIssueKeyboarButtons())
                 .build();
 
-        synchronized (ISSUES_BUTTON_LIST) {
-            if (ISSUES_BUTTON_LIST.isEmpty())
-                throw new BadRequestException("Pilihan Isu kosong, Silahkan menghubungi admin MARS, untuk menambahkan isu");
-
-            int colCount = configService
-                    .get(ConfigConstants.TG_START_CMD_ISSUE_COLUMN_INT)
-                    .getAsInt();
-
-            Map<Product, List<InlineKeyboardButton>> all = new LinkedMultiValueMap<>(ISSUES_BUTTON_LIST);
-            List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-            for (Product product : all.keySet()) {
-                buttons.add(List.of(InlineKeyboardButton.builder()
-                        .text(product.name())
-                        .callbackData("DUMMY")
-                        .build()));
-
-                List<InlineKeyboardButton> row = new ArrayList<>();
-                buttons.add(row);
-
-                List<InlineKeyboardButton> defined = all.get(product);
-                for (int i = 0; i < defined.size(); i++) {
-                    if (i != 0 && (i % colCount) == 0) {
-                        row = new ArrayList<>();
-                        buttons.add(row);
-                    }
-
-                    InlineKeyboardButton e = defined.get(i);
-                    log.debug("Issue Inline Button: {}", e);
-                    row.add(e);
-                }
-
-                if (row.size() < colCount) {
-                    int total = colCount - row.size();
-                    for (int i = total; i > 0; i--) {
-                        row.add(InlineKeyboardButton.builder()
-                                .text("-")
-                                .callbackData("DUMMY")
-                                .build());
-                    }
-                }
-            }
-
-            markUp.setKeyboard(buttons);
-            int messageId = botService.getClient().execute(toSend).getMessageId();
-            confirmService.save(TicketConfirm.builder()
-                    .id(messageId)
-                    .status(TicketConfirm.INSTANT_START)
-                    .ttl(5)
-                    .build());
-        }
+        int messageId = botService.getClient().execute(toSend).getMessageId();
+        confirmService.save(TicketConfirm.builder()
+                .id(messageId)
+                .status(TicketConfirm.INSTANT_START)
+                .ttl(5)
+                .build());
         return null;
     }
 
@@ -627,4 +588,66 @@ public class TicketBotServiceImpl implements TicketBotService {
         else name += " _(opt)_";
         return name;
     }
+
+    @Cacheable(
+            cacheNames = CacheConstant.ISSUES_KEYBOARD,
+            unless = "#result == null")
+    public InlineKeyboardMarkup createIssueKeyboarButtons() {
+        List<Issue> issues = issueQueryService.findAllNotDeleted();
+        if (issues.isEmpty())
+            throw new BadRequestException("Pilihan kendala kosong, Silahkan menghubungi admin MARS, untuk meminta menambahkan kendala");
+
+        MultiValueMap<Product, InlineKeyboardButton> buttonGroups = new LinkedMultiValueMap<>();
+
+        int colCount = configService.get(ConfigConstants.TG_START_CMD_ISSUE_COLUMN_INT).getAsInt();
+
+        for (Issue issue : issues) {
+            Product product = issue.getProduct();
+
+            String name = StringUtils.isNotBlank(issue.getAlias()) ?
+                    issue.getAlias() : issue.getName();
+
+            buttonGroups.add(product, InlineKeyboardButton.builder()
+                    .text(name)
+                    .callbackData(REPORT_ISSUE + issue.getId())
+                    .build());
+        }
+
+        List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
+        for (Product product : Product.values()) {
+            buttons.add(List.of(InlineKeyboardButton.builder()
+                    .text(product.name())
+                    .callbackData("DUMMY")
+                    .build()));
+
+            List<InlineKeyboardButton> row = new ArrayList<>();
+            buttons.add(row);
+
+            List<InlineKeyboardButton> defined = buttonGroups.getOrDefault(product, new ArrayList<>());
+            for (int i = 0; i < defined.size(); i++) {
+                if (i != 0 && (i % colCount) == 0) {
+                    row = new ArrayList<>();
+                    buttons.add(row);
+                }
+
+                InlineKeyboardButton e = defined.get(i);
+                log.debug("Issue Inline Button: {}", e);
+                row.add(e);
+            }
+
+            if (row.size() < colCount) {
+                int total = colCount - row.size();
+                for (int i = total; i > 0; i--) {
+                    row.add(InlineKeyboardButton.builder()
+                            .text("-")
+                            .callbackData("DUMMY")
+                            .build());
+                }
+            }
+        }
+
+
+        return new InlineKeyboardMarkup(buttons);
+    }
+
 }

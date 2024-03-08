@@ -6,6 +6,7 @@ import dev.scaraz.mars.common.domain.response.IssueParamDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.utils.CacheConstant;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.IssueParam;
 import dev.scaraz.mars.core.query.IssueQueryService;
@@ -15,6 +16,7 @@ import dev.scaraz.mars.core.service.order.IssueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,7 @@ public class IssueServiceImpl implements IssueService {
     private final IssueQueryService queryService;
 
     @Override
+    @CacheEvict(cacheNames = CacheConstant.ISSUES_KEYBOARD)
     public Issue save(Issue issue) {
         return repo.save(issue);
     }

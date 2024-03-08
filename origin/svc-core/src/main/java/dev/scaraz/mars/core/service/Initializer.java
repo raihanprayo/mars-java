@@ -8,8 +8,6 @@ import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigEntry;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.Role;
-import dev.scaraz.mars.core.domain.event.RefreshIssueInlineButtons;
-import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.IssueQueryService;
@@ -22,22 +20,18 @@ import dev.scaraz.mars.core.service.order.IssueService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
-import static dev.scaraz.mars.common.utils.AppConstants.Telegram.ISSUES_BUTTON_LIST;
-import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 import static dev.scaraz.mars.common.utils.AuthorityConstant.*;
 import static dev.scaraz.mars.common.utils.ConfigConstants.*;
 
@@ -211,39 +205,32 @@ public class Initializer {
         }
     }
 
-    private void createIssueInlineButton() {
-        log.info("(RE)CREATE ISSUE INLINE BUTTONS");
-
-        synchronized (ISSUES_BUTTON_LIST) {
-            MultiValueMap<Product, Issue> issuesMap = new LinkedMultiValueMap<>();
-            for (Issue issue : issueQueryService.findAllNotDeleted()) {
-                issuesMap.putIfAbsent(issue.getProduct(), new ArrayList<>());
-                issuesMap.get(issue.getProduct()).add(issue);
-            }
-
-            for (Product product : issuesMap.keySet()) {
-
-                List<InlineKeyboardButton> buttons = new ArrayList<>();
-                List<Issue> issues = Objects.requireNonNull(issuesMap.get(product));
-                for (Issue issue : issues) {
-                    String name = StringUtils.isNotBlank(issue.getAlias()) ?
-                            issue.getAlias() : issue.getName();
-
-                    buttons.add(InlineKeyboardButton.builder()
-                            .text(name)
-                            .callbackData(REPORT_ISSUE + issue.getId())
-                            .build());
-                }
-
-                ISSUES_BUTTON_LIST.put(product, buttons);
-            }
-        }
-    }
-
-    @Async
-    @EventListener(classes = RefreshIssueInlineButtons.class)
-    public void onResetInlineButton() {
-        createIssueInlineButton();
-    }
+//    private void createIssueInlineButton() {
+//        log.info("(RE)CREATE ISSUE INLINE BUTTONS");
+//
+//        synchronized (ISSUES_BUTTON_LIST) {
+//            MultiValueMap<Product, Issue> issuesMap = new LinkedMultiValueMap<>();
+//            for (Issue issue : issueQueryService.findAllNotDeleted()) {
+//                issuesMap.putIfAbsent(issue.getProduct(), new ArrayList<>());
+//                issuesMap.get(issue.getProduct()).add(issue);
+//            }
+//
+//            for (Product product : issuesMap.keySet()) {
+//                List<InlineKeyboardButton> buttons = new ArrayList<>();
+//                List<Issue> issues = Objects.requireNonNull(issuesMap.get(product));
+//                for (Issue issue : issues) {
+//                    String name = StringUtils.isNotBlank(issue.getAlias()) ?
+//                            issue.getAlias() : issue.getName();
+//
+//                    buttons.add(InlineKeyboardButton.builder()
+//                            .text(name)
+//                            .callbackData(REPORT_ISSUE + issue.getId())
+//                            .build());
+//                }
+//
+//                ISSUES_BUTTON_LIST.put(product, buttons);
+//            }
+//        }
+//    }
 
 }

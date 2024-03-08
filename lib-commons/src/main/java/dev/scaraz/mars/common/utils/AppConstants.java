@@ -1,10 +1,6 @@
 package dev.scaraz.mars.common.utils;
 
-import dev.scaraz.mars.common.tools.enums.Product;
 import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.ZoneId;
 import java.util.List;
@@ -48,7 +44,7 @@ public abstract class AppConstants {
 //        String REG_TICKET_PARAM_AGREE = "REG:TC:PARAM:" + AppConstants.Telegram.CONFIRM_AGREE;
 //        String REG_TICKET_PARAM_DISAGREE = "REG:TC:PARAM:" + AppConstants.Telegram.CONFIRM_DISAGREE;
 
-        MultiValueMap<Product, InlineKeyboardButton> ISSUES_BUTTON_LIST = new LinkedMultiValueMap<>();
+//        MultiValueMap<Product, InlineKeyboardButton> ISSUES_BUTTON_LIST = new LinkedMultiValueMap<>();
     }
 
 

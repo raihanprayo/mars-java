@@ -1,5 +1,7 @@
 package dev.scaraz.mars.core.config;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.scaraz.mars.core.tools.CacheExpireListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,8 @@ import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.util.List;
 
@@ -51,8 +55,17 @@ public class CacheConfiguration {
     }
 
     @Bean
-    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
-        return builder -> {};
+    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer(ObjectMapper objectMapper) {
+        return builder -> {
+            ObjectMapper copy = objectMapper.copy()
+                    .activateDefaultTyping(
+                            objectMapper.getPolymorphicTypeValidator(),
+                            ObjectMapper.DefaultTyping.EVERYTHING,
+                            JsonTypeInfo.As.PROPERTY
+                    );
+
+            RedisSerializationContext.SerializationPair<Object> serializationPair = RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(copy));
+        };
     }
 
 }
