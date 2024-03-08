@@ -38,6 +38,7 @@ public class TicketDetailDTO implements Serializable {
 
     private boolean gaul;
 
+    @Builder.Default
     private int gaulCount = 0;
 
     private IssueDTO issue;

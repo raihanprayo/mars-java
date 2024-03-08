@@ -5,11 +5,11 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import io.hypersistence.utils.hibernate.type.interval.PostgreSQLIntervalType;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.ToString;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.Type;
 
-import jakarta.persistence.*;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -18,8 +18,6 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "v_leader_board_fragment")
-@TypeDef(typeClass = PostgreSQLIntervalType.class,
-        defaultForType = Duration.class)
 public class LeaderBoardFragment {
 
     @Id
@@ -54,8 +52,8 @@ public class LeaderBoardFragment {
     @Enumerated(EnumType.STRING)
     private TcStatus close;
 
-    @Column(name = "action_duration",
-            columnDefinition = "interval")
+    @Column(name = "action_duration")
+    @Type(PostgreSQLIntervalType.class)
     private Duration actionDuration;
 
     @Column(name = "ticket_created_at")

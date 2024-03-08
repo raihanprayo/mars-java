@@ -102,7 +102,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
+                    <version>3.12.1</version>
                     <configuration>
                         <annotationProcessorPaths>
                             <path>
@@ -127,32 +127,6 @@
                         </compilerArgs>
                     </configuration>
                 </plugin>
-<!--                <plugin>-->
-<!--                    <groupId>org.bsc.maven</groupId>-->
-<!--                    <artifactId>maven-processor-plugin</artifactId>-->
-<!--                    <version>4.5</version>-->
-<!--                    <executions>-->
-<!--                        <execution>-->
-<!--                            <id>process</id>-->
-<!--                            <goals>-->
-<!--                                <goal>process</goal>-->
-<!--                            </goals>-->
-<!--                            <phase>generate-sources</phase>-->
-<!--                        </execution>-->
-<!--                    </executions>-->
-<!--                    <dependencies>-->
-<!--                        <dependency>-->
-<!--                            <groupId>org.hibernate.orm</groupId>-->
-<!--                            <artifactId>hibernate-jpamodelgen</artifactId>-->
-<!--                            <version>${hibernate.model-gen.version}</version>-->
-<!--                        </dependency>-->
-<!--                        <dependency>-->
-<!--                            <groupId>org.mapstruct</groupId>-->
-<!--                            <artifactId>mapstruct-processor</artifactId>-->
-<!--                            <version>${mapstruct.version}</version>-->
-<!--                        </dependency>-->
-<!--                    </dependencies>-->
-<!--                </plugin>-->
             </plugins>
         </pluginManagement>
     </build>

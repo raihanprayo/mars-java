@@ -4,11 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import dev.scaraz.mars.common.domain.TimestampEntity;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
-import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +23,6 @@ import java.util.Set;
 @JsonIncludeProperties({"paths"})
 @Entity
 @Table(name = "t_ticket_asset")
-@TypeDef(name = "string-array", typeClass = StringArrayType.class)
 public class TicketAsset extends TimestampEntity {
 
     @Id
@@ -44,7 +42,7 @@ public class TicketAsset extends TimestampEntity {
     @Column
     @Builder.Default
     @Setter(AccessLevel.NONE)
-    @Type(type = "string-array")
+    @Type(StringArrayType.class)
     private String[] paths = new String[0];
 
     public void addPath(String path) {

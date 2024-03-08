@@ -16,12 +16,12 @@ public class DurationDeserializer extends JsonDeserializer<Duration> {
     @Override
     public Duration deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
         if (jsonParser.isExpectedStartArrayToken()) {
-            return read(jsonParser);
+            return read(jsonParser, deserializationContext);
         }
         return Duration.ZERO;
     }
 
-    public Duration read(JsonParser parser) throws IOException {
+    public Duration read(JsonParser parser, DeserializationContext context) throws IOException {
         StringBuilder result = new StringBuilder("P");
         parser.nextToken();
 
@@ -29,7 +29,7 @@ public class DurationDeserializer extends JsonDeserializer<Duration> {
         while (parser.getCurrentToken() != JsonToken.END_ARRAY) {
             JsonToken token = parser.getCurrentToken();
 
-            if (!token.isNumeric()) throw MismatchedInputException.from(parser, "invalid input expect a number type");
+            if (!token.isNumeric()) throw MismatchedInputException.from(context, "invalid input expect a number type");
 
             switch (iterate) {
                 case 0: {

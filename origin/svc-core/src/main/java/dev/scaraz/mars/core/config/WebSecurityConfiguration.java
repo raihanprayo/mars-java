@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -83,7 +84,7 @@ public class WebSecurityConfiguration {
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         return http
-                .cors().and()
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(eh -> eh
                         .accessDeniedHandler(securityProblemSupport)
@@ -94,10 +95,10 @@ public class WebSecurityConfiguration {
                         .sessionCreationPolicy(SessionCreationPolicy.NEVER))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
-                .authorizeRequests(r -> r
-                        .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .antMatchers(HttpMethod.GET, "/app/test").permitAll()
-                        .antMatchers(
+                .authorizeHttpRequests(r -> r
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/app/test").permitAll()
+                        .requestMatchers(
                                 "/auth/token",
                                 "/auth/refresh",
                                 "/auth/forgot/**"

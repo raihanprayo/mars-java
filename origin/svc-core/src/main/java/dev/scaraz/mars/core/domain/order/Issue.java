@@ -24,7 +24,7 @@ import java.util.List;
 @Entity
 @Table(name = "t_issue")
 @SQLDelete(sql = "update t_issue set deleted = true where id=?")
-@FilterDef(name = "deletedFilter", parameters = @ParamDef(name = "isDeleted", type = "boolean"))
+@FilterDef(name = "deletedFilter", parameters = @ParamDef(name = "isDeleted", type = Boolean.class))
 @Filter(name="deletedFilter", condition = "deleted = :isDeleted")
 public class Issue extends AuditableEntity {
 
