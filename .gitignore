@@ -48,3 +48,4 @@ docker-compose.mars.yaml
 
 !bot-adapter.iml
 node_modules
+/.idea
