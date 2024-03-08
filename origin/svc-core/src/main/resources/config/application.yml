@@ -5,22 +5,29 @@ server:
     enabled: true
     min-response-size: 1024
     mime-types: text/html,text/xml,text/plain,text/css, application/javascript, application/json
-#  servlet:
-#    session:
-#      cookie:
-#        http-only: true
 
 spring:
+  application:
+    name: mars-roc
+  threads:
+    virtual:
+      enabled: true
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
-  application:
-    name: mars-roc
   data:
     web:
       pageable:
         default-page-size: 50
+    redis:
+      client-type: jedis
+      client-name: "mars-roc"
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:0}
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
   jpa:
     database: postgresql
     generate-ddl: false
