@@ -170,6 +170,10 @@ public class NotifierService {
         }
     }
 
+    public void sendRejectionChat(Ticket ticket) {
+
+    }
+
     public int send(long telegramId, String codeOrMessage, Object... args) {
         return send(telegramId, codeOrMessage, null, args);
     }

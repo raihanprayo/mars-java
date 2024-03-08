@@ -105,4 +105,13 @@ public class TicketWipResource {
                 HttpStatus.OK
         );
     }
+
+    @PostMapping(path = "/reject/{idOrNo}")
+    public ResponseEntity<?> rejectTicket(
+            @PathVariable("idOrNo") String ticketIdOrNo,
+            @Valid @ModelAttribute TicketStatusFormDTO form) {
+
+        return ResponseEntity.ok().build();
+    }
+
 }

@@ -4,12 +4,14 @@ import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.order.TicketConfirm;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.ConfirmService;
+import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
 import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +54,7 @@ public class SchedulerService {
 
     @Scheduled(cron = "0 0/53 * * * *")
     public void checkInvalidConfirmationTicket() {
-        log.info("Check Any Invalid Confirmation Message ({})", invalidRunCounter.getAndIncrement());
+        log.info("Check Any Invalid Confirmation Message");
         BoundSetOperations<String, String> boundSet = stringRedisTemplate.boundSetOps(TC_CONFIRM_NS);
 
         List<TicketConfirm> all = ticketConfirmRepo.findAll();
@@ -93,22 +95,46 @@ public class SchedulerService {
     protected void reverseCheckInvalidConfirmationTicket() {
         log.info("Reverse check any invalid confirmation message");
         List<Ticket> tickets = ticketQueryService.findAll(TicketCriteria.builder()
-                .status(new TcStatusFilter().setIn(List.of(TcStatus.PENDING)))
+                .status(new TcStatusFilter().setIn(List.of(
+                        TcStatus.PENDING, TcStatus.CONFIRMATION, TcStatus.CLOSE_CONFIRM, TcStatus.PENDING_CONFIRM
+                )))
                 .build());
 
         for (Ticket ticket : tickets) {
-            log.info("- Check Ticket NO {}", ticket.getNo());
+            log.info("- Reverse Check Ticket NO {}", ticket.getNo());
             try {
                 if (ticketConfirmRepo.existsByValueIgnoreCase(ticket.getNo())) {
                     log.info("-- Skip Check PENDING Ticket - {}", ticket.getNo());
                     continue;
                 }
 
-                log.info("- Send PostPending Confirmation - {}", ticket.getNo());
-                pendingFlowService.askPostPending(ticket.getNo());
+                switch (ticket.getStatus()) {
+                    case PENDING:
+                        log.info("- Send PostPending Confirmation - {}", ticket.getNo());
+                        pendingFlowService.askPostPending(ticket.getNo());
+                        break;
+                    case CLOSE_CONFIRM:
+                        closeFlowService.confirmClose(ticket.getNo(), false, new TicketStatusFormDTO());
+                        break;
+                    case PENDING_CONFIRM:
+                        pendingFlowService.confirmPending(ticket.getNo(), false, new TicketStatusFormDTO());
+                        break;
+                    case CONFIRMATION:
+                        ArrayList<LogTicket> logs = new ArrayList<>(ticket.getLogs());
+                        if (!logs.isEmpty()) {
+                            LogTicket lastItem = logs.get(logs.size() - 1);
+                            if (lastItem.getMessage().equals(LogTicketService.LOG_CLOSE_CONFIRMATION))
+                                closeFlowService.confirmClose(ticket.getNo(), false, new TicketStatusFormDTO());
+                            else if (lastItem.getMessage().equals(LogTicketService.LOG_PENDING_CONFIRMATION))
+                                pendingFlowService.confirmPending(ticket.getNo(), false, new TicketStatusFormDTO());
+                        }
+                        else
+                            closeFlowService.confirmClose(ticket.getNo(), false, new TicketStatusFormDTO());
+                        break;
+                }
             }
             catch (Exception ex) {
-                log.error("Failed check PENDING ticket - {}", ticket.getNo(), ex);
+                log.error("Failed check {} ticket - {}", ticket.getStatus(), ticket.getNo(), ex);
             }
         }
     }

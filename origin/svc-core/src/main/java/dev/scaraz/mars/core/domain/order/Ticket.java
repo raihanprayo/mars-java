@@ -81,7 +81,7 @@ public class Ticket extends AuditableEntity {
     @Builder.Default
     @ToString.Exclude
     @OrderBy("id asc")
-    @OneToMany(mappedBy = "ticket", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "ticket", fetch = FetchType.EAGER)
     private Set<LogTicket> logs = new HashSet<>();
 
     public boolean isGaul() {

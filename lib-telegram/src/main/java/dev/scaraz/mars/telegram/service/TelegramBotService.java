@@ -14,6 +14,7 @@ import dev.scaraz.mars.telegram.util.enums.ProcessCycle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.core.OrderComparator;
 import org.springframework.util.ClassUtils;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -22,10 +23,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalLong;
+import java.util.*;
 
 import static dev.scaraz.mars.telegram.util.TelegramUtil.TELEGRAM_BOT_COMMAND_COMPARATOR;
 
@@ -128,7 +126,10 @@ public abstract class TelegramBotService implements AutoCloseable {
     }
 
     private boolean interceptHandler(TelegramHandlerResult result) {
-        for (TelegramInterceptor interceptor : interceptorMapper.getInterceptors()) {
+        List<TelegramInterceptor> interceptors = new ArrayList<>(interceptorMapper.getInterceptors());
+        interceptors.sort(OrderComparator.INSTANCE);
+
+        for (TelegramInterceptor interceptor : interceptors) {
             boolean doNext = interceptor.intercept(TelegramContextHolder.get().getType(), TelegramContextHolder.getUpdate(), result.getHandler());
             if (!doNext) return false;
         }

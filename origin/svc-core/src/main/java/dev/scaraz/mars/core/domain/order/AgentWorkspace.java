@@ -40,7 +40,7 @@ public class AgentWorkspace extends TimestampEntity {
 //    @ToString.Exclude
     @Builder.Default
     @OrderBy("id ASC")
-    @OneToMany(mappedBy = "workspace", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "workspace", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AgentWorklog> worklogs = new HashSet<>();
 
     @JsonIgnore

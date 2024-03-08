@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.List;
 
 import static dev.scaraz.mars.core.service.order.LogTicketService.*;
 
@@ -91,7 +92,7 @@ public class CloseFlowService {
                 .getAsDuration();
 
         int messageId = notifierService.sendCloseConfirmation(ticket, duration, form);
-        ticket.setStatus(TcStatus.CONFIRMATION);
+        ticket.setStatus(TcStatus.CLOSE_CONFIRM);
         ticket.setConfirmMessageId((long) messageId);
 
         confirmService.save(TicketConfirm.builder()
@@ -118,7 +119,7 @@ public class CloseFlowService {
         log.info("TICKET CLOSE CONFIRM REQUEST OF NO {} -- REOPEN ? {}", ticketIdOrNo, reopen);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 
-        if (ticket.getStatus() != TcStatus.CONFIRMATION)
+        if (!List.of(TcStatus.CONFIRMATION, TcStatus.CLOSE_CONFIRM).contains(ticket.getStatus()))
             throw BadRequestException.args("error.ticket.illegal.confirm.state");
 
         if (MarsUserContext.isUserPresent()) {
@@ -226,6 +227,7 @@ public class CloseFlowService {
     }
 
     @Async
+    @Transactional
     public void confirmCloseAsync(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form) {
         confirmClose(ticketIdOrNo, reopen, form);
     }

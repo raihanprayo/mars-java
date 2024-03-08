@@ -97,7 +97,7 @@ public class PendingFlowService {
                 .getAsDuration();
 
         int messageId = notifierService.sendPendingConfirmation(ticket, duration, form);
-        ticket.setStatus(TcStatus.CONFIRMATION);
+        ticket.setStatus(TcStatus.PENDING_CONFIRM);
         ticket.setConfirmMessageId((long) messageId);
 
         confirmService.save(TicketConfirm.builder()
@@ -124,9 +124,9 @@ public class PendingFlowService {
         log.info("TICKET CLOSE CONFIRM REQUEST OF NO {} -- PENDING ? {}", ticketIdOrNo, doPending);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 
-        if (ticket.getStatus() != TcStatus.CONFIRMATION)
+        if (!List.of(TcStatus.CONFIRMATION, TcStatus.PENDING_CONFIRM).contains(ticket.getStatus()))
             throw BadRequestException.args("error.ticket.illegal.confirm.state");
-        if (MarsUserContext.isUserPresent()) {
+        else if (MarsUserContext.isUserPresent()) {
             boolean isRequestor = ticket.getSenderId() == MarsUserContext.getTelegram();
             if (!isRequestor)
                 throw BadRequestException.args("Invalid requestor owner");

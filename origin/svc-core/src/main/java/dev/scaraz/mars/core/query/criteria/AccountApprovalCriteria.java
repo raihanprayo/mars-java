@@ -7,6 +7,7 @@ import lombok.Getter;
 
 @Getter
 public class AccountApprovalCriteria extends TimestampCriteria {
+
     private StringFilter id;
     private StringFilter no;
     private StringFilter status;
@@ -55,4 +56,5 @@ public class AccountApprovalCriteria extends TimestampCriteria {
         this.sto = sto;
         return this;
     }
+
 }
