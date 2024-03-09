@@ -53,15 +53,13 @@ public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebM
             log.debug("Jackson ObjectMapper customizer");
             builder.serializationInclusion(JsonInclude.Include.NON_NULL)
                     .serializerByType(Duration.class, new DurationSerializer())
-                    .serializerByType(Instant.class, new InstantSerializer())
                     .deserializerByType(Duration.class, new DurationDeserializer())
+
+                    .serializerByType(Instant.class, new InstantSerializer())
                     .deserializerByType(Instant.class, new InstantDeserializer())
 
                     .serializerByType(DynamicType.class, new DynamicJsonSerializer())
                     .deserializerByType(DynamicType.class, new DynamicJsonDeserializer());
-//                    .modules(
-//                            new ProblemModule().withStackTraces(false),
-//                            new ConstraintViolationProblemModule());
         };
     }
 
@@ -92,7 +90,6 @@ public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebM
         converters.add(new StringHttpMessageConverter());
         converters.add(new ResourceHttpMessageConverter());
         converters.add(new ByteArrayHttpMessageConverter());
-        WebMvcConfigurer.super.configureMessageConverters(converters);
     }
 
     @Bean

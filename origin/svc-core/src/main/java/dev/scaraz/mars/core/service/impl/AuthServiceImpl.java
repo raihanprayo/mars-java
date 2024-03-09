@@ -124,7 +124,8 @@ public class AuthServiceImpl implements AuthService {
             }
 
             if (request.getRequestedSessionId() != null) {
-                request.getSession(false).invalidate();
+                Optional.ofNullable(request.getSession(false))
+                        .ifPresent(HttpSession::invalidate);
             }
 
             HttpSession session = request.getSession();

@@ -98,8 +98,8 @@ logging:
     flyway: warn
     mars: ${LOG_MARS_LIB_LEVEL:info}
   pattern:
-    console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${LOGGED_APPLICATION_NAME:}[%15.15t]){faint} %clr(${LOG_CORRELATION_PATTERN:}){faint}%clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
-    file: "%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}} ${LOG_LEVEL_PATTERN:%5p} ${LOGGED_APPLICATION_NAME:}[%15.15t] ${LOG_CORRELATION_PATTERN:} %-40.40logger{39}) : %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+    console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr([%10.10t]){faint} %clr(${LOG_CORRELATION_PATTERN:}){faint}%clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+    file: "%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}} ${LOG_LEVEL_PATTERN:%5p} [%10.10t] ${LOG_CORRELATION_PATTERN:} %-40.40logger{39}) : %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
   #    console: '%clr(%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta}) %clr[${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %highlight(%-5p) %clr(%logger{0}){blue} %clr(%m){faint}%n'
   #    file: '%d{yyyy-MM-dd HH:mm:ss.SSS,Asia/Jakarta} [${spring.application.name},%thread,%X{traceId:-},%X{spanId:-}] %-5p %logger{0} %m%n'
   charset:

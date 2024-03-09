@@ -2,9 +2,9 @@ drop view v_ticket_summary;
 drop view v_leader_board_fragment;
 
 alter table t_ticket
-    add column closed_at timestamp(0);
-
-alter table t_ticket
+    add column closed_at timestamp(0),
+    add column deleted bool not null default false,
+    add column deleted_at timestamp(0),
     add column iss_id      bigint,
     add column iss_product varchar(15),
     add column iss_name    text,

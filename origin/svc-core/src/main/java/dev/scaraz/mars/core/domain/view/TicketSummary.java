@@ -1,6 +1,10 @@
 package dev.scaraz.mars.core.domain.view;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.scaraz.mars.common.domain.AuditableEntity;
+import dev.scaraz.mars.common.tools.converter.InstantDeserializer;
+import dev.scaraz.mars.common.tools.converter.InstantSerializer;
 import dev.scaraz.mars.common.tools.enums.*;
 import dev.scaraz.mars.core.domain.order.TcIssue;
 import jakarta.persistence.*;
@@ -82,13 +86,16 @@ public class TicketSummary extends AuditableEntity {
     private String wipBy;
 
     @Column(name = "closed_at")
+    @JsonDeserialize(using = InstantDeserializer.class)
+    @JsonSerialize(using = InstantSerializer.class)
     private Instant closedAt;
-//    @Embedded
-//    private TicketAge age;
 
-//    @JsonIgnore
-//    @OrderBy("createdAt desc")
-//    @OneToMany(mappedBy = "ticket")
-//    private Set<AgentWorkspace> workspaces = new HashSet<>();
+    @Column
+    private boolean deleted;
+
+    @Column(name = "deleted_at")
+    @JsonDeserialize(using = InstantDeserializer.class)
+    @JsonSerialize(using = InstantSerializer.class)
+    private Instant deletedAt;
 
 }

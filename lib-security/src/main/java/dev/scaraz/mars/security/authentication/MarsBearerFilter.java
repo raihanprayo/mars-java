@@ -1,6 +1,12 @@
 package dev.scaraz.mars.security.authentication;
 
+import dev.scaraz.mars.security.authentication.provider.MarsAuthenticationProvider;
 import dev.scaraz.mars.security.authentication.token.MarsBearerAuthenticationToken;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.context.SecurityContext;
@@ -9,15 +15,13 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
+@RequiredArgsConstructor
 public class MarsBearerFilter extends OncePerRequestFilter {
 
+    private final MarsAuthenticationProvider authenticationProvider;
     private final WebAuthenticationDetailsSource detailsSource = new WebAuthenticationDetailsSource();
 
     @Override
@@ -53,7 +57,7 @@ public class MarsBearerFilter extends OncePerRequestFilter {
             token.setDetails(detailsSource.buildDetails(request));
 
             SecurityContext ctx = SecurityContextHolder.createEmptyContext();
-            ctx.setAuthentication(token);
+            ctx.setAuthentication(authenticationProvider.authenticate(token));
             SecurityContextHolder.setContext(ctx);
 
             filterChain.doFilter(request, response);

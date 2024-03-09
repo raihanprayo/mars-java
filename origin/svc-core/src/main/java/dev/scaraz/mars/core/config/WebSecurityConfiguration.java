@@ -9,7 +9,6 @@ import dev.scaraz.mars.security.authentication.provider.MarsAuthenticationProvid
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +16,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -43,11 +41,11 @@ import java.time.Duration;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @EnableRedisHttpSession(
         flushMode = FlushMode.IMMEDIATE,
         saveMode = SaveMode.ALWAYS,
         redisNamespace = "mars:session")
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfiguration {
 
     private static final int SALT = 14;
@@ -57,11 +55,9 @@ public class WebSecurityConfiguration {
     private final MarsProperties marsProperties;
     private final ConfigService configService;
 
-    @Autowired
-    private void configure(AuthenticationManagerBuilder auth) {
-//        CoreLoginAuthenticationProvider provider = new CoreLoginAuthenticationProvider(accountQueryService, passwordEncoder());
-//        auth.authenticationProvider(provider);
-        auth.authenticationProvider(new MarsAuthenticationProvider());
+    @Bean
+    public MarsAuthenticationProvider marsAuthenticationProvider() {
+        return new MarsAuthenticationProvider();
     }
 
     @Bean
@@ -74,15 +70,17 @@ public class WebSecurityConfiguration {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        JwtUtil.setSecret(marsProperties.getSecret());
-        JwtUtil.setAccessTokenExpiredDuration(() -> configService.get(ConfigConstants.JWT_TOKEN_EXPIRED_DRT).getAsDuration());
-        JwtUtil.setRefreshTokenExpiredDuration(() -> configService.get(ConfigConstants.JWT_TOKEN_REFRESH_EXPIRED_DRT).getAsDuration());
-        return authenticationConfiguration.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        builder.authenticationProvider(marsAuthenticationProvider());
+        return builder.build();
     }
 
     @Bean
-    public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        JwtUtil.setSecret(marsProperties.getSecret());
+        JwtUtil.setAccessTokenExpiredDuration(() -> configService.get(ConfigConstants.JWT_TOKEN_EXPIRED_DRT).getAsDuration());
+        JwtUtil.setRefreshTokenExpiredDuration(() -> configService.get(ConfigConstants.JWT_TOKEN_REFRESH_EXPIRED_DRT).getAsDuration());
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -99,13 +97,14 @@ public class WebSecurityConfiguration {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/app/test").permitAll()
                         .requestMatchers(
+                                "/error",
                                 "/auth/token",
                                 "/auth/refresh",
                                 "/auth/forgot/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new MarsBearerFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new MarsBearerFilter(marsAuthenticationProvider()), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

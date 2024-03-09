@@ -68,16 +68,15 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
                 .minusDays(7)
                 .toInstant();
 
-        return findAll(TicketSummaryCriteria.builder()
-                .id(new StringFilter().setNegated(true).setEq(tc.getId()))
-                .serviceNo(new StringFilter().setEq(tc.getServiceNo()))
-                .issue(IssueCriteria.builder()
+        return findAll((TicketSummaryCriteria) new TicketSummaryCriteria()
+                .setId(new StringFilter().setNegated(true).setEq(tc.getId()))
+                .setServiceNo(new StringFilter().setEq(tc.getServiceNo()))
+                .setIssue(IssueCriteria.builder()
                         .id(new LongFilter().setEq(tc.getIssue().getId()))
                         .build())
-                .createdAt(new InstantFilter()
+                .setCreatedAt(new InstantFilter()
                         .setGte(weekAgo)
-                        .setLte(createdAt))
-                .build());
+                        .setLte(createdAt)));
     }
 
     @Override
@@ -116,10 +115,9 @@ public class TicketSummaryQueryServiceImpl implements TicketSummaryQueryService 
 
     @Override
     public boolean isWorkInProgressByTicketId(String ticketId, boolean currentUser) {
-        TicketSummaryCriteria criteria = TicketSummaryCriteria.builder()
-                .id(new StringFilter().setEq(ticketId))
-                .wip(new BooleanFilter().setEq(true))
-                .build();
+        TicketSummaryCriteria criteria = new TicketSummaryCriteria()
+                .setId(new StringFilter().setEq(ticketId))
+                .setWip(new BooleanFilter().setEq(true));
 
         if (currentUser && MarsUserContext.isUserPresent()) {
             criteria.setWipBy(new StringFilter().setEq(MarsUserContext.getId()));

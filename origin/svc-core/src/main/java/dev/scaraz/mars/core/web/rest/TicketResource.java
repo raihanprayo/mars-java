@@ -189,18 +189,15 @@ public class TicketResource {
             if (usr != null) {
                 StringFilter userIdFilter = new StringFilter(usr.getId());
 
-                long countInternet = summaryQueryService.count(criteria.toBuilder()
-                        .product(new ProductFilter().setEq(Product.INTERNET))
-                        .wipBy(userIdFilter)
-                        .build());
-                long countIptv = summaryQueryService.count(criteria.toBuilder()
-                        .product(new ProductFilter().setEq(Product.IPTV))
-                        .wipBy(userIdFilter)
-                        .build());
-                long countVoice = summaryQueryService.count(criteria.toBuilder()
-                        .product(new ProductFilter().setEq(Product.VOICE))
-                        .wipBy(userIdFilter)
-                        .build());
+                long countInternet = summaryQueryService.count(criteria
+                        .setProduct(new ProductFilter().setEq(Product.INTERNET))
+                        .setWipBy(userIdFilter));
+                long countIptv = summaryQueryService.count(criteria
+                        .setProduct(new ProductFilter().setEq(Product.IPTV))
+                        .setWipBy(userIdFilter));
+                long countVoice = summaryQueryService.count(criteria
+                        .setProduct(new ProductFilter().setEq(Product.VOICE))
+                        .setWipBy(userIdFilter));
 
                 headers.add("Tc-Count", String.valueOf(countInternet));
                 headers.add("Tc-Count", String.valueOf(countIptv));
@@ -208,15 +205,12 @@ public class TicketResource {
             }
         }
         else {
-            long countInternet = summaryQueryService.count(criteria.toBuilder()
-                    .product(new ProductFilter().setEq(Product.INTERNET))
-                    .build());
-            long countIptv = summaryQueryService.count(criteria.toBuilder()
-                    .product(new ProductFilter().setEq(Product.IPTV))
-                    .build());
-            long countVoice = summaryQueryService.count(criteria.toBuilder()
-                    .product(new ProductFilter().setEq(Product.VOICE))
-                    .build());
+            long countInternet = summaryQueryService.count(criteria
+                    .setProduct(new ProductFilter().setEq(Product.INTERNET)));
+            long countIptv = summaryQueryService.count(criteria
+                    .setProduct(new ProductFilter().setEq(Product.IPTV)));
+            long countVoice = summaryQueryService.count(criteria
+                    .setProduct(new ProductFilter().setEq(Product.VOICE)));
 
             headers.add("Tc-Count", String.valueOf(countInternet));
             headers.add("Tc-Count", String.valueOf(countIptv));

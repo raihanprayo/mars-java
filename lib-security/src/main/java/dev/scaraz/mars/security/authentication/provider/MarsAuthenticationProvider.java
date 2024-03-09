@@ -5,6 +5,7 @@ import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
 import dev.scaraz.mars.security.jwt.JwtParseResult;
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
@@ -45,7 +46,8 @@ public class MarsAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return MarsBearerAuthenticationToken.class.isAssignableFrom(authentication);
+        return ClassUtils.isAssignable(authentication.getClass(), MarsBearerAuthenticationToken.class);
+//        return MarsBearerAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
 }

@@ -199,10 +199,9 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     public void resendPending() {
-        List<TicketSummary> tickets = summaryQueryService.findAll(TicketSummaryCriteria.builder()
-                .status(new TcStatusFilter().setIn(List.of(TcStatus.PENDING)))
-                .wipBy(new StringFilter().setEq(MarsUserContext.getId()))
-                .build());
+        List<TicketSummary> tickets = summaryQueryService.findAll(new TicketSummaryCriteria()
+                .setStatus(new TcStatusFilter().setIn(List.of(TcStatus.PENDING)))
+                .setWipBy(new StringFilter().setEq(MarsUserContext.getId())));
 
         for (TicketSummary ticket : tickets) {
             log.info("- Check Ticket NO {}", ticket.getNo());

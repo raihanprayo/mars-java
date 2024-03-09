@@ -32,6 +32,8 @@ select tc.id                               as id,
        ag.ref_user_id                      as wip_by,
 
        tc.closed_at                        as closed_at,
+       tc.deleted                          as deleted,
+       tc.deleted_at                       as deleted_at,
 
        tc.created_at                       as created_at,
        tc.created_by                       as created_by,

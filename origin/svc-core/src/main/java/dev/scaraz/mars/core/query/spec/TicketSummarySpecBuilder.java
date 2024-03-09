@@ -31,6 +31,9 @@ public class TicketSummarySpecBuilder extends AuditableSpec<TicketSummary, Ticke
                     .pick(criteria.getProduct(), path(TicketSummary_.issue, TcIssue_.product))
                     .pick(TicketSummary_.wip, criteria.getWip())
                     .pick(TicketSummary_.wipBy, criteria.getWipBy())
+                    .pick(TicketSummary_.closedAt, criteria.getClosedAt())
+                    .pick(TicketSummary_.deleted, criteria.getDeleted())
+                    .pick(TicketSummary_.deletedAt, criteria.getDeletedAt())
                     .extend(s -> auditSpec(s, criteria));
 
             if (criteria.getIssue() != null) {

@@ -2,15 +2,9 @@ package dev.scaraz.mars.core.query.criteria;
 
 import dev.scaraz.mars.common.tools.AuditableCriteria;
 import dev.scaraz.mars.common.tools.filter.type.*;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import lombok.Getter;
 
 @Getter
-@Setter
-@SuperBuilder(toBuilder = true)
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
 public class TicketSummaryCriteria extends AuditableCriteria {
 
     private StringFilter id;
@@ -34,29 +28,142 @@ public class TicketSummaryCriteria extends AuditableCriteria {
     private BooleanFilter wip;
     private StringFilter wipBy;
 
+    private InstantFilter closedAt;
+
+    private BooleanFilter deleted = new BooleanFilter();
+    private InstantFilter deletedAt;
+
     private IssueCriteria issue;
 
     private AgentWorkspaceCriteria workspace;
 
     public TicketSummaryCriteria copy() {
-        return TicketSummaryCriteria.builder()
-                .id(id)
-                .no(no)
-                .witel(witel)
-                .sto(sto)
-                .incidentNo(incidentNo)
-                .serviceNo(serviceNo)
-                .status(status)
-                .source(source)
-                .gaul(gaul)
-                .gaulCount(gaulCount)
-                .senderName(senderName)
-                .senderId(senderId)
-                .agentCount(agentCount)
-                .product(product)
-                .wip(wip)
-                .wipBy(wipBy)
-                .build();
+        return new TicketSummaryCriteria()
+                .setId(id)
+                .setNo(no)
+                .setWip(wip)
+                .setSto(sto)
+                .setStatus(status)
+                .setIncidentNo(incidentNo)
+                .setServiceNo(serviceNo)
+                .setSource(source)
+                .setGaul(gaul)
+                .setGaulCount(gaulCount)
+                .setSenderId(senderId)
+                .setSenderName(senderName)
+                .setAgentCount(agentCount)
+                .setProduct(product)
+                .setWip(wip)
+                .setWipBy(wipBy)
+                .setClosedAt(closedAt)
+                .setDeleted(deleted)
+                .setDeletedAt(deletedAt)
+                .setIssue(issue)
+                .setWorkspace(workspace);
     }
 
+    public TicketSummaryCriteria setId(StringFilter id) {
+        this.id = id;
+        return this;
+    }
+
+    public TicketSummaryCriteria setNo(StringFilter no) {
+        this.no = no;
+        return this;
+    }
+
+    public TicketSummaryCriteria setWitel(WitelFilter witel) {
+        this.witel = witel;
+        return this;
+    }
+
+    public TicketSummaryCriteria setSto(StringFilter sto) {
+        this.sto = sto;
+        return this;
+    }
+
+    public TicketSummaryCriteria setIncidentNo(StringFilter incidentNo) {
+        this.incidentNo = incidentNo;
+        return this;
+    }
+
+    public TicketSummaryCriteria setServiceNo(StringFilter serviceNo) {
+        this.serviceNo = serviceNo;
+        return this;
+    }
+
+    public TicketSummaryCriteria setStatus(TcStatusFilter status) {
+        this.status = status;
+        return this;
+    }
+
+    public TicketSummaryCriteria setSource(TcSourceFilter source) {
+        this.source = source;
+        return this;
+    }
+
+    public TicketSummaryCriteria setGaul(BooleanFilter gaul) {
+        this.gaul = gaul;
+        return this;
+    }
+
+    public TicketSummaryCriteria setGaulCount(IntegerFilter gaulCount) {
+        this.gaulCount = gaulCount;
+        return this;
+    }
+
+    public TicketSummaryCriteria setSenderName(StringFilter senderName) {
+        this.senderName = senderName;
+        return this;
+    }
+
+    public TicketSummaryCriteria setSenderId(LongFilter senderId) {
+        this.senderId = senderId;
+        return this;
+    }
+
+    public TicketSummaryCriteria setAgentCount(IntegerFilter agentCount) {
+        this.agentCount = agentCount;
+        return this;
+    }
+
+    public TicketSummaryCriteria setProduct(ProductFilter product) {
+        this.product = product;
+        return this;
+    }
+
+    public TicketSummaryCriteria setWip(BooleanFilter wip) {
+        this.wip = wip;
+        return this;
+    }
+
+    public TicketSummaryCriteria setWipBy(StringFilter wipBy) {
+        this.wipBy = wipBy;
+        return this;
+    }
+
+    public TicketSummaryCriteria setClosedAt(InstantFilter closedAt) {
+        this.closedAt = closedAt;
+        return this;
+    }
+
+    public TicketSummaryCriteria setDeleted(BooleanFilter deleted) {
+        this.deleted = deleted;
+        return this;
+    }
+
+    public TicketSummaryCriteria setDeletedAt(InstantFilter deletedAt) {
+        this.deletedAt = deletedAt;
+        return this;
+    }
+
+    public TicketSummaryCriteria setIssue(IssueCriteria issue) {
+        this.issue = issue;
+        return this;
+    }
+
+    public TicketSummaryCriteria setWorkspace(AgentWorkspaceCriteria workspace) {
+        this.workspace = workspace;
+        return this;
+    }
 }

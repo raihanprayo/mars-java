@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -15,6 +16,26 @@ import java.util.Optional;
 
 @Repository
 public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificationExecutor<Ticket> {
+
+    @Modifying
+    @Transactional
+    @Query("update Ticket t set t.deleted = false, t.deletedAt = null where t.id = :id")
+    void restoreById(String id);
+
+    @Modifying
+    @Transactional
+    @Query("update Ticket t set t.deleted = false, t.deletedAt = null where t.id in (:ids)")
+    void restoreByIds(String... ids);
+
+    @Modifying
+    @Transactional
+    @Query("delete from Ticket t where t.id = :id")
+    void deleteForGoodById(String id);
+
+    @Modifying
+    @Transactional
+    @Query("delete from Ticket t where t.id in (:ids)")
+    void deleteForGoodByIds(String... ids);
 
     long countByCreatedAtGreaterThanEqual(Instant today);
 

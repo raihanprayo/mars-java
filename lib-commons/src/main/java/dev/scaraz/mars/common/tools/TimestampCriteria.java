@@ -6,7 +6,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 @Getter
-@Setter
 @ToString
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
@@ -16,4 +15,13 @@ public abstract class TimestampCriteria implements Criteria {
     private InstantFilter createdAt;
     private InstantFilter updatedAt;
 
+    public TimestampCriteria setCreatedAt(InstantFilter createdAt) {
+        this.createdAt = createdAt;
+        return this;
+    }
+
+    public TimestampCriteria setUpdatedAt(InstantFilter updatedAt) {
+        this.updatedAt = updatedAt;
+        return this;
+    }
 }
