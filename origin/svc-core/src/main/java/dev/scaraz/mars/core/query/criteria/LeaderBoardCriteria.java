@@ -2,7 +2,6 @@ package dev.scaraz.mars.core.query.criteria;
 
 import dev.scaraz.mars.common.tools.filter.Criteria;
 import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
-import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +14,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LeaderBoardCriteria implements Criteria {
 
-    private StringFilter solution;
 
     // User Criteria
     private StringFilter name;
@@ -25,9 +23,10 @@ public class LeaderBoardCriteria implements Criteria {
     private StringFilter userId;
     private StringFilter ticketId;
     private StringFilter ticketNo;
-    private StringFilter issue;
-    private ProductFilter product;
     private InstantFilter createdAt;
     private InstantFilter updatedAt;
+
+    private IssueCriteria issue;
+    private SolutionCriteria solution;
 
 }

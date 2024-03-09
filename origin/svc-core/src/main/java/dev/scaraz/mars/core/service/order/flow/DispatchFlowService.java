@@ -57,7 +57,7 @@ public class DispatchFlowService {
 
             if (form.getSolution() != null) {
                 Solution solution = solutionQueryService.findById(form.getSolution());
-                worklog.setSolution(solution.getName());
+                worklog.setSolution(new WlSolution(solution));
             }
 
             storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());

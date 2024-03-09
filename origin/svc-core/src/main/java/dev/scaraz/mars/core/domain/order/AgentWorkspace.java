@@ -1,11 +1,11 @@
 package dev.scaraz.mars.core.domain.order;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.scaraz.mars.common.domain.TimestampEntity;
+import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
+import jakarta.persistence.*;
 import lombok.*;
 
-import jakarta.persistence.*;
 import java.util.*;
 
 @Getter
@@ -16,7 +16,7 @@ import java.util.*;
 
 @Entity
 @Table(name = "t_agent_workspace")
-public class AgentWorkspace extends TimestampEntity {
+public class AgentWorkspace extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,16 +28,13 @@ public class AgentWorkspace extends TimestampEntity {
 
     @ManyToOne
     @JsonIgnore
-//    @ToString.Exclude
     @JoinColumn(name = "ref_ticket_id", updatable = false)
     private Ticket ticket;
 
     @ManyToOne
-//    @ToString.Exclude
     @JoinColumn(name = "ref_agent_id", updatable = false)
     private Agent agent;
 
-//    @ToString.Exclude
     @Builder.Default
     @OrderBy("id ASC")
     @OneToMany(mappedBy = "workspace", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)

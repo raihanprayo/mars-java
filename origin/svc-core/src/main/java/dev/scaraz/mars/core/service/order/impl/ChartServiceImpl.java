@@ -65,10 +65,10 @@ public class ChartServiceImpl implements ChartService {
             for (WorklogSummary wl : wls) {
                 switch (wl.getStatus()) {
                     case PROGRESS:
-                        groupAgeAndPush(now, wl.getWlCreatedAt(), category);
+                        groupAgeAndPush(now, wl.getCreatedAt(), category);
                         break;
                     default:
-                        groupAgeAndPush(wl.getWlUpdatedAt(), wl.getWlCreatedAt(), category);
+                        groupAgeAndPush(wl.getUpdatedAt(), wl.getCreatedAt(), category);
                         break;
                 }
             }
@@ -88,11 +88,11 @@ public class ChartServiceImpl implements ChartService {
             for (WorklogSummary wl : wls) {
                 switch (wl.getTakeStatus()) {
                     case OPEN:
-                        groupAgeAndPush(wl.getWlCreatedAt(), summary.getCreatedAt(), category);
+                        groupAgeAndPush(wl.getCreatedAt(), summary.getCreatedAt(), category);
                         break;
                     case DISPATCH:
-                        logTicketService.getLogByTicketIdAndBelow(summary.getId(), wl.getWlCreatedAt())
-                                .ifPresent(lt -> groupAgeAndPush(wl.getWlCreatedAt(), lt.getCreatedAt(), category));
+                        logTicketService.getLogByTicketIdAndBelow(summary.getId(), wl.getCreatedAt())
+                                .ifPresent(lt -> groupAgeAndPush(wl.getCreatedAt(), lt.getCreatedAt(), category));
                         break;
                 }
             }

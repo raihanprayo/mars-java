@@ -14,14 +14,19 @@ public class WorklogSummaryCriteria implements Criteria {
     private StringFilter workspaceId;
     private StringFilter ticketId;
     private StringFilter userId;
-    private StringFilter solution;
     private AgStatusFilter status;
     private TcStatusFilter takeStatus;
     private TcStatusFilter closeStatus;
     private InstantFilter wsCreatedAt;
     private InstantFilter wsUpdatedAt;
-    private InstantFilter wlCreatedAt;
-    private InstantFilter wlUpdatedAt;
+    private StringFilter createdBy;
+    private InstantFilter createdAt;
+    private StringFilter updatedBy;
+    private InstantFilter updatedAt;
+
+    private SolutionCriteria solution;
+
+    private TicketCriteria ticket;
 
     public WorklogSummaryCriteria setId(StringFilter id) {
         this.id = id;
@@ -40,11 +45,6 @@ public class WorklogSummaryCriteria implements Criteria {
 
     public WorklogSummaryCriteria setUserId(StringFilter userId) {
         this.userId = userId;
-        return this;
-    }
-
-    public WorklogSummaryCriteria setSolution(StringFilter solution) {
-        this.solution = solution;
         return this;
     }
 
@@ -73,14 +73,28 @@ public class WorklogSummaryCriteria implements Criteria {
         return this;
     }
 
-    public WorklogSummaryCriteria setWlCreatedAt(InstantFilter wlCreatedAt) {
-        this.wlCreatedAt = wlCreatedAt;
+    public WorklogSummaryCriteria setCreatedBy(StringFilter createdBy) {
+        this.createdBy = createdBy;
         return this;
     }
 
-    public WorklogSummaryCriteria setWlUpdatedAt(InstantFilter wlUpdatedAt) {
-        this.wlUpdatedAt = wlUpdatedAt;
+    public WorklogSummaryCriteria setCreatedAt(InstantFilter createdAt) {
+        this.createdAt = createdAt;
         return this;
     }
 
+    public WorklogSummaryCriteria setUpdatedBy(StringFilter updatedBy) {
+        this.updatedBy = updatedBy;
+        return this;
+    }
+
+    public WorklogSummaryCriteria setUpdatedAt(InstantFilter updatedAt) {
+        this.updatedAt = updatedAt;
+        return this;
+    }
+
+    public WorklogSummaryCriteria setSolution(SolutionCriteria solution) {
+        this.solution = solution;
+        return this;
+    }
 }

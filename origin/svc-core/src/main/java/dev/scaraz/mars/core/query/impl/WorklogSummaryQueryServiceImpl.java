@@ -28,7 +28,7 @@ public class WorklogSummaryQueryServiceImpl implements WorklogSummaryQueryServic
 
     @Override
     public List<WorklogSummary> findAllByTicketId(String ticketId) {
-        return repo.findAllByTicketIdOrderByWlCreatedAtDesc(ticketId);
+        return repo.findAllByTicketIdOrderByCreatedAtDesc(ticketId);
     }
 
 }

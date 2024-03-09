@@ -62,16 +62,15 @@ public class LeaderBoardService {
                 .getAsLongList();
 
         if (solutionsId != null && !solutionsId.isEmpty()) {
-            List<String> solutions = solutionQueryService.findAll(SolutionCriteria.builder()
+            List<Solution> solutions = solutionQueryService.findAll(SolutionCriteria.builder()
                     .id(new LongFilter().setIn(solutionsId))
-                    .build())
-                    .stream()
-                    .map(Solution::getName)
-                    .collect(Collectors.toList());
+                    .build());
 
-            criteria.setSolution(new StringFilter()
-                    .setNegated(true)
-                    .setIn(solutions));
+            criteria.setSolution(new SolutionCriteria()
+                    .setId(new LongFilter().setNegated(true).setIn(solutions.stream()
+                            .map(Solution::getId)
+                            .toList()))
+            );
         }
 
         return accounts.stream()

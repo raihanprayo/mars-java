@@ -85,9 +85,10 @@ public class PendingFlowService {
             worklog.setMessage(form.getNote());
 
             Solution solution = solutionQueryService.findById(form.getSolution());
-            worklog.setSolution(solution.getName());
+            worklog.setSolution(new WlSolution(solution));
 
             agentService.save(worklog);
+            storageService.addDashboardAssets(ticket, worklog, form.getFilesCollection());
         });
 
         if (form.getNote() == null || StringUtils.isBlank(form.getNote().trim()))

@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.service.order.impl;
 import dev.scaraz.mars.core.domain.order.Solution;
 import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.repository.db.order.SolutionRepo;
+import dev.scaraz.mars.core.service.order.AgentService;
 import dev.scaraz.mars.core.service.order.SolutionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,8 @@ public class SolutionServiceImpl implements SolutionService {
     private final SolutionRepo repo;
     private final SolutionQueryService queryService;
 
+    private final AgentService agentService;
+
     @Override
     public Solution save(Solution solution) {
         return repo.save(solution);
@@ -36,8 +39,10 @@ public class SolutionServiceImpl implements SolutionService {
     @Transactional
     public Solution update(long id, Solution update) {
         Solution solution = queryService.findById(id);
-        BeanUtils.copyProperties(update, solution, "id");
-        return save(solution);
+        BeanUtils.copyProperties(update, solution, "id", "createdAt", "updatedAt");
+        solution = save(solution);
+        agentService.updateWorlklogSolution(solution);
+        return solution;
     }
 
 }

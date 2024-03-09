@@ -1,11 +1,8 @@
 package dev.scaraz.mars.core.query.spec;
 
-import dev.scaraz.mars.common.query.TimestampSpec;
+import dev.scaraz.mars.common.query.AuditableSpec;
 import dev.scaraz.mars.core.domain.order.*;
-import dev.scaraz.mars.core.query.criteria.AgentCriteria;
-import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
-import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
-import dev.scaraz.mars.core.query.criteria.TicketCriteria;
+import dev.scaraz.mars.core.query.criteria.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -13,17 +10,22 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 
 @Component
-public class AgentWorklogSpecBuilder extends TimestampSpec<AgentWorklog, AgentWorklogCriteria> {
+public class AgentWorklogSpecBuilder extends AuditableSpec<AgentWorklog, AgentWorklogCriteria> {
 
     @Override
     public Specification<AgentWorklog> createSpec(AgentWorklogCriteria criteria) {
         SpecChain<AgentWorklog> chain = chain();
         if (criteria != null) {
             chain.pick(AgentWorklog_.id, criteria.getId())
-                    .pick(AgentWorklog_.solution, criteria.getSolution())
                     .pick(AgentWorklog_.takeStatus, criteria.getTakeStatus())
                     .pick(AgentWorklog_.closeStatus, criteria.getCloseStatus())
-                    .extend(s -> timestampSpec(s, criteria));
+                    .extend(s -> auditSpec(s, criteria));
+
+            if (criteria.getSolution()!=null) {
+                SolutionCriteria solution = criteria.getSolution();
+                chain.pick(solution.getId(), path(AgentWorklog_.solution, WlSolution_.id));
+                chain.pick(solution.getName(), path(AgentWorklog_.solution, WlSolution_.name));
+            }
 
             if (criteria.getWorkspace() != null) {
                 AgentWorkspaceCriteria ws = criteria.getWorkspace();

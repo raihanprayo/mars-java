@@ -77,7 +77,7 @@ public class ExportServiceImpl implements ExportService {
                     Optional<AgentWorklog> lastWorklog = workspaceOpt.get().getLastWorklog();
                     if (lastWorklog.isPresent()) {
                         AgentWorklog worklog = lastWorklog.get();
-                        row.add(worklog.getSolution());
+                        row.add(worklog.getSolution().getName());
                         row.add(worklog.getMessage());
                     }
                     else {

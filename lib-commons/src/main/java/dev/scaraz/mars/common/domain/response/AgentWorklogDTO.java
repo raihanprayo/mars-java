@@ -1,8 +1,6 @@
 package dev.scaraz.mars.common.domain.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import dev.scaraz.mars.common.tools.converter.InstantSerializer;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import lombok.*;
 
@@ -21,22 +19,21 @@ public class AgentWorklogDTO implements Serializable {
 
     private TcStatus closeStatus;
 
-    private String solution;
-
     private String message;
 
     private String reopenMessage;
+
+    private Instant createdAt;
+
+    private Instant updatedAt;
+
+    private SolutionDTO solution;
 
     @ToString.Exclude
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private AgentWorkspaceDTO workspace;
 
-    @JsonSerialize(using = InstantSerializer.class)
-    private Instant createdAt;
-
-    @JsonSerialize(using = InstantSerializer.class)
-    private Instant updatedAt;
-
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private TicketShortDTO ticket;
+
 }

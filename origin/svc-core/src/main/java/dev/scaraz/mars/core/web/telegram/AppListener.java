@@ -12,6 +12,7 @@ import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.credential.AccountRegistrationBotService;
 import dev.scaraz.mars.core.service.order.ConfirmService;
+import dev.scaraz.mars.core.service.order.TicketBotInstantService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
@@ -54,7 +55,9 @@ public class AppListener {
     private final AuthService authService;
 
     private final AccountRegistrationBotService accountRegistrationBotService;
+
     private final TicketBotService ticketBotService;
+    private final TicketBotInstantService ticketBotInstantService;
 
     private final ConfirmService confirmService;
     private final BotRegistrationRepo registrationRepo;
@@ -127,7 +130,7 @@ public class AppListener {
                     );
                 }
                 else if (confirmService.existsByIdAndStatus(reply.getMessageId(), TicketConfirm.INSTANT_FORM)) {
-                    return ticketBotService.instantForm_end(reply.getMessageId(),
+                    return ticketBotInstantService.instantForm_end(reply.getMessageId(),
                             text,
                             message.getPhoto(),
                             message.getDocument()
@@ -151,7 +154,7 @@ public class AppListener {
         int messageId = cq.getMessage().getMessageId();
         if (data.startsWith(REPORT_ISSUE) && confirmService.existsById(messageId)) {
             long issueId = Long.parseLong(data.substring(data.lastIndexOf(":") + 1));
-            ticketBotService.instantForm_answerIssue(messageId, issueId);
+            ticketBotInstantService.instantForm_answerIssue(messageId, issueId);
         }
         else if (data.startsWith("WITEL_") && registrationRepo.existsById(user.getId())) {
             Optional<BotRegistration> registrationOpt = registrationRepo.findById(user.getId());
@@ -227,11 +230,11 @@ public class AppListener {
         }
         else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_NETWORK)) {
             log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
-            return ticketBotService.instantForm_answerNetwork(messageId, agree);
+            return ticketBotInstantService.instantForm_answerNetwork(messageId, agree);
         }
         else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.INSTANT_PARAM)) {
             log.info("{} CONFIRMATION REPLY -- MESSAGE ID={} AGREE={}", TicketConfirm.INSTANT_NETWORK, messageId, agree);
-            return ticketBotService.instantForm_answerParamRequirement(messageId, agree);
+            return ticketBotInstantService.instantForm_answerParamRequirement(messageId, agree);
         }
 
         return null;
@@ -245,7 +248,7 @@ public class AppListener {
         if (TelegramContextHolder.getChatSource() == ChatSource.PRIVATE) {
             Optional<Account> account = authService.optionalAuthenticationFromBot(TelegramContextHolder.getUserId());
             if (account.isPresent())
-                return ticketBotService.instantForm_start(tgUserId);
+                return ticketBotInstantService.instantForm_start(tgUserId);
             else
                 return userListener.register(tgUserId, message);
         }

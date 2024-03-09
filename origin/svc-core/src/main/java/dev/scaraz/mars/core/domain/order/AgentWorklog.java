@@ -1,11 +1,10 @@
 package dev.scaraz.mars.core.domain.order;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import dev.scaraz.mars.common.domain.TimestampEntity;
+import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import lombok.*;
-
 import jakarta.persistence.*;
+import lombok.*;
 
 @Getter
 @Setter
@@ -16,7 +15,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "t_agent_worklog")
-public class AgentWorklog extends TimestampEntity {
+public class AgentWorklog extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,13 +30,12 @@ public class AgentWorklog extends TimestampEntity {
     private TcStatus closeStatus;
 
     @Column
-    private String solution;
-
-    @Column
     private String message;
 
     @Column(name = "reopen_message", updatable = false)
     private String reopenMessage;
+
+    private WlSolution solution;
 
     @JsonIgnore
     @ToString.Exclude

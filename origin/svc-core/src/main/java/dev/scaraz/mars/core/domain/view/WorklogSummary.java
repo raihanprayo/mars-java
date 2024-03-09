@@ -1,7 +1,10 @@
 package dev.scaraz.mars.core.domain.view;
 
+import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.core.domain.order.Ticket;
+import dev.scaraz.mars.core.domain.order.WlSolution;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,7 +20,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "v_worklog_summary")
-public class WorklogSummary {
+public class WorklogSummary extends AuditableEntity {
 
     @Id
     private String id;
@@ -25,14 +28,8 @@ public class WorklogSummary {
     @Column(name = "workspace_id")
     private String workspaceId;
 
-    @Column(name = "ticket_id")
-    private String ticketId;
-
     @Column(name = "user_id")
     private String userId;
-
-    @Column(name = "solution")
-    private String solution;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "ag_status")
@@ -51,9 +48,10 @@ public class WorklogSummary {
     @Column(name = "ws_updated_at")
     private Instant wsUpdatedAt;
 
-    @Column(name = "wl_created_at")
-    private Instant wlCreatedAt;
-    @Column(name = "wl_updated_at")
-    private Instant wlUpdatedAt;
+    private WlSolution solution;
+
+    @ManyToOne
+    @JoinColumn(name = "ticket_id")
+    private Ticket ticket;
 
 }

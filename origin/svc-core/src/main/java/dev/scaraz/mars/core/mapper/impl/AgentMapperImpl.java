@@ -3,13 +3,12 @@ package dev.scaraz.mars.core.mapper.impl;
 import dev.scaraz.mars.common.domain.response.AgentDTO;
 import dev.scaraz.mars.common.domain.response.AgentWorklogDTO;
 import dev.scaraz.mars.common.domain.response.AgentWorkspaceDTO;
+import dev.scaraz.mars.common.domain.response.SolutionDTO;
 import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.mapper.AgentMapper;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,7 +52,11 @@ public class AgentMapperImpl implements AgentMapper {
                 .id(o.getId())
                 .takeStatus(o.getTakeStatus())
                 .closeStatus(o.getCloseStatus())
-                .solution(o.getSolution())
+                .solution(SolutionDTO.builder()
+                        .id(o.getSolution().getId())
+                        .name(o.getSolution().getName())
+                        .description(o.getSolution().getDescription())
+                        .build())
                 .message(o.getMessage())
                 .reopenMessage(o.getReopenMessage())
                 .createdAt(o.getCreatedAt())

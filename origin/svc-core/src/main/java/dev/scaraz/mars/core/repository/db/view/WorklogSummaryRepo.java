@@ -14,8 +14,8 @@ public interface WorklogSummaryRepo extends
         JpaRepository<WorklogSummary, Long>,
         JpaSpecificationExecutor<WorklogSummary> {
 
-    List<WorklogSummary> findAllByTicketIdOrderByWlCreatedAtDesc(String ticketId);
+    List<WorklogSummary> findAllByTicketIdOrderByCreatedAtDesc(String ticketId);
 
-    Optional<WorklogSummary> findFirstByTicketIdAndWlCreatedAtLessThan(String ticketId, Instant lessThanWlCreatedAt);
+    Optional<WorklogSummary> findFirstByTicketIdAndCreatedAtLessThan(String ticketId, Instant lessThanWlCreatedAt);
 
 }

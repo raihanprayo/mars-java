@@ -5,10 +5,7 @@ import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.domain.order.Agent;
-import dev.scaraz.mars.core.domain.order.AgentWorklog;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace;
-import dev.scaraz.mars.core.domain.order.Ticket;
+import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.repository.db.order.AgentRepo;
 import dev.scaraz.mars.core.repository.db.order.AgentWorklogRepo;
@@ -17,6 +14,7 @@ import dev.scaraz.mars.core.service.order.AgentService;
 import dev.scaraz.mars.security.MarsUserContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,6 +93,17 @@ public class AgentServiceImpl implements AgentService {
         return workspaceRepo.findFirstByTicketIdAndAgentIdOrderByCreatedAtDesc(ticketId, agent.getId())
                 .map(workspace -> workspace.getStatus() != AgStatus.CLOSED ? workspace : fn.get())
                 .orElseGet(fn);
+    }
+
+    @Async
+    @Override
+    @Transactional
+    public void updateWorlklogSolution(Solution solution) {
+        worklogRepo.updateSolutionBySolutionId(
+                solution.getId(),
+                solution.getName(),
+                solution.getDescription()
+        );
     }
 
 }
