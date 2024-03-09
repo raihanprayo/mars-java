@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -66,6 +67,11 @@ public class AccountQueryServiceImpl implements AccountQueryService {
     @Override
     public List<Account> findAll(UserCriteria criteria) {
         return repo.findAll(specBuilder.createSpec(criteria));
+    }
+
+    @Override
+    public List<Account> findAll(UserCriteria criteria, Sort sort) {
+        return repo.findAll(specBuilder.createSpec(criteria), sort);
     }
 
     @Override

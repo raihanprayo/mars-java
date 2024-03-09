@@ -22,6 +22,7 @@ import dev.scaraz.mars.core.repository.db.view.LeaderBoardFragmentRepo;
 import dev.scaraz.mars.core.service.ConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,7 +57,7 @@ public class LeaderBoardService {
                 .roles(RoleCriteria.builder()
                         .name(new StringFilter().setEq(AuthorityConstant.AGENT_ROLE))
                         .build())
-                .build());
+                .build(), Sort.by("name"));
 
         List<Long> solutionsId = configService.get(ConfigConstants.APP_SOLUTION_REPORT_EXCLUDE_LIST)
                 .getAsLongList();

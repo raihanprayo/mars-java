@@ -244,9 +244,6 @@ public class TicketFormService {
         else
             throw new TgInvalidFormError("No Service", "Nilai kosong");
 
-//        if (form.getIncident() != null)
-//            checkFieldIncidentNo(form);
-
         return form;
     }
 

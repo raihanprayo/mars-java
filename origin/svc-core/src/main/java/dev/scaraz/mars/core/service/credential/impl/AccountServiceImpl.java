@@ -322,15 +322,15 @@ public class AccountServiceImpl implements AccountService {
                 AccountApproval approval = accountApprovalService.save(AccountApproval.builder()
                         .no(regNo)
                         .status(AccountApproval.WAIT_APPROVAL)
-                        .name(req.getName())
-                        .nik(req.getNik())
+                        .name(req.getName().trim().toUpperCase())
+                        .nik(req.getNik().trim())
                         .witel(req.getWitel())
                         .sto(req.getSto())
                         .tg(AccountTg.builder()
                                 .id(req.getTgId())
                                 .username(req.getTgUsername())
                                 .build())
-                        .phone(req.getPhone())
+                        .phone(req.getPhone().trim())
                         .build());
 
                 registrationApprovalRepo.save(new RegistrationApproval(approval.getId(), 24));
