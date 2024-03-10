@@ -19,4 +19,6 @@ public interface AgentService {
 
     @Transactional
     void updateWorlklogSolution(Solution solution);
+
+    void deleteAllWorkspaceByTicketId(String ticketId);
 }

@@ -37,6 +37,8 @@ import dev.scaraz.mars.security.authentication.token.MarsTelegramAuthenticationT
 import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
 import dev.scaraz.mars.security.jwt.JwtUtil;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -46,8 +48,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -217,13 +217,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(Account account, boolean confirmed) {
-        List<AgentWorklog> worklogs = agentQueryService.findAllWorklogs(AgentWorklogCriteria.builder()
-                .workspace(AgentWorkspaceCriteria.builder()
-                        .userId(new StringFilter().setEq(account.getId()))
-                        .build())
-                .closeStatus(new TcStatusFilter()
-                        .setSpecified(false))
-                .build());
+        List<AgentWorklog> worklogs = agentQueryService.findAllWorklogs(new AgentWorklogCriteria()
+                .setWorkspace(new AgentWorkspaceCriteria()
+                        .setUserId(new StringFilter().setEq(account.getId())))
+                .setCloseStatus(new TcStatusFilter()
+                        .setSpecified(false)));
 
         int size = worklogs.size();
         if (size != 0) {

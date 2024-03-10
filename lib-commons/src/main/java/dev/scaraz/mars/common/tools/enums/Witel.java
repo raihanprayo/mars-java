@@ -18,14 +18,10 @@ public enum Witel {
     JAKSEL,
     JAKTIM,
     JAKUT,
-    TANGERANG;
+    TANGERANG, TSEL;
 
     public String callbackData() {
         return "WITEL_" + name();
-    }
-
-    public String clientId() {
-        return String.format("witel-%s-resource", name().toLowerCase());
     }
 
     public static List<List<InlineKeyboardButton>> generateKeyboardButtons() {

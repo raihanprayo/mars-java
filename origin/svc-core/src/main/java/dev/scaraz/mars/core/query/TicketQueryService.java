@@ -6,7 +6,7 @@ import dev.scaraz.mars.core.query.criteria.AgentCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 
 import jakarta.annotation.Nullable;
-import java.math.BigDecimal;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -25,5 +25,5 @@ public interface TicketQueryService extends BaseQueryService<Ticket, TicketCrite
 
     int countGaul(long issueId, String serviceNo);
 
-    BigDecimal sumTotalScore(Collection<String> ids);
+    double sumTotalScore(Collection<String> ids);
 }

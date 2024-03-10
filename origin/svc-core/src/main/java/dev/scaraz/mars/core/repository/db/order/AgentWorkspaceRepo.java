@@ -14,6 +14,8 @@ public interface AgentWorkspaceRepo extends
         JpaRepository<AgentWorkspace, Long>,
         JpaSpecificationExecutor<AgentWorkspace> {
 
+    void deleteAllByTicketId(String ticketId);
+
     List<AgentWorkspace> findByAgentUserId(String userId);
 
     List<AgentWorkspace> findByTicketIdOrTicketNo(String tid, String tno);

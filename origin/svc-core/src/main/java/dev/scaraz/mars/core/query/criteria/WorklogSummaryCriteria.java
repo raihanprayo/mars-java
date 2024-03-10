@@ -97,4 +97,9 @@ public class WorklogSummaryCriteria implements Criteria {
         this.solution = solution;
         return this;
     }
+
+    public WorklogSummaryCriteria setTicket(TicketCriteria ticket) {
+        this.ticket = ticket;
+        return this;
+    }
 }

@@ -2,7 +2,8 @@ package dev.scaraz.mars.core.domain.view;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.core.domain.order.*;
+import dev.scaraz.mars.core.domain.order.TcIssue;
+import dev.scaraz.mars.core.domain.order.WlSolution;
 import io.hypersistence.utils.hibernate.type.interval.PostgreSQLIntervalType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -22,16 +23,11 @@ public class LeaderBoardFragment extends AuditableEntity {
     @Id
     private long id;
 
-    @ManyToOne
-    @JoinColumn(name = "ticket_id")
-    private Ticket ticket;
+    @Column(name = "ticket_id")
+    private String ticketId;
 
     @Column(name = "workspace_id")
     private long workspaceId;
-
-    @ManyToOne
-    @JoinColumn(name = "agent_id")
-    private Agent agent;
 
     @Column(name = "take_status")
     @Enumerated(EnumType.STRING)
@@ -41,19 +37,19 @@ public class LeaderBoardFragment extends AuditableEntity {
     @Enumerated(EnumType.STRING)
     private TcStatus close;
 
-    @Column(name = "action_duration")
+    @Column(name = "drt_action")
     @Type(PostgreSQLIntervalType.class)
     private Duration actionDuration;
 
-    @Column(name = "ticket_created_at")
-    private Instant ticketCreatedAt;
-
-    @Column(name = "ticket_updated_at")
-    private Instant ticketUpdatedAt;
-
+    @Column(name = "drt_response")
+    @Type(PostgreSQLIntervalType.class)
+    private Duration responseDuration;
 
     private TcIssue issue;
 
     private WlSolution solution;
+
+    @Column(name = "last_log_at")
+    private Instant lastTicketLogAt;
 
 }

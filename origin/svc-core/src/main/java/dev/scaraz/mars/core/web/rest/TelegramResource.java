@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.telegram.telegrambots.meta.api.methods.send.SendContact;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Objects;
@@ -40,12 +40,9 @@ public class TelegramResource {
         if (Objects.equals(accessToken.getTelegram(), account.getTg().getId()))
             throw new BadRequestException("Mengirim kontak diri sendiri");
 
-        botService.getClient().executeAsync(SendContact.builder()
+        botService.getClient().executeAsync(SendMessage.builder()
                 .chatId(accessToken.getTelegram())
-                .allowSendingWithoutReply(true)
-                .firstName(account.getName())
-                .phoneNumber(account.getPhone())
-//                .protectContent(true)
+                .text("https://t.me/" + account.getTg().getUsername())
                 .build());
 
         return new ResponseEntity<>(HttpStatus.OK);

@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.Nullable;
-import java.math.BigDecimal;
+
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Collection;
@@ -96,27 +96,22 @@ public class TicketQueryServiceImpl implements TicketQueryService {
     @Override
     public Map<Product, Long> countProducts(@Nullable AgentCriteria agentCriteria) {
         EnumMap<Product, Long> map = new EnumMap<>(Product.class);
-        TcStatusFilter statusFilter = new TcStatusFilter()
-                .setEq(TcStatus.OPEN);
+        TicketCriteria criteria = new TicketCriteria()
+                .setStatus(new TcStatusFilter().setEq(TcStatus.OPEN))
+                .setAgents(agentCriteria)
+                .setDeleted(new BooleanFilter().setEq(false));
 
-        map.put(Product.IPTV, count(TicketCriteria.builder()
-                .status(statusFilter)
-                .product(new ProductFilter().setEq(Product.IPTV))
-                .agents(agentCriteria)
-                .build()));
+        map.put(Product.IPTV, count(criteria
+                .setProduct(new ProductFilter().setEq(Product.IPTV))
+        ));
 
-        map.put(Product.VOICE, count(TicketCriteria.builder()
-                .status(statusFilter)
-                .product(new ProductFilter().setEq(Product.VOICE))
-                .agents(agentCriteria)
-                .build()));
+        map.put(Product.VOICE, count(criteria
+                .setProduct(new ProductFilter().setEq(Product.VOICE))
+        ));
 
-        map.put(Product.INTERNET, count(TicketCriteria.builder()
-                .status(statusFilter)
-                .product(new ProductFilter().setEq(Product.INTERNET))
-                .agents(agentCriteria)
-                .build())
-        );
+        map.put(Product.INTERNET, count(criteria
+                .setProduct(new ProductFilter().setEq(Product.INTERNET))
+        ));
         return map;
     }
 
@@ -139,7 +134,7 @@ public class TicketQueryServiceImpl implements TicketQueryService {
     }
 
     @Override
-    public BigDecimal sumTotalScore(Collection<String> ids) {
+    public double sumTotalScore(Collection<String> ids) {
         return repo.sumTotalScore(ids);
     }
 

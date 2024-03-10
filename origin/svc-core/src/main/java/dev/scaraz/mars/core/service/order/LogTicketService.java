@@ -25,6 +25,7 @@ public class LogTicketService {
     public static final String LOG_DISPATCH_REQUEST = "ticket dispatched";
     public static final String LOG_WORK_IN_PROGRESS = "dalam pengerjaan";
     public static final String LOG_REWORK_IN_PROGRESS = "rework in progress";
+
     private final LogTicketRepo repo;
 
     public LogTicket add(LogTicket history) {
@@ -35,6 +36,11 @@ public class LogTicketService {
     @Transactional(readOnly = true)
     public Optional<LogTicket> getLogByTicketIdAndBelow(String ticketId, Instant belowTimstamp) {
         return repo.findFirstByTicketIdAndCreatedAtLessThanOrderByCreatedAtDesc(ticketId, belowTimstamp);
+    }
+
+    @Transactional
+    public void deleteAllByTicketNo(String id) {
+        repo.deleteAllByTicketNo(id);
     }
 
 }

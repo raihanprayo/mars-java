@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.web.rest;
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
 import dev.scaraz.mars.common.domain.response.TicketPieChartDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
@@ -66,9 +67,10 @@ public class ChartResource {
                                         a.getName().compareTo(b.getName()) :
                                         Collections.reverseOrder().compare(a.getName(), b.getName());
                             case "avgAction":
-                                return direction == Sort.Direction.ASC ?
-                                        Long.compare(a.getAvgAction(), b.getAvgAction()) :
-                                        Long.compare(b.getAvgAction(), a.getAvgAction());
+//                                return direction == Sort.Direction.ASC ?
+//                                         :
+//                                        Duration.compare(b.getAvgAction(), a.getAvgAction());
+                                return a.getAvgAction().compareTo(b.getAvgAction());
                             case "total":
                                 return direction == Sort.Direction.ASC ?
                                         Long.compare(a.getTotal(), b.getTotal()) :
@@ -81,6 +83,10 @@ public class ChartResource {
                                 return direction == Sort.Direction.ASC ?
                                         Long.compare(a.getTotalHandleDispatch(), b.getTotalHandleDispatch()) :
                                         Long.compare(b.getTotalHandleDispatch(), a.getTotalHandleDispatch());
+                            case "totalScore":
+                                return direction == Sort.Direction.ASC ?
+                                        Double.compare(a.getTotalScore(), b.getTotalScore()) :
+                                        Double.compare(b.getTotalScore(), a.getTotalScore());
                             case "score": {
                                 double a1 = a.getTotal() - (a.getTotalDispatch() * 0.1) + (a.getTotalHandleDispatch() * 0.1);
                                 double b1 = b.getTotal() - (b.getTotalDispatch() * 0.1) + (b.getTotalHandleDispatch() * 0.1);
@@ -100,6 +106,7 @@ public class ChartResource {
             TicketSummaryCriteria criteria,
             Pageable pageable
     ) {
+        criteria.setDeleted(new BooleanFilter().setEq(false));
         TicketPieChartDTO chart = new TicketPieChartDTO();
         chart.getCount().setTotal(ticketSummaryQueryService.count(criteria));
         chart.getCount().setInternet(count(Product.INTERNET, criteria));

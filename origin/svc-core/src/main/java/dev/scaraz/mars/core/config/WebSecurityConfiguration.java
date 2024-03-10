@@ -10,6 +10,7 @@ import dev.scaraz.mars.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -50,6 +51,7 @@ public class WebSecurityConfiguration {
 
     private static final int SALT = 14;
 
+    private final ApplicationContext applicationContext;
     private final SecurityProblemSupport securityProblemSupport;
 
     private final MarsProperties marsProperties;
@@ -99,12 +101,13 @@ public class WebSecurityConfiguration {
                         .requestMatchers(
                                 "/error",
                                 "/auth/token",
+                                "/auth/verify",
                                 "/auth/refresh",
                                 "/auth/forgot/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(new MarsBearerFilter(marsAuthenticationProvider()), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(marsBearerFilter(), UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -141,6 +144,10 @@ public class WebSecurityConfiguration {
         sessionStrategy.setMigrateSessionAttributes(true);
         sessionStrategy.setAlwaysCreateSession(false);
         return sessionStrategy;
+    }
+
+    private MarsBearerFilter marsBearerFilter() {
+        return new MarsBearerFilter(securityProblemSupport, marsAuthenticationProvider());
     }
 
 }

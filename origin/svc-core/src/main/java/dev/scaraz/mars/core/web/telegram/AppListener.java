@@ -73,7 +73,7 @@ public class AppListener {
             Update update,
             Message message,
             @Text String text,
-            @TgAuth() Account marsAccount
+            @TgAuth Account marsAccount
     ) {
 
         log.info("{}", gson.toJson(update));
@@ -169,7 +169,6 @@ public class AppListener {
     @TelegramCallbackQuery({AppConstants.Telegram.REG_PAIR, AppConstants.Telegram.REG_NEW, AppConstants.Telegram.REG_IGNORE_WITEL})
     public SendMessage registrationCallback(
             User user,
-            Message message,
             @CallbackData String data,
             @TgAuth Account marsAccount
     ) {
@@ -203,7 +202,7 @@ public class AppListener {
 
     @TelegramCallbackQuery({AppConstants.Telegram.CONFIRM_AGREE, AppConstants.Telegram.CONFIRM_DISAGREE})
     public SendMessage agreeDisagreeCallback(
-            Message message,
+            CallbackQuery cq,
             @CallbackData String data,
             @TgAuth Account marsAccount
     ) throws TelegramApiException {
@@ -211,14 +210,14 @@ public class AppListener {
         boolean agree = AppConstants.Telegram.CONFIRM_AGREE.equals(data);
         log.info("CALLBACK QUERY agreeDisagreeCallback");
 
-        int messageId = message.getMessageId();
+        int messageId = cq.getMessage().getMessageId();
         if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.CLOSED)) {
             log.info("TICKET CLOSE CONFIRMATION REPLY -- MESSAGE ID={} CLOSE={}", messageId, agree);
-            ticketBotService.confirmedClose(message.getMessageId(), agree, null, null);
+            ticketBotService.confirmedClose(messageId, agree, null, null);
         }
         else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.PENDING)) {
             log.info("TICKET PENDING CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", messageId, agree);
-            ticketBotService.confirmedPending(message.getMessageId(), agree);
+            ticketBotService.confirmedPending(messageId, agree);
         }
         else if (confirmService.existsByIdAndStatus(messageId, TicketConfirm.POST_PENDING)) {
             log.info("TICKET {} CONFIRMATION REPLY -- MESSAGE ID={} PENDING={}", TicketConfirm.POST_PENDING, messageId, agree);

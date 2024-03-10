@@ -14,6 +14,8 @@ public interface AgentWorklogRepo extends
         JpaRepository<AgentWorklog, Long>,
         JpaSpecificationExecutor<AgentWorklog> {
 
+    void deleteAllByWorkspaceTicketId(String ticketId);
+
     List<AgentWorklog> findByWorkspaceTicketIdOrWorkspaceTicketNoOrderByCreatedAt(String tid, String tno);
 
 

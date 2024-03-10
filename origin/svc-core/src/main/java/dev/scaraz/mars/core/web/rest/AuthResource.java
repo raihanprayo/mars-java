@@ -7,6 +7,7 @@ import dev.scaraz.mars.common.domain.response.AuthResDTO;
 import dev.scaraz.mars.common.domain.response.ForgotResDTO;
 import dev.scaraz.mars.common.domain.response.WhoamiDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
+import dev.scaraz.mars.common.exception.web.MarsException;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
@@ -14,6 +15,9 @@ import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.security.authentication.token.MarsWebAuthenticationToken;
+import dev.scaraz.mars.security.jwt.JwtParseResult;
+import dev.scaraz.mars.security.jwt.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,8 +27,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
+import org.zalando.problem.Status;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,7 +63,25 @@ public class AuthResource {
         return ResponseEntity.ok(authResult);
     }
 
-    @PostMapping(path = "/refresh", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/verify")
+    public ResponseEntity<?> verifyToken(@RequestBody Map<String, String> payload) {
+        String token = payload.get("token");
+        JwtParseResult decode = JwtUtil.decode(token);
+        if (decode.getCode().isError()) {
+            switch (decode.getCode()) {
+                case ERR_EXPIRED -> throw new MarsException(Status.NOT_ACCEPTABLE, "expired", decode.getMessage());
+                case ERR_MALFORMED -> throw new MarsException(Status.NOT_ACCEPTABLE, "malformed", decode.getMessage());
+                case ERR_UNSUPPORTED, ERR_SIGNATURE ->
+                        throw new MarsException(Status.NOT_ACCEPTABLE, "unsupported", decode.getMessage());
+            }
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(
+            path = "/refresh",
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<AuthResDTO> refresh(Authentication authentication) {
         if (!(authentication instanceof MarsWebAuthenticationToken))
             throw new IllegalStateException("invalid authentication token");

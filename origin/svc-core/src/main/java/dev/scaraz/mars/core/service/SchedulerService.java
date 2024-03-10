@@ -94,11 +94,10 @@ public class SchedulerService {
 
     protected void reverseCheckInvalidConfirmationTicket() {
         log.info("Reverse check any invalid confirmation message");
-        List<Ticket> tickets = ticketQueryService.findAll(TicketCriteria.builder()
-                .status(new TcStatusFilter().setIn(List.of(
+        List<Ticket> tickets = ticketQueryService.findAll(new TicketCriteria()
+                .setStatus(new TcStatusFilter().setIn(List.of(
                         TcStatus.PENDING, TcStatus.CONFIRMATION, TcStatus.CLOSE_CONFIRM, TcStatus.PENDING_CONFIRM
-                )))
-                .build());
+                ))));
 
         for (Ticket ticket : tickets) {
             log.info("- Reverse Check Ticket NO {}", ticket.getNo());

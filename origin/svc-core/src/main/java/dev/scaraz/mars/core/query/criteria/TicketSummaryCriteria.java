@@ -30,7 +30,7 @@ public class TicketSummaryCriteria extends AuditableCriteria {
 
     private InstantFilter closedAt;
 
-    private BooleanFilter deleted = new BooleanFilter();
+    private BooleanFilter deleted;
     private InstantFilter deletedAt;
 
     private IssueCriteria issue;

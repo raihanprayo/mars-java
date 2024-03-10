@@ -347,7 +347,7 @@ public class TicketBotService {
                 }
 
                 InlineKeyboardButton e = defined.get(i);
-                log.debug("Issue Inline Button: {}", e);
+                log.trace("Issue Inline Button: {}", e);
                 row.add(e);
             }
 

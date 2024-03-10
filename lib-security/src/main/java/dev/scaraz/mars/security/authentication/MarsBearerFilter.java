@@ -9,8 +9,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -21,6 +23,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class MarsBearerFilter extends OncePerRequestFilter {
 
+    private final AuthenticationEntryPoint authenticationEntryPoint;
     private final MarsAuthenticationProvider authenticationProvider;
     private final WebAuthenticationDetailsSource detailsSource = new WebAuthenticationDetailsSource();
 
@@ -52,13 +55,20 @@ public class MarsBearerFilter extends OncePerRequestFilter {
                 return;
             }
 
-            log.debug("JWT Token: {}", authorization);
+            log.trace("JWT Token: {}", authorization);
             MarsBearerAuthenticationToken token = new MarsBearerAuthenticationToken(authorization.substring("Bearer ".length()));
             token.setDetails(detailsSource.buildDetails(request));
 
             SecurityContext ctx = SecurityContextHolder.createEmptyContext();
-            ctx.setAuthentication(authenticationProvider.authenticate(token));
-            SecurityContextHolder.setContext(ctx);
+
+            try {
+                ctx.setAuthentication(authenticationProvider.authenticate(token));
+                SecurityContextHolder.setContext(ctx);
+            }
+            catch (AuthenticationException ex) {
+                authenticationEntryPoint.commence(request, response, ex);
+                return;
+            }
 
             filterChain.doFilter(request, response);
         }

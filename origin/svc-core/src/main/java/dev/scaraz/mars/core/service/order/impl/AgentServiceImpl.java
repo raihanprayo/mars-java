@@ -3,10 +3,15 @@ package dev.scaraz.mars.core.service.order.impl;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.query.AccountQueryService;
+import dev.scaraz.mars.core.query.AgentWorklogQueryService;
+import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;
+import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
+import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.repository.db.order.AgentRepo;
 import dev.scaraz.mars.core.repository.db.order.AgentWorklogRepo;
 import dev.scaraz.mars.core.repository.db.order.AgentWorkspaceRepo;
@@ -19,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 @Slf4j
@@ -31,6 +37,9 @@ public class AgentServiceImpl implements AgentService {
     private final AgentRepo repo;
     private final AgentWorkspaceRepo workspaceRepo;
     private final AgentWorklogRepo worklogRepo;
+
+    private final AgentWorkspaceQueryService workspaceQueryService;
+    private final AgentWorklogQueryService worklogQueryService;
 
     private final AccountQueryService accountQueryService;
 
@@ -104,6 +113,14 @@ public class AgentServiceImpl implements AgentService {
                 solution.getName(),
                 solution.getDescription()
         );
+    }
+
+    @Override
+    @Transactional
+    public void deleteAllWorkspaceByTicketId(String ticketId) {
+        List<AgentWorkspace> workspaces = workspaceQueryService.findAll(new AgentWorkspaceCriteria().setTicket(new TicketCriteria()
+                .setId(new StringFilter().setEq(ticketId))));
+        workspaceRepo.deleteAll(workspaces);
     }
 
 }

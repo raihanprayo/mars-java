@@ -2,20 +2,22 @@ package dev.scaraz.mars.core.service.order.impl;
 
 import dev.scaraz.mars.common.domain.response.PieChartDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.domain.view.WorklogSummary;
 import dev.scaraz.mars.core.query.WorklogSummaryQueryService;
+import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.criteria.WorklogSummaryCriteria;
 import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import dev.scaraz.mars.core.service.order.ChartService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jakarta.annotation.Nullable;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -58,8 +60,11 @@ public class ChartServiceImpl implements ChartService {
         Instant now = Instant.now();
 
         for (TicketSummary summary : summaries) {
-            List<WorklogSummary> wls = worklogSummaryQueryService.findAll(
-                    criteria.setTicketId(new StringFilter().setEq(summary.getId())));
+            List<WorklogSummary> wls = worklogSummaryQueryService.findAll(criteria.setTicket(
+                    new TicketCriteria()
+                            .setId(new StringFilter().setEq(summary.getId()))
+                            .setDeleted(new BooleanFilter().setEq(false))
+            ));
 
 
             for (WorklogSummary wl : wls) {
@@ -83,8 +88,11 @@ public class ChartServiceImpl implements ChartService {
         Map<String, PieChartDTO<String>> category = createDurationCategoryMap();
 
         for (TicketSummary summary : summaries) {
-            List<WorklogSummary> wls = worklogSummaryQueryService.findAll(
-                    criteria.setTicketId(new StringFilter().setEq(summary.getId())));
+            List<WorklogSummary> wls = worklogSummaryQueryService.findAll(criteria.setTicket(
+                    new TicketCriteria()
+                            .setId(new StringFilter().setEq(summary.getId()))
+                            .setDeleted(new BooleanFilter().setEq(false))
+            ));
             for (WorklogSummary wl : wls) {
                 switch (wl.getTakeStatus()) {
                     case OPEN:

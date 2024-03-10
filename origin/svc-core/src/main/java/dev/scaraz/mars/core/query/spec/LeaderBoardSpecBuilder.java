@@ -1,9 +1,7 @@
 package dev.scaraz.mars.core.query.spec;
 
-import dev.scaraz.mars.common.utils.QueryBuilder;
-import dev.scaraz.mars.core.domain.order.Agent_;
+import dev.scaraz.mars.common.query.AuditableSpec;
 import dev.scaraz.mars.core.domain.order.TcIssue_;
-import dev.scaraz.mars.core.domain.order.Ticket_;
 import dev.scaraz.mars.core.domain.order.WlSolution_;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment_;
@@ -14,15 +12,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LeaderBoardSpecBuilder extends QueryBuilder<LeaderBoardFragment, LeaderBoardCriteria> {
+public class LeaderBoardSpecBuilder extends AuditableSpec<LeaderBoardFragment, LeaderBoardCriteria> {
     @Override
     public Specification<LeaderBoardFragment> createSpec(LeaderBoardCriteria criteria) {
         SpecChain<LeaderBoardFragment> chainer = chain()
-                .pick(criteria.getTicketId(), r -> r.get(LeaderBoardFragment_.ticket).get(Ticket_.id))
-                .pick(criteria.getTicketNo(), r -> r.get(LeaderBoardFragment_.ticket).get(Ticket_.no))
-                .pick(criteria.getUserId(), r -> r.get(LeaderBoardFragment_.agent).get(Agent_.userId))
-                .pick(LeaderBoardFragment_.ticketCreatedAt, criteria.getCreatedAt())
-                .pick(LeaderBoardFragment_.ticketUpdatedAt, criteria.getUpdatedAt());
+                .pick(LeaderBoardFragment_.ticketId, criteria.getTicketId())
+                .pick(LeaderBoardFragment_.workspaceId, criteria.getWorkspaceId())
+                .pick(LeaderBoardFragment_.lastTicketLogAt, criteria.getLastTicketLogAt())
+                .extend(s -> auditSpec(s, criteria));
 
         if (criteria.getSolution() != null) {
             SolutionCriteria solution = criteria.getSolution();

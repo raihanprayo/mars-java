@@ -4,10 +4,12 @@ import dev.scaraz.mars.common.domain.response.UserContactDTO;
 import dev.scaraz.mars.common.domain.response.UserTgDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
+import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
@@ -23,6 +25,7 @@ import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import dev.scaraz.mars.core.repository.db.order.TicketAssetRepo;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.security.MarsUserContext;
+import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,10 +33,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,17 +64,20 @@ public class TicketResource {
     private final AgentQueryService agentQueryService;
 
     @GetMapping
+    @Timed
     public ResponseEntity<?> findAll(TicketSummaryCriteria criteria, Pageable pageable) {
         Page<TicketSummary> page = summaryQueryService.findAll(criteria, pageable);
         return ResourceUtil.pagination(page, "/ticket");
     }
 
     @GetMapping("/inbox")
+    @Timed
     public ResponseEntity<?> getInbox(
             @RequestParam(defaultValue = "false") boolean counter,
             TicketSummaryCriteria criteria,
             Pageable pageable
     ) {
+        criteria.setDeleted(new BooleanFilter().setEq(false));
         criteria.setWipBy(new StringFilter().setEq(MarsUserContext.getId()));
         if (counter) {
             long count = summaryQueryService.count(criteria);
@@ -91,6 +99,37 @@ public class TicketResource {
             Page<TicketSummary> page = summaryQueryService.findAll(criteria, pageable);
             return ResourceUtil.pagination(page, headers, "/api/ticket/inbox");
         }
+    }
+
+    @DeleteMapping("/remove")
+    @Timed
+    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
+    public ResponseEntity<?> removeTicketBulk(
+            @RequestParam(defaultValue = "false") boolean forever,
+            @RequestBody List<String> ticketIds
+    ) {
+        if (!forever)
+            service.markDeleted(ticketIds.toArray(String[]::new));
+        else
+            service.delete(ticketIds.toArray(String[]::new));
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/remove/range")
+    @Timed
+    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
+    public ResponseEntity<?> removeTicketByDateBelow(@RequestParam Instant date) {
+        service.markDeleted(date);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping("/restore")
+    @Timed
+    @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
+    public ResponseEntity<?> restoreTicketBulk(@RequestBody List<String> ticketIds) {
+        service.restore(ticketIds.toArray(String[]::new));
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/resend/pending")

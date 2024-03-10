@@ -41,6 +41,7 @@ public class WorklogSummarySpecBuilder extends QueryBuilder<WorklogSummary, Work
             chainer.pick(ticket.getId(), path(WorklogSummary_.ticket, Ticket_.id));
             chainer.pick(ticket.getNo(), path(WorklogSummary_.ticket, Ticket_.no));
             chainer.pick(ticket.getProduct(), path(WorklogSummary_.ticket, Ticket_.issue, TcIssue_.product));
+            chainer.pick(ticket.getDeleted(), path(WorklogSummary_.ticket, Ticket_.deleted));
         }
 
         return chainer.specification();

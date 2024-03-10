@@ -153,11 +153,10 @@ public class TicketListener {
             log.debug("Confirm Pending: {}", text);
             Optional<TicketConfirm> confirmOpt = ticketConfirmRepo.findByValueAndStatus(text, TicketConfirm.POST_PENDING);
             if (confirmOpt.isPresent()) {
-                boolean ticketExist = ticketQueryService.exist(TicketCriteria.builder()
-                        .no(new StringFilter().setEq(text.trim()))
-                        .senderId(new LongFilter().setEq(account.getTg().getId()))
-                        .status(new TcStatusFilter().setEq(TcStatus.PENDING))
-                        .build());
+                boolean ticketExist = ticketQueryService.exist(new TicketCriteria()
+                        .setNo(new StringFilter().setEq(text.trim()))
+                        .setSenderId(new LongFilter().setEq(account.getTg().getId()))
+                        .setStatus(new TcStatusFilter().setEq(TcStatus.PENDING)));
 
                 if (ticketExist) ticketBotService.endPendingEarly(confirmOpt.get().getId(), text);
 

@@ -126,7 +126,7 @@ public class PendingFlowService {
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
 
         if (!List.of(TcStatus.CONFIRMATION, TcStatus.PENDING_CONFIRM).contains(ticket.getStatus()))
-            throw BadRequestException.args("error.ticket.illegal.confirm.state");
+            throw BadRequestException.args("error.ticket.illegal.confirm.state", ticket.getStatus());
         else if (MarsUserContext.isUserPresent()) {
             boolean isRequestor = ticket.getSenderId() == MarsUserContext.getTelegram();
             if (!isRequestor)
@@ -135,6 +135,7 @@ public class PendingFlowService {
 
         AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
 
+        TcStatus prevStatus = ticket.getStatus();
         if (doPending) {
             ticket.setStatus(TcStatus.PENDING);
             ticket.setConfirmMessageId(null);
@@ -175,7 +176,7 @@ public class PendingFlowService {
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)
-                    .prev(TcStatus.CONFIRMATION)
+                    .prev(prevStatus)
                     .curr(ticket.getStatus())
                     .message(LogTicketService.LOG_CONFIRMED_PENDING)
                     .build());
@@ -202,7 +203,7 @@ public class PendingFlowService {
 
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)
-                    .prev(TcStatus.CONFIRMATION)
+                    .prev(prevStatus)
                     .curr(ticket.getStatus())
                     .message(logMessage)
                     .build());

@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.scaraz.mars.common.config.properties.MarsProperties;
 import dev.scaraz.mars.common.domain.dynamic.DynamicJsonDeserializer;
 import dev.scaraz.mars.common.domain.dynamic.DynamicJsonSerializer;
@@ -20,11 +21,15 @@ import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.*;
 import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
 
 import jakarta.annotation.PostConstruct;
+import org.zalando.problem.jackson.ProblemModule;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -59,7 +64,8 @@ public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebM
                     .deserializerByType(Instant.class, new InstantDeserializer())
 
                     .serializerByType(DynamicType.class, new DynamicJsonSerializer())
-                    .deserializerByType(DynamicType.class, new DynamicJsonDeserializer());
+                    .deserializerByType(DynamicType.class, new DynamicJsonDeserializer())
+                    .modules(new ProblemModule().withStackTraces(false));
         };
     }
 
@@ -90,6 +96,12 @@ public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebM
         converters.add(new StringHttpMessageConverter());
         converters.add(new ResourceHttpMessageConverter());
         converters.add(new ByteArrayHttpMessageConverter());
+
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        ObjectMapper om = new ObjectMapper();
+        objectMapperBuilder().customize(builder);
+        builder.configure(om);
+        converters.add(new MappingJackson2HttpMessageConverter(om));
     }
 
     @Bean

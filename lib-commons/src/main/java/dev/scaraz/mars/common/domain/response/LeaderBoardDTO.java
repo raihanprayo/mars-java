@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
+import java.time.Duration;
 
 @Data
 @Builder
@@ -20,13 +20,16 @@ public class LeaderBoardDTO {
     private String name;
 
     @Builder.Default
-    private long avgAction = 0;
+    private Duration avgAction = Duration.ZERO;
+
+    @Builder.Default
+    private Duration avgResponse = Duration.ZERO;
 
     @Builder.Default
     private long total = 0;
 
     @Builder.Default
-    private BigDecimal totalScore = BigDecimal.ZERO;
+    private double totalScore = 0.0;
 
     @Builder.Default
     private long totalDispatch = 0;

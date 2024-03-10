@@ -9,13 +9,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Optional;
 
 @Repository
 public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificationExecutor<Ticket> {
+
+    void deleteAllByCreatedAtLessThanEqual(Instant belowDate);
 
     @Modifying
     @Transactional
@@ -27,15 +28,15 @@ public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificat
     @Query("update Ticket t set t.deleted = false, t.deletedAt = null where t.id in (:ids)")
     void restoreByIds(String... ids);
 
-    @Modifying
-    @Transactional
-    @Query("delete from Ticket t where t.id = :id")
-    void deleteForGoodById(String id);
-
-    @Modifying
-    @Transactional
-    @Query("delete from Ticket t where t.id in (:ids)")
-    void deleteForGoodByIds(String... ids);
+//    @Modifying
+//    @Transactional
+//    @Query("delete from Ticket t where t.id = :id")
+//    void deleteForGoodById(String id);
+//
+//    @Modifying
+//    @Transactional
+//    @Query("delete from Ticket t where t.id in (:ids)")
+//    void deleteForGoodByIds(String... ids);
 
     long countByCreatedAtGreaterThanEqual(Instant today);
 
@@ -50,8 +51,8 @@ public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificat
 
     Optional<Ticket> findOneByConfirmMessageId(Long messageId);
 
-    @Query("select sum(t.issue.score) from Ticket t where t.id in (:ids)")
-    BigDecimal sumTotalScore(Collection<String> ids);
+    @Query("select coalesce(sum(coalesce(t.issue.score, 0)), 0) from Ticket t where t.id in (:ids)")
+    double sumTotalScore(Collection<String> ids);
 
     @Modifying
     @Query("update Ticket as tc set " +

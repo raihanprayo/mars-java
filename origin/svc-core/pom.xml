@@ -16,6 +16,7 @@
     <properties>
         <akka.sbt.version>2.13</akka.sbt.version>
         <akka.version>2.7.0</akka.version>
+        <maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
         <timestamp>${maven.build.timestamp}</timestamp>
     </properties>
 
@@ -179,8 +180,26 @@
     </dependencies>
 
     <build>
-        <finalName>mars-core</finalName>
+        <finalName>mars-core.${build.time}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>timestamp-property</id>
+                        <goals>
+                            <goal>timestamp-property</goal>
+                        </goals>
+                        <configuration>
+                            <name>build.time</name>
+                            <pattern>yyyyMMdd-HHmm</pattern>
+                            <locale>in_ID</locale>
+                            <timeZone>Asia/Jakarta</timeZone>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>

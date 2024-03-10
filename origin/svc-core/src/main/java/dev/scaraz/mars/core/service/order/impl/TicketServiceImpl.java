@@ -14,19 +14,19 @@ import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.TcIssue;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
-import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.IssueQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
+import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.repository.db.order.TicketRepo;
 import dev.scaraz.mars.core.service.StorageService;
+import dev.scaraz.mars.core.service.order.AgentService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
 import dev.scaraz.mars.core.service.order.TicketService;
 import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import dev.scaraz.mars.security.MarsUserContext;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -65,11 +65,16 @@ public class TicketServiceImpl implements TicketService {
     private final TicketQueryService queryService;
     private final TicketSummaryQueryService summaryQueryService;
 
+    private final AgentService agentService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
+    private final AgentWorklogQueryService agentWorklogQueryService;
     private final IssueQueryService issueQueryService;
 
     private final StorageService storageService;
 
     private final LogTicketService logTicketService;
+
+    private final EntityManager entityManager;
 
     @Override
     public Ticket save(Ticket ticket) {
@@ -138,6 +143,53 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
+    @Transactional
+    public void delete(String... ticketIds) {
+        for (String ticketId : ticketIds) {
+            Ticket ticket = queryService.findByIdOrNo(ticketId);
+            if (!ticket.isDeleted()) continue;
+
+            Query worklogsDelete = entityManager.createQuery("delete from AgentWorklog wl where wl.workspace.ticket.id = :id");
+            Query workspaceDelete = entityManager.createQuery("delete from AgentWorkspace ws where ws.ticket.id = :id");
+            Query logTicketDelete = entityManager.createQuery("delete from LogTicket lt where lt.ticket.id = :id");
+            Query ticketDelete = entityManager.createQuery("delete from Ticket tc where tc.id = :id");
+
+            worklogsDelete.setParameter("id", ticketId);
+            workspaceDelete.setParameter("id", ticketId);
+            logTicketDelete.setParameter("id", ticketId);
+            ticketDelete.setParameter("id", ticketId);
+
+            worklogsDelete.executeUpdate();
+            workspaceDelete.executeUpdate();
+            logTicketDelete.executeUpdate();
+            ticketDelete.executeUpdate();
+        }
+    }
+
+    @Override
+    @Transactional
+    public void markDeleted(String... ticketIds) {
+        for (String ticketId : ticketIds) {
+            Ticket ticket = queryService.findByIdOrNo(ticketId);
+            if (ticket.getStatus() != TcStatus.CLOSED) continue;
+
+            repo.deleteById(ticketId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void markDeleted(Instant belowDate) {
+        repo.deleteAllByCreatedAtLessThanEqual(belowDate);
+    }
+
+    @Override
+    @Transactional
+    public void restore(String... ticketIds) {
+        repo.restoreByIds(ticketIds);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public File report(TicketCriteria criteria) throws IOException {
         List<Ticket> tickets = queryService.findAll(criteria);
@@ -195,7 +247,6 @@ public class TicketServiceImpl implements TicketService {
             return tmpFile;
         }
     }
-
 
     @Override
     public void resendPending() {
