@@ -12,16 +12,19 @@ import dev.scaraz.mars.core.query.criteria.WorklogSummaryCriteria;
 import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import dev.scaraz.mars.core.service.order.ChartService;
 import dev.scaraz.mars.core.service.order.LogTicketService;
-import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -42,7 +45,7 @@ public class ChartServiceImpl implements ChartService {
         for (TicketSummary summary : summaries) {
             switch (summary.getStatus()) {
                 case CLOSED:
-                    groupAgeAndPush(summary.getCreatedAt(), summary.getUpdatedAt(), category);
+                    groupAgeAndPush(summary.getClosedAt(), summary.getCreatedAt(), category);
                     break;
                 default:
                     groupAgeAndPush(now, summary.getCreatedAt(), category);
@@ -167,24 +170,24 @@ public class ChartServiceImpl implements ChartService {
         return category;
     }
 
-    private void groupAgeAndPush(Instant lastOrCurrrentTime, @Nullable Instant dataCreatedAt, Map<String, PieChartDTO<String>> category) {
-        long durationMili = lastOrCurrrentTime.toEpochMilli() - Optional.ofNullable(dataCreatedAt)
-                .orElse(lastOrCurrrentTime)
-                .toEpochMilli();
+    private void groupAgeAndPush(Instant lastOrCurrrentTime, Instant dataCreatedAt, Map<String, PieChartDTO<String>> category) {
+        Assert.notNull(lastOrCurrrentTime, "lastOrCurrrentTime cannot be null");
+        Assert.notNull(dataCreatedAt, "dataCreatedAt cannot be null");
+        long durationMili = lastOrCurrrentTime.toEpochMilli() - dataCreatedAt.toEpochMilli();
 
-        if (durationMili <= MILI_15_MINUTES.toMillis()) {
+        if (durationMili <= 900_000) {
             category.computeIfPresent(CATEGORY_15_MINUTES, (k, v) -> {
                 v.setValue(v.getValue() + 1);
                 return v;
             });
         }
-        else if (durationMili <= MILI_30_MINUTES.toMillis()) {
+        else if (durationMili <= 1_800_000) {
             category.computeIfPresent(CATEGORY_30_MINUTES, (k, v) -> {
                 v.setValue(v.getValue() + 1);
                 return v;
             });
         }
-        else if (durationMili <= MILI_60_MINUTES.toMillis()) {
+        else if (durationMili <= 3_600_000) {
             category.computeIfPresent(CATEGORY_60_MINUTES, (k, v) -> {
                 v.setValue(v.getValue() + 1);
                 return v;

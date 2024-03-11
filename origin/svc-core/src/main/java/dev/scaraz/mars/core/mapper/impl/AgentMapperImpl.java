@@ -3,11 +3,12 @@ package dev.scaraz.mars.core.mapper.impl;
 import dev.scaraz.mars.common.domain.response.AgentDTO;
 import dev.scaraz.mars.common.domain.response.AgentWorklogDTO;
 import dev.scaraz.mars.common.domain.response.AgentWorkspaceDTO;
-import dev.scaraz.mars.common.domain.response.SolutionDTO;
 import dev.scaraz.mars.core.domain.order.Agent;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.mapper.AgentMapper;
+import dev.scaraz.mars.core.mapper.SolutionMapper;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -16,7 +17,10 @@ import java.util.stream.Collectors;
 //@Service
 //@Transactional(readOnly = true)
 @Component
+@RequiredArgsConstructor
 public class AgentMapperImpl implements AgentMapper {
+
+    private final SolutionMapper solutionMapper;
 
     @Override
     public AgentDTO toDTO(Agent o) {
@@ -52,11 +56,7 @@ public class AgentMapperImpl implements AgentMapper {
                 .id(o.getId())
                 .takeStatus(o.getTakeStatus())
                 .closeStatus(o.getCloseStatus())
-                .solution(SolutionDTO.builder()
-                        .id(o.getSolution().getId())
-                        .name(o.getSolution().getName())
-                        .description(o.getSolution().getDescription())
-                        .build())
+                .solution(solutionMapper.toDTO(o.getSolution()))
                 .message(o.getMessage())
                 .reopenMessage(o.getReopenMessage())
                 .createdAt(o.getCreatedAt())

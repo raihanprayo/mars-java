@@ -3,7 +3,6 @@ package dev.scaraz.mars.telegram.config;
 import dev.scaraz.mars.telegram.model.TelegramProcessContext;
 import dev.scaraz.mars.telegram.util.enums.ChatSource;
 import jakarta.annotation.Nullable;
-import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
@@ -60,7 +59,7 @@ public class TelegramContextHolder {
         TelegramProcessContext context = CONTEXT_ATTRIBUTE.get();
         if (context == null) return null;
 
-        return ((Chat) context.getAttribute(TG_CHAT_ID)).getId();
+        return (Long) context.getAttribute(TG_CHAT_ID);
     }
 
     @Nullable
