@@ -18,7 +18,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "v_leader_board_fragment")
-public class LeaderBoardFragment extends AuditableEntity {
+public class  LeaderBoardFragment extends AuditableEntity {
 
     @Id
     private long id;

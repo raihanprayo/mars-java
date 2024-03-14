@@ -145,7 +145,7 @@ public class ChartResource {
     }
 
     private long count(Product product, TicketSummaryCriteria criteria) {
-        return ticketSummaryQueryService.count(criteria
+        return ticketSummaryQueryService.count(criteria.copy()
                 .setProduct(new ProductFilter().setEq(product)));
     }
 
