@@ -3,14 +3,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>origin</artifactId>
+        <artifactId>mars-java</artifactId>
         <groupId>dev.scaraz.mars</groupId>
         <version>1.0</version>
     </parent>
 
-    <artifactId>core-svc</artifactId>
+    <artifactId>mars-app</artifactId>
     <version>0.1.0</version>
-    <name>core-svc</name>
     <packaging>war</packaging>
 
     <properties>
