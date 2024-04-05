@@ -1,15 +1,11 @@
 package dev.scaraz.mars.core.service.order;
 
-import dev.scaraz.mars.common.domain.response.PieChartDTO;
-import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.core.domain.view.TicketSummary;
-import dev.scaraz.mars.core.query.criteria.WorklogSummaryCriteria;
-import org.springframework.transaction.annotation.Transactional;
+import dev.scaraz.mars.common.domain.response.TicketPieChartDTO;
+import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
 
 public interface ChartService {
     Duration MILI_15_MINUTES = Duration.ofMinutes(15),
@@ -21,19 +17,22 @@ public interface ChartService {
             CATEGORY_60_MINUTES = "30-60 menit",
             CATEGORY_MORE_THAN_60_MINUTES = "60+ menit";
 
-    List<PieChartDTO<String>> pieTicketByAge(List<TicketSummary> summaries);
-
-//    List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries);
+//    List<PieChartDTO<String>> pieTicketByAge(TicketSummaryCriteria summarieCriteria);
 //
-//    List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries);
+//
+//    @Transactional(readOnly = true)
+//    List<PieChartDTO<String>> pieTicketByActionAge(TicketSummaryCriteria summaryCriteria,
+//                                                   WorklogSummaryCriteria criteria);
+//
+//    @Transactional(readOnly = true)
+//    List<PieChartDTO<String>> pieTicketByResponseAge(TicketSummaryCriteria summaryCriteria,
+//                                                     WorklogSummaryCriteria criteria);
+//
+//    @Transactional(readOnly = true)
+//    List<PieChartDTO<TcStatus>> pieTicketByStatus(TicketSummaryCriteria criteria);
 
-    @Transactional(readOnly = true)
-    List<PieChartDTO<String>> pieTicketByActionAge(List<TicketSummary> summaries, WorklogSummaryCriteria criteria);
-
-    @Transactional(readOnly = true)
-    List<PieChartDTO<String>> pieTicketByResponseAge(List<TicketSummary> summaries, WorklogSummaryCriteria criteria);
-
-    List<PieChartDTO<TcStatus>> pieTicketByStatus(List<TicketSummary> summaries);
+    //    @Transactional(readOnly = true)
+    void applyPieTicketStats(TicketPieChartDTO chart, TicketSummaryCriteria criteria);
 
     Instant[] rangeConvert(LocalDate from, LocalDate to);
 }

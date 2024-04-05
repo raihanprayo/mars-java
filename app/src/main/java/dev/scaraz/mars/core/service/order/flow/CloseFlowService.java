@@ -108,6 +108,11 @@ public class CloseFlowService {
             ticket.setStatus(TcStatus.CLOSED);
             ticket.setClosedAt(Instant.now());
 
+            workspaceOpt.ifPresent(ws -> {
+                ws.setStatus(AgStatus.CLOSED);
+                agentService.save(ws);
+            });
+
             notifierService.safeSend(ticket.getSenderId(), "tg.ticket.forced.close", ticket.getNo());
             logTicketService.add(LogTicket.builder()
                     .ticket(ticket)

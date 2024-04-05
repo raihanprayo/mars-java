@@ -9,4 +9,6 @@ import java.util.List;
 public interface ExportService {
 
     File exportToCSV(List<TicketSummary> all) throws IOException;
+
+    File exportToExcel(List<TicketSummary> all) throws IOException;
 }

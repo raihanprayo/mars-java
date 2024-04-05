@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.service;
 
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.order.LogTicket;
@@ -95,6 +96,7 @@ public class SchedulerService {
     protected void reverseCheckInvalidConfirmationTicket() {
         log.info("Reverse check any invalid confirmation message");
         List<Ticket> tickets = ticketQueryService.findAll(new TicketCriteria()
+                .setDeleted(new BooleanFilter().setEq(false))
                 .setStatus(new TcStatusFilter().setIn(List.of(
                         TcStatus.PENDING, TcStatus.CONFIRMATION, TcStatus.CLOSE_CONFIRM, TcStatus.PENDING_CONFIRM
                 ))));

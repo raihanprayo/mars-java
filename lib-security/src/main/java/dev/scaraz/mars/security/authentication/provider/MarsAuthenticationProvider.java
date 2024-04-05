@@ -16,7 +16,7 @@ public class MarsAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        log.debug("AuthenticationProvider authenticate: {}", authentication.getClass().getSimpleName());
+        log.trace("AuthenticationProvider authenticate: {}", authentication.getClass().getSimpleName());
         if (authentication instanceof MarsBearerAuthenticationToken) {
             MarsBearerAuthenticationToken bearer = (MarsBearerAuthenticationToken) authentication;
             if (StringUtils.isBlank(bearer.getPrincipal().toString()))
