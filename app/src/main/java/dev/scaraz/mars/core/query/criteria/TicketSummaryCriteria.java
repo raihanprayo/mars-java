@@ -59,7 +59,11 @@ public class TicketSummaryCriteria extends AuditableCriteria {
                 .setDeleted(deleted)
                 .setDeletedAt(deletedAt)
                 .setIssue(issue)
-                .setWorkspace(workspace);
+                .setWorkspace(workspace)
+                .setCreatedBy(getCreatedBy())
+                .setCreatedAt(getCreatedAt())
+                .setUpdatedBy(getUpdatedBy())
+                .setUpdatedAt(getUpdatedAt());
     }
 
     public TicketSummaryCriteria setId(StringFilter id) {
@@ -165,5 +169,25 @@ public class TicketSummaryCriteria extends AuditableCriteria {
     public TicketSummaryCriteria setWorkspace(AgentWorkspaceCriteria workspace) {
         this.workspace = workspace;
         return this;
+    }
+
+    @Override
+    public TicketSummaryCriteria setCreatedBy(StringFilter createdBy) {
+        return (TicketSummaryCriteria) super.setCreatedBy(createdBy);
+    }
+
+    @Override
+    public TicketSummaryCriteria setUpdatedBy(StringFilter updatedBy) {
+        return (TicketSummaryCriteria) super.setUpdatedBy(updatedBy);
+    }
+
+    @Override
+    public TicketSummaryCriteria setCreatedAt(InstantFilter createdAt) {
+        return (TicketSummaryCriteria) super.setCreatedAt(createdAt);
+    }
+
+    @Override
+    public TicketSummaryCriteria setUpdatedAt(InstantFilter updatedAt) {
+        return (TicketSummaryCriteria) super.setUpdatedAt(updatedAt);
     }
 }

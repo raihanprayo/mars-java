@@ -27,14 +27,4 @@ public class TicketPieChartDTO {
     @Builder.Default
     private List<PieChartDTO<String>> responseAge = new ArrayList<>();
 
-    @Builder.Default
-    private TicketChartDataCountDTO count = new TicketChartDataCountDTO();
-
-    @Data
-    public static class TicketChartDataCountDTO {
-        private long total;
-        private long internet;
-        private long iptv;
-        private long voice;
-    }
 }
