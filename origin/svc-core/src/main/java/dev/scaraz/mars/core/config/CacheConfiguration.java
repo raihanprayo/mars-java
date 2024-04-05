@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.scaraz.mars.common.utils.CacheConstant;
 import dev.scaraz.mars.core.tools.CacheExpireListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisKeyValueAdapter;
 import org.springframework.data.redis.listener.PatternTopic;
@@ -19,6 +21,7 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 
+import java.time.Duration;
 import java.util.List;
 
 @Slf4j
@@ -66,6 +69,10 @@ public class CacheConfiguration {
                     );
 
             RedisSerializationContext.SerializationPair<Object> serializationPair = RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer(copy));
+
+            builder.withCacheConfiguration(CacheConstant.ISSUES_KEYBOARD, RedisCacheConfiguration.defaultCacheConfig()
+                    .disableCachingNullValues()
+                    .entryTtl(Duration.ofMinutes(5)));
         };
     }
 

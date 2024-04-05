@@ -32,6 +32,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -145,7 +146,6 @@ public class PendingFlowService {
 //                    .intValue();
             Duration duration = configService.get(ConfigConstants.TG_PENDING_CONFIRMATION_DRT)
                     .getAsDuration();
-//                    .toMinutes();
 
             int messageId = notifierService.send(
                     ticket.getSenderId(),
@@ -183,6 +183,7 @@ public class PendingFlowService {
         }
         else {
             ticket.setStatus(TcStatus.CLOSED);
+            ticket.setClosedAt(Instant.now());
             ticket.setConfirmMessageId(null);
 
             String logMessage;

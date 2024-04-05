@@ -20,6 +20,7 @@ public class LogTicketService {
     public static final String LOG_CONFIRMED_CLOSE = "telah dikonfirmasi untuk melakukan penutupan tiket";
     public static final String LOG_CONFIRMED_PENDING = "telah dikonfirmasi untuk melakukan pending tiket";
     public static final String LOG_REOPEN = "ticket dibuka kembali";
+    public static final String LOG_FORCE_CLOSE = "tiket ditutup secara paksa";
     public static final String LOG_CLOSE_CONFIRMATION = "permintaan penutupan tiket";
     public static final String LOG_PENDING_CONFIRMATION = "permintaan melakukan pending tiket";
     public static final String LOG_DISPATCH_REQUEST = "ticket dispatched";

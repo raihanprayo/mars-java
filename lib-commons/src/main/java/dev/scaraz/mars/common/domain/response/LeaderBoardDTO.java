@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Duration;
+import java.util.List;
 
 @Data
 @Builder
@@ -36,5 +37,7 @@ public class LeaderBoardDTO {
 
     @Builder.Default
     private long totalHandleDispatch = 0;
+
+    private List<LeaderBoardFragmentDTO> fragments;
 
 }

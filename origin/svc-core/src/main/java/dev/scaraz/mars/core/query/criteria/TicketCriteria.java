@@ -119,4 +119,24 @@ public class TicketCriteria extends AuditableCriteria {
         this.deletedAt = deletedAt;
         return this;
     }
+
+    @Override
+    public TicketCriteria setCreatedBy(StringFilter createdBy) {
+        return (TicketCriteria) super.setCreatedBy(createdBy);
+    }
+
+    @Override
+    public TicketCriteria setUpdatedBy(StringFilter updatedBy) {
+        return (TicketCriteria) super.setUpdatedBy(updatedBy);
+    }
+
+    @Override
+    public TicketCriteria setCreatedAt(InstantFilter createdAt) {
+        return (TicketCriteria) super.setCreatedAt(createdAt);
+    }
+
+    @Override
+    public TicketCriteria setUpdatedAt(InstantFilter updatedAt) {
+        return (TicketCriteria) super.setUpdatedAt(updatedAt);
+    }
 }

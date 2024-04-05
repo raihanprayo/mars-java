@@ -98,19 +98,24 @@ public class AgentQueryServiceImpl implements AgentQueryService {
     }
 
     @Override
-    public AgentWorkspace getLastWorkspace(String ticketId, boolean bypass) {
-        return workspaceRepo.findFirstByTicketIdOrderByCreatedAtDesc(ticketId)
-                .map(workspace -> {
-                    if (!bypass && workspace.getStatus() == AgStatus.CLOSED)
-                        throw new BadRequestException("Workspace Agent telah ditutup");
-                    return workspace;
-                })
+    public AgentWorkspace getLastWorkspace(String ticketId, boolean bypass) throws NotFoundException {
+        return getLastWorkspaceOptional(ticketId, bypass)
                 .orElseThrow(() -> NotFoundException.entity(AgentWorkspace.class, "ticket", ticketId));
     }
 
     @Override
     public Optional<AgentWorkspace> getLastWorkspaceOptional(String ticketId) {
-        return workspaceRepo.findFirstByTicketIdOrderByCreatedAtDesc(ticketId);
+        return getLastWorkspaceOptional(ticketId, true);
+    }
+
+    @Override
+    public Optional<AgentWorkspace> getLastWorkspaceOptional(String ticketId, boolean bypass) {
+        return workspaceRepo.findFirstByTicketIdOrderByCreatedAtDesc(ticketId)
+                .map(workspace -> {
+                    if (!bypass && workspace.getStatus() == AgStatus.CLOSED)
+                        throw new BadRequestException("Workspace Agent telah ditutup");
+                    return workspace;
+                });
     }
 
     @Override

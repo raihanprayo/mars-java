@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import static dev.scaraz.mars.core.service.order.LogTicketService.*;
 
@@ -60,25 +61,34 @@ public class CloseFlowService {
     private final NotifierService notifierService;
     private final StorageService storageService;
 
+    private Solution getForceClose() {
+        return solutionQueryService.findByName("Force Close");
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Ticket close(String ticketIdOrNo, TicketStatusFormDTO form) {
+        return close(ticketIdOrNo, form, true);
+    }
+
+    private Ticket close(String ticketIdOrNo, TicketStatusFormDTO form, boolean canBeClosedByAgentOnly) {
         log.info("CLOSE FORM {}", form);
 
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
         TicketSummary summary = summaryQueryService.findByIdOrNo(ticketIdOrNo);
+        TcStatus prevStatus = ticket.getStatus();
 
-        if (!summary.isWip())
-            throw BadRequestException.args("error.ticket.update.stat");
-        else if (!summary.getWipBy().equals(MarsUserContext.getId()))
-            throw BadRequestException.args("error.ticket.update.stat.agent");
+        if (canBeClosedByAgentOnly) {
+            if (!summary.isWip())
+                throw BadRequestException.args("error.ticket.update.stat");
+            else if (!summary.getWipBy().equals(MarsUserContext.getId()))
+                throw BadRequestException.args("error.ticket.update.stat.agent");
+        }
 
         if (form.getSolution() == null)
             throw new BadRequestException("Harap masukkan actsol sebelum menutup tiket");
 
-        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
-        Agent agent = workspace.getAgent();
-
-        workspace.getLastWorklog().ifPresent(worklog -> {
+        Optional<AgentWorkspace> workspaceOpt = agentQueryService.getLastWorkspaceOptional(ticket.getId());
+        workspaceOpt.flatMap(AgentWorkspace::getLastWorklog).ifPresent(worklog -> {
             worklog.setCloseStatus(TcStatus.CLOSED);
             worklog.setMessage(form.getNote());
 
@@ -92,25 +102,42 @@ public class CloseFlowService {
         Duration duration = configService.get(ConfigConstants.TG_CONFIRMATION_DRT)
                 .getAsDuration();
 
-        int messageId = notifierService.sendCloseConfirmation(ticket, duration, form);
-        ticket.setStatus(TcStatus.CLOSE_CONFIRM);
-        ticket.setConfirmMessageId((long) messageId);
+        Solution forceClose = getForceClose();
+        if (forceClose.getId() == form.getSolution()) {
+            log.info("EXEC FORCE CLOSE - {}", ticket.getNo());
+            ticket.setStatus(TcStatus.CLOSED);
+            ticket.setClosedAt(Instant.now());
 
-        confirmService.save(TicketConfirm.builder()
-                .id(messageId)
-                .value(ticket.getNo())
-                .status(TicketConfirm.CLOSED)
-                .ttl(duration.toMinutes())
-                .build());
+            notifierService.safeSend(ticket.getSenderId(), "tg.ticket.forced.close", ticket.getNo());
+            logTicketService.add(LogTicket.builder()
+                    .ticket(ticket)
+                    .prev(prevStatus)
+                    .curr(ticket.getStatus())
+                    .message(LOG_FORCE_CLOSE)
+                    .build());
+        }
+        else {
+            log.info("EXEC CLOSE CONFIRMATION - {}", ticket.getNo());
+            int messageId = notifierService.sendCloseConfirmation(ticket, duration, form);
+            ticket.setStatus(TcStatus.CLOSE_CONFIRM);
+            ticket.setConfirmMessageId((long) messageId);
+            confirmService.save(TicketConfirm.builder()
+                    .id(messageId)
+                    .value(ticket.getNo())
+                    .status(TicketConfirm.CLOSED)
+                    .ttl(duration.toMinutes())
+                    .build());
 
-        log.info("NOTIF SENDED TO USER -- MESSAGE ID {}", messageId);
-        logTicketService.add(LogTicket.builder()
-                .ticket(ticket)
-                .prev(TcStatus.PROGRESS)
-                .curr(ticket.getStatus())
-                .agentId(agent.getId())
-                .message(LOG_CLOSE_CONFIRMATION)
-                .build());
+            log.info("NOTIF SENDED TO USER -- MESSAGE ID {}", messageId);
+
+            logTicketService.add(LogTicket.builder()
+                    .ticket(ticket)
+                    .prev(prevStatus)
+                    .curr(ticket.getStatus())
+                    .agentId(workspaceOpt.map(AgentWorkspace::getAgent).map(Agent::getId).orElse(null))
+                    .message(LOG_CLOSE_CONFIRMATION)
+                    .build());
+        }
 
         return service.save(ticket);
     }
@@ -133,6 +160,7 @@ public class CloseFlowService {
         Agent agent = workspace.getAgent();
 
         if (reopen) {
+            log.info("REOPEN TICKET - {}", ticket.getNo());
             TcStatus prevStatus = ticket.getStatus();
             ticket.setStatus(TcStatus.REOPEN);
             ticket.setConfirmMessageId(null);
@@ -171,6 +199,7 @@ public class CloseFlowService {
             }
         }
         else {
+            log.info("CLOSING TICKET - {}", ticket.getNo());
             ticket.setStatus(TcStatus.CLOSED);
             ticket.setConfirmMessageId(null);
             ticket.setClosedAt(Instant.now());
@@ -202,7 +231,7 @@ public class CloseFlowService {
             }
             else {
                 logMessage = LOG_AUTO_CLOSE;
-                notifierService.send(ticket.getSenderId(),
+                notifierService.safeSend(ticket.getSenderId(),
                         "tg.ticket.confirm.auto-closed",
                         ticket.getNo());
 
@@ -234,5 +263,18 @@ public class CloseFlowService {
         confirmClose(ticketIdOrNo, reopen, form);
     }
 
+    @Transactional
+    public void forceClose(String ticketIdOrNo) {
+        Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
+        if (ticket.getStatus() == TcStatus.CLOSED)
+            throw BadRequestException.args("tidak bisa menutup tiket, karena status sudah CLOSED");
+
+        Solution solution = solutionQueryService.findByName("Force Close");
+
+        TicketStatusFormDTO form = new TicketStatusFormDTO();
+        form.setSolution(solution.getId());
+
+        close(ticketIdOrNo, form, false);
+    }
 
 }

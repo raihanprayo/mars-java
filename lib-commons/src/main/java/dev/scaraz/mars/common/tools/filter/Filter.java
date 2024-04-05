@@ -11,7 +11,7 @@ public interface Filter<T> extends Serializable {
     }
 
     Opt getOpt();
-    void setOpt(Opt opt);
+    Filter<T> setOpt(Opt opt);
 
     Filter<T> setEq(T value);
 

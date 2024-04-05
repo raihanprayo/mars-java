@@ -1,10 +1,9 @@
 package dev.scaraz.mars.core.domain.order;
 
-import dev.scaraz.mars.common.domain.TimestampEntity;
+import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.Product;
-import lombok.*;
-
 import jakarta.persistence.*;
+import lombok.*;
 
 @Getter
 @Setter
@@ -14,7 +13,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "t_solution")
-public class Solution extends TimestampEntity {
+public class Solution extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,5 +28,11 @@ public class Solution extends TimestampEntity {
     @Column
     @Enumerated(EnumType.STRING)
     private Product product;
+
+    @Column
+    private boolean showable;
+
+    @Column(name = "delete_able")
+    private boolean deleteable;
 
 }

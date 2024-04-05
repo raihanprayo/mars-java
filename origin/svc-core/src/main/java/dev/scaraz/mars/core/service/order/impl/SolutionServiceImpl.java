@@ -32,7 +32,7 @@ public class SolutionServiceImpl implements SolutionService {
     @Override
     @Transactional
     public void deleteByIds(List<Long> ids) {
-        repo.deleteAllById(ids);
+        repo.deleteAllByIdInAndDeleteableIsTrue(ids);
     }
 
     @Override

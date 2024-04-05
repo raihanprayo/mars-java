@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.order;
 
+import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "t_sto")
-public class Sto {
+public class Sto extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

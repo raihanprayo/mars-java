@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.web.rest;
 
+import dev.scaraz.mars.common.domain.general.StoDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.order.Sto;
@@ -42,6 +43,30 @@ public class StoResource {
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
+    @PostMapping(path = "/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> createFromCsv(@RequestParam("csv") MultipartFile file) throws IOException {
+        List<String> acceptableContentType = List.of("application/csv", "text/csv");
+
+        if (!acceptableContentType.contains(file.getContentType()))
+            throw BadRequestException.args("invalid upload file content type");
+
+        List<Sto> stos = service.createFromFile(file);
+        return new ResponseEntity<>(stos, HttpStatus.OK);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateById(@PathVariable int id,
+                                        @RequestBody StoDTO updateDTO) {
+        Sto update = service.update(id, updateDTO);
+        return ResponseEntity.ok(update);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteById(@RequestBody List<Integer> ids) {
+        service.deleteBulkById(ids);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     @GetMapping("/template/csv")
     public ResponseEntity<?> getCsvTemplate() {
         List<List<String>> csv = new ArrayList<>(List.of(
@@ -62,14 +87,4 @@ public class StoResource {
         return new ResponseEntity<>(resource, headers, HttpStatus.OK);
     }
 
-    @PostMapping(path = "/create/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createFromCsv(@RequestParam("csv") MultipartFile file) throws IOException {
-        List<String> acceptableContentType = List.of("application/csv", "text/csv");
-
-        if (!acceptableContentType.contains(file.getContentType()))
-            throw BadRequestException.args("invalid upload file content type");
-
-        List<Sto> stos = service.createFromFile(file);
-        return new ResponseEntity<>(stos, HttpStatus.OK);
-    }
 }

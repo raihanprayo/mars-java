@@ -24,6 +24,9 @@ import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import dev.scaraz.mars.core.repository.db.order.TicketAssetRepo;
 import dev.scaraz.mars.core.service.order.TicketService;
+import dev.scaraz.mars.core.service.order.flow.CloseFlowService;
+import dev.scaraz.mars.core.service.order.flow.DispatchFlowService;
+import dev.scaraz.mars.core.service.order.flow.PendingFlowService;
 import dev.scaraz.mars.security.MarsUserContext;
 import io.micrometer.core.annotation.Timed;
 import lombok.RequiredArgsConstructor;
@@ -62,6 +65,10 @@ public class TicketResource {
 
     private final AgentMapper agentMapper;
     private final AgentQueryService agentQueryService;
+
+    private final CloseFlowService closeFlowService;
+    private final PendingFlowService pendingFlowService;
+    private final DispatchFlowService dispatchFlowService;
 
     @GetMapping
     @Timed
@@ -104,7 +111,7 @@ public class TicketResource {
     @DeleteMapping("/remove")
     @Timed
     @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
-    public ResponseEntity<?> removeTicketBulk(
+    public ResponseEntity<?> deleteTicketBulk(
             @RequestParam(defaultValue = "false") boolean forever,
             @RequestBody List<String> ticketIds
     ) {
@@ -119,8 +126,21 @@ public class TicketResource {
     @DeleteMapping("/remove/range")
     @Timed
     @PreAuthorize(AuthorityConstant.HAS_ROLE_ADMIN)
-    public ResponseEntity<?> removeTicketByDateBelow(@RequestParam Instant date) {
-        service.markDeleted(date);
+    public ResponseEntity<?> deleteTicketByDate(@RequestParam Instant from,
+                                                @RequestParam Instant to) {
+        long totalDeleted = service.markDeleted(from, to);
+        return new ResponseEntity<>(Map.of("total", totalDeleted), HttpStatus.OK);
+    }
+
+    @PutMapping("/force/close")
+    public ResponseEntity<?> forceCloseTicket(@RequestBody List<String> no) {
+        for (String s : no) {
+            try {
+                closeFlowService.forceClose(s);
+            }
+            catch (Exception ex) {
+            }
+        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -136,6 +156,31 @@ public class TicketResource {
     public void fixPendingTickets() {
         service.resendPending();
     }
+
+
+//    @GetMapping("/detail/{ticketIdOrNo}")
+//    public ResponseEntity<?> getDetails(@PathVariable String ticketIdOrNo) {
+//        Map<String, Object> result = new HashMap<>();
+//
+//        TicketSummary ticket = summaryQueryService.findByIdOrNo(ticketIdOrNo);
+//        result.put("ticket", ticket);
+//
+//        Account account = accountQueryService.findByTelegramId(ticket.getSenderId());
+//        UserContactDTO contact = UserContactDTO.builder()
+//                .nik(account.getNik())
+//                .name(account.getName())
+//                .phone(account.getPhone())
+//                .tg(UserTgDTO.builder()
+//                        .id(account.getTg().getId())
+//                        .username(account.getTg().getUsername())
+//                        .build())
+//                .build();
+//        result.put("contact", contact);
+//
+//        result.put("relation", summaryQueryService.getGaulRelatedByIdOrNo(ticketIdOrNo));
+//
+//        return null;
+//    }
 
     @GetMapping("/detail/{ticketIdOrNo}")
     public ResponseEntity<?> findById(@PathVariable String ticketIdOrNo) {

@@ -30,6 +30,7 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -307,6 +308,7 @@ public class TicketBotService {
 
     @Cacheable(
             cacheNames = CacheConstant.ISSUES_KEYBOARD,
+            key = "'telegram'",
             unless = "#result == null")
     public InlineKeyboardMarkup createIssueKeyboarButtons() {
         List<Issue> issues = issueQueryService.findAllNotDeleted();

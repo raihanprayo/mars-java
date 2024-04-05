@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.repository.db.order;
 
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -17,6 +18,8 @@ import java.util.Optional;
 public interface TicketRepo extends JpaRepository<Ticket, String>, JpaSpecificationExecutor<Ticket> {
 
     void deleteAllByCreatedAtLessThanEqual(Instant belowDate);
+
+    long deleteAllByDeletedIsFalseAndStatusAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(TcStatus status, Instant from, Instant to);
 
     @Modifying
     @Transactional

@@ -16,6 +16,8 @@ public class SolutionSpecBuilder extends TimestampSpec<Solution, SolutionCriteri
                 .pick(Solution_.id, criteria.getId())
                 .pick(Solution_.name, criteria.getName())
                 .pick(Solution_.product, criteria.getProduct())
+                .pick(Solution_.showable, criteria.getShowable())
+                .pick(Solution_.deleteable, criteria.getDeleteable())
                 .extend(s -> timestampSpec(s, criteria))
                 .specification();
     }

@@ -29,5 +29,7 @@ public interface AgentQueryService extends BaseQueryService<Agent, AgentCriteria
 
     Optional<AgentWorkspace> getLastWorkspaceOptional(String ticketId);
 
+    Optional<AgentWorkspace> getLastWorkspaceOptional(String ticketId, boolean bypass);
+
     boolean isWorkInProgress(String ticketId);
 }

@@ -61,4 +61,10 @@ public class SolutionQueryServiceImpl implements SolutionQueryService {
                 .orElseThrow(() -> NotFoundException.entity(Solution.class, "id", id));
     }
 
+    @Override
+    public Solution findByName(String name) {
+        return repo.findByName(name)
+                .orElseThrow(() -> NotFoundException.entity(Solution.class, "name", name));
+    }
+
 }

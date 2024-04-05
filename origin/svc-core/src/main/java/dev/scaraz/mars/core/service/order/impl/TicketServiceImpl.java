@@ -6,6 +6,7 @@ import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -17,6 +18,7 @@ import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
+import dev.scaraz.mars.core.query.spec.TicketSpecBuilder;
 import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.repository.db.order.TicketRepo;
 import dev.scaraz.mars.core.service.StorageService;
@@ -31,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationContext;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +63,7 @@ public class TicketServiceImpl implements TicketService {
     private final AccountQueryService accountQueryService;
 
     private final TicketRepo repo;
+    private final TicketSpecBuilder specBuilder;
     private final TicketConfirmRepo ticketConfirmRepo;
 
     private final TicketQueryService queryService;
@@ -181,6 +185,32 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public void markDeleted(Instant belowDate) {
         repo.deleteAllByCreatedAtLessThanEqual(belowDate);
+    }
+
+    @Override
+    @Transactional
+    public void markDeleted(InstantFilter date) {
+        Specification<Ticket> spec = specBuilder.createSpec(new TicketCriteria()
+                .setStatus(new TcStatusFilter().setEq(TcStatus.CLOSED))
+                .setCreatedAt(date));
+        long deleteCount = repo.delete(spec);
+        log.info("MARK DELETED TOTAL - {}", deleteCount);
+    }
+
+    @Override
+    @Transactional
+    public void markDeleted(TicketCriteria criteria) {
+        Specification<Ticket> spec = specBuilder.createSpec(criteria);
+        long deleteCount = repo.delete(spec);
+        log.info("MARK DELETED TOTAL - {}", deleteCount);
+    }
+
+    @Override
+    @Transactional
+    public long markDeleted(Instant from, Instant to) {
+        long deleteCount = repo.deleteAllByDeletedIsFalseAndStatusAndCreatedAtGreaterThanEqualAndCreatedAtLessThanEqual(TcStatus.CLOSED, from, to);
+        log.info("MARK DELETED TOTAL - {}", deleteCount);
+        return deleteCount;
     }
 
     @Override

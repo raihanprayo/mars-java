@@ -17,6 +17,11 @@ public class StringFilter extends AbsFilter<String> implements ReadableFilter<St
 
     private String like;
 
+    public StringFilter setOpt(Opt opt) {
+        super.setOpt(opt);
+        return this;
+    }
+
     public StringFilter setLike(String like) {
         this.like = like;
         return this;

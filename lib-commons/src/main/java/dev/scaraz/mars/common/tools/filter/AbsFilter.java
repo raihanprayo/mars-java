@@ -20,8 +20,9 @@ public abstract class AbsFilter<T> implements Filter<T> {
     protected boolean negated = false;
 
     @Override
-    public void setOpt(Opt opt) {
+    public AbsFilter<T> setOpt(Opt opt) {
         this.opt = opt;
+        return this;
     }
 
     public AbsFilter<T> setEq(T value) {

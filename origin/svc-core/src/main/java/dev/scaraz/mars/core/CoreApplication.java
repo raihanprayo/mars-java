@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.scaraz.mars.common.utils.CacheConstant;
 import dev.scaraz.mars.core.config.event.app.AccountAccessEvent;
 import dev.scaraz.mars.core.service.Initializer;
 import dev.scaraz.mars.telegram.EnableTelegramSpring;
@@ -10,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -17,6 +20,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -25,6 +29,8 @@ import java.net.UnknownHostException;
 @EnableTelegramSpring
 @SpringBootApplication
 public class CoreApplication implements CommandLineRunner {
+
+    private final CacheManager cacheManager;
     private final Initializer initializer;
 
     public static void main(String[] args) throws UnknownHostException {
@@ -54,6 +60,8 @@ public class CoreApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        Optional.ofNullable(cacheManager.getCache(CacheConstant.ISSUES_KEYBOARD)).ifPresent(Cache::clear);
+
         AccountAccessEvent.setObectMapper(objectMapper);
         AccountAccessEvent.setApplicationEventPublisher(applicationEventPublisher);
 
@@ -61,9 +69,9 @@ public class CoreApplication implements CommandLineRunner {
         if (StringUtils.isNoneBlank(imports)) {
             log.info("Import initialization");
             initializer.importConfig();
-//            initializer.importIssue();
             initializer.importRolesAndAdminAccount();
             initializer.importSto();
         }
     }
+
 }

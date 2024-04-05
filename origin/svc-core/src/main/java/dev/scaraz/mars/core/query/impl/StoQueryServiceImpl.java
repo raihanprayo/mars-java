@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.query.impl;
 
+import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.StoQueryService;
 import dev.scaraz.mars.core.query.criteria.StoCriteria;
@@ -53,4 +54,11 @@ public class StoQueryServiceImpl implements StoQueryService {
     public long count(StoCriteria criteria) {
         return repo.count(specBuilder.createSpec(criteria));
     }
+
+    @Override
+    public Sto findById(int id) {
+        return repo.findById(id)
+                .orElseThrow(() -> NotFoundException.entity(Sto.class, "id", id));
+    }
+
 }

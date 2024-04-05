@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -43,18 +44,19 @@ public class IssueServiceImpl implements IssueService {
     private final IssueQueryService queryService;
 
     @Override
-    @CacheEvict(cacheNames = CacheConstant.ISSUES_KEYBOARD)
+    @CacheEvict(cacheNames = CacheConstant.ISSUES_KEYBOARD, key = "'telegram'")
     public Issue save(Issue issue) {
         return repo.save(issue);
     }
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CacheConstant.ISSUES_KEYBOARD, key = "'telegram'")
     public Issue create(String name, Product product, @Nullable String description) {
         if (repo.existsByNameAndProduct(name, product))
             throw BadRequestException.duplicateEntity(Issue.class, "name", name);
 
-        log.info("CREATE NEW ISSUE WITH NAME {} AND PRODUCT {}", name, product);
+        log.info("CREATE NEW ISSUE WITH NAME {} AND PRODUCT {}", name, Objects.requireNonNullElse(product, "NO_PRODUCT"));
         return save(Issue.builder()
                 .name(name.toLowerCase())
                 .product(product)
@@ -64,6 +66,7 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CacheConstant.ISSUES_KEYBOARD, key = "'telegram'")
     public Issue create(CreateIssueDTO dto) {
         log.info("CREATE NEW ISSUE {}/{}", dto.getProduct(), dto.getName());
 
@@ -88,6 +91,7 @@ public class IssueServiceImpl implements IssueService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = CacheConstant.ISSUES_KEYBOARD, key = "'telegram'")
     public Issue update(long id, UpdateIssueDTO dto) {
         log.info("UPDATING ISSUE -- ID={} NAME={}", id, dto.getName());
         Issue issue = queryService.findById(id)
@@ -140,6 +144,7 @@ public class IssueServiceImpl implements IssueService {
     }
 
     @Override
+    @CacheEvict(cacheNames = CacheConstant.ISSUES_KEYBOARD, key = "'telegram'")
     public void deleteByIds(Iterable<Long> ids) {
         repo.deleteAllById(ids);
     }

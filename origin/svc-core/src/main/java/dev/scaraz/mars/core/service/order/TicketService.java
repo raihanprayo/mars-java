@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.service.order;
 
 import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
+import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
 import dev.scaraz.mars.core.domain.order.Issue;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
@@ -26,6 +27,14 @@ public interface TicketService {
     void markDeleted(String... ticketIds);
 
     void markDeleted(Instant belowDate);
+
+    @Transactional
+    void markDeleted(InstantFilter date);
+
+    void markDeleted(TicketCriteria criteria);
+
+    @Transactional
+    long markDeleted(Instant from, Instant to);
 
     @Transactional
     void restore(String... ticketIds);

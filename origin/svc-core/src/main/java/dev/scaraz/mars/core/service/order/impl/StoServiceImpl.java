@@ -1,13 +1,16 @@
 package dev.scaraz.mars.core.service.order.impl;
 
+import dev.scaraz.mars.common.domain.general.StoDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.core.domain.order.Sto;
+import dev.scaraz.mars.core.query.StoQueryService;
 import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import dev.scaraz.mars.core.service.order.StoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +27,7 @@ import java.util.List;
 public class StoServiceImpl implements StoService {
 
     private final StoRepo repo;
+    private final StoQueryService queryService;
 
     @Override
     public Sto save(Sto sto) {
@@ -71,6 +75,27 @@ public class StoServiceImpl implements StoService {
         }
 
         return result;
+    }
+
+    @Override
+    @Transactional
+    public Sto update(int id, StoDTO dto) {
+        Sto sto = queryService.findById(id);
+        BeanUtils.copyProperties(dto, sto, "id", "createdAt", "updatedAt", "createdBy", "updatedBy");
+
+        return save(sto);
+    }
+
+    @Override
+    @Transactional
+    public void deleteById(int id) {
+        repo.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteBulkById(Iterable<Integer> ids) {
+        repo.deleteAllById(ids);
     }
 
 }

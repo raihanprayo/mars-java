@@ -73,11 +73,15 @@ public class LeaderBoardService {
         }
 
         return accounts.stream()
-                .map(user -> this.getLeaderBoard(user, criteria))
+                .map(user -> this.getLeaderboard(user, criteria, false))
                 .collect(Collectors.toList());
     }
 
-    private LeaderBoardDTO getLeaderBoard(Account user, LeaderBoardCriteria criteria) {
+    public List<LeaderBoardFragment> getLeaderboardFragments(LeaderBoardCriteria criteria) {
+        return repo.findAll(specBuilder.createSpec(criteria), Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
+    private LeaderBoardDTO getLeaderboard(Account user, LeaderBoardCriteria criteria, boolean includeFragmentAsResult) {
         criteria.setCreatedBy(new StringFilter().setEq(user.getNik()));
         List<LeaderBoardFragment> fragments = repo.findAll(specBuilder.createSpec(criteria));
 
@@ -98,6 +102,7 @@ public class LeaderBoardService {
 
         double totalScore = ticketQueryService.sumTotalScore(ticketIds);
 
+        List<LeaderBoardFragment> includeFragments = includeFragmentAsResult ? fragments : null;
         return LeaderBoardDTO.builder()
                 .id(user.getId())
                 .name(user.getName())

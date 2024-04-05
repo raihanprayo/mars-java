@@ -21,10 +21,7 @@ import org.springframework.util.Assert;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -73,10 +70,12 @@ public class ChartServiceImpl implements ChartService {
             for (WorklogSummary wl : wls) {
                 switch (wl.getStatus()) {
                     case PROGRESS:
+                        log.info("Calculate status in progress - {}", wl);
                         groupAgeAndPush(now, wl.getCreatedAt(), category);
                         break;
                     default:
-                        groupAgeAndPush(wl.getUpdatedAt(), wl.getCreatedAt(), category);
+                        log.info("Calculate status closed - {}", wl);
+                        groupAgeAndPush(Objects.requireNonNullElse(wl.getUpdatedAt(), Instant.now()), wl.getCreatedAt(), category);
                         break;
                 }
             }
