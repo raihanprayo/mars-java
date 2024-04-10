@@ -198,7 +198,7 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
     @Override
     public SendMessage answerNikThenAskPhone(BotRegistration registration, String ansNik) {
         boolean existByNik = accountQueryService.existByCriteria(UserCriteria.builder()
-                .nik(new StringFilter().setLike(ansNik.trim()))
+                .nik(new StringFilter().setEq(ansNik.trim()))
                 .build());
 
         if (existByNik) {

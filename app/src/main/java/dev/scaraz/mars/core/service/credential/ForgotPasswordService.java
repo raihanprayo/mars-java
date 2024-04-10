@@ -123,9 +123,9 @@ public class ForgotPasswordService {
     public boolean validate(String token, String otp) {
         try {
             Jws<Claims> jws = JwtUtil.decodeToken(token);
-            Claims body = jws.getBody();
+            Claims body = jws.getPayload();
 
-            if ("ffs".equals(body.getAudience())) {
+            if (body.getAudience().contains("ffs")) {
                 ForgotPassword fp = repo
                         .findById(body.getSubject())
                         .orElseThrow(() -> new BadRequestException("invalid reset request token"));
