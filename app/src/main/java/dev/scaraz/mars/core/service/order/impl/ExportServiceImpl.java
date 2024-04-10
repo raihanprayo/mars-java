@@ -9,12 +9,15 @@ import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentQueryService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.ExportService;
+import dev.scaraz.mars.core.util.ExcelGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
 import org.apache.poi.ss.util.CellUtil;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +43,7 @@ public class ExportServiceImpl implements ExportService {
 
     @Override
     @Transactional(readOnly = true)
-    public File exportToCSV(List<TicketSummary> all) throws IOException {
+    public File exportTicketsToCSV(List<TicketSummary> all) throws IOException {
 //        List<TicketSummary> all = ticketSummaryQueryService.findAll(criteria);
 
         List<String> rows = new ArrayList<>();
@@ -116,81 +119,97 @@ public class ExportServiceImpl implements ExportService {
 
     @Override
     @Transactional(readOnly = true)
-    public File exportToExcel(List<TicketSummary> all) throws IOException {
+    public File exportTicketsToExcel(List<TicketSummary> all) throws IOException {
         File file = storageService.createFile(DirectoryAlias.TMP, "report", UUID.randomUUID() + ".xlsx");
-        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-            XSSFSheet sheet = workbook.createSheet("Tiket");
+        try (ExcelGenerator generator = new ExcelGenerator()) {
+            ExcelGenerator.SheetGenerator sheet = generator.createSheet("Tiket");
 
             Map<String, Account> accounts = accountQueryService.findAll().stream()
                     .collect(Collectors.toMap(Account::getNik, a -> a));
 
-            writeExcelHeader(workbook, sheet);
+            writeExcelHeader(sheet);
             for (int i = 0; i < all.size(); i++)
-                writeExcelValue(workbook, sheet, i + 1, accounts, all.get(i));
-
-            for (int i = 0; i < CSV_HEADER.length; i++)
-                sheet.autoSizeColumn(i);
+                writeExcelValue(sheet, i + 1, accounts, all.get(i));
 
             try (OutputStream os = new FileOutputStream(file)) {
-                workbook.write(os);
+                generator.write(os);
             }
         }
         catch (IOException ex) {
             FileUtils.deleteQuietly(file);
             throw ex;
         }
+
+//        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+//            XSSFSheet sheet = workbook.createSheet("Tiket");
+//
+//            Map<String, Account> accounts = accountQueryService.findAll().stream()
+//                    .collect(Collectors.toMap(Account::getNik, a -> a));
+//
+//            writeExcelHeader(workbook, sheet);
+//            for (int i = 0; i < all.size(); i++)
+//                writeExcelValue(workbook, sheet, i + 1, accounts, all.get(i));
+//
+//            for (int i = 0; i < CSV_HEADER.length; i++)
+//                sheet.autoSizeColumn(i);
+//
+//            try (OutputStream os = new FileOutputStream(file)) {
+//                workbook.write(os);
+//            }
+//        }
+//        catch (IOException ex) {
+//            FileUtils.deleteQuietly(file);
+//            throw ex;
+//        }
         return file;
     }
 
-    private void writeExcelHeader(XSSFWorkbook workbook, XSSFSheet sheet) {
-        XSSFRow row = sheet.createRow(0);
+    private void writeExcelHeader(ExcelGenerator.SheetGenerator sheet) {
+        ExcelGenerator.RowGenerator row = sheet.createRow(0);
 
-        XSSFFont font = workbook.createFont();
+        XSSFFont font = sheet.getGenerator().createFont();
         font.setBold(true);
         font.setFontHeight(16);
 
-        XSSFCellStyle style = workbook.createCellStyle();
+        XSSFCellStyle style = sheet.getGenerator().createCellStyle();
         style.setFont(font);
 
         for (int i = 0; i < CSV_HEADER.length; i++) {
-            XSSFCell cell = row.createCell(i);
-            cell.setCellStyle(style);
-            cell.setCellValue(CSV_HEADER[i]);
+            XSSFCell cell = row.createCell(i, style, CSV_HEADER[i]);
             CellUtil.setVerticalAlignment(cell, VerticalAlignment.CENTER);
         }
     }
 
-    private void writeExcelValue(XSSFWorkbook workbook,
-                                 XSSFSheet sheet,
+    private void writeExcelValue(ExcelGenerator.SheetGenerator sheet,
                                  int rowIndex,
                                  Map<String, Account> accounts,
                                  TicketSummary summary) {
-        XSSFRow row = sheet.createRow(rowIndex);
+        ExcelGenerator.RowGenerator row = sheet.createRow(rowIndex);
 
-        XSSFFont font = workbook.createFont();
+        XSSFFont font = sheet.getGenerator().createFont();
         font.setFontHeight(14);
 
-        XSSFCellStyle style = workbook.createCellStyle();
+        XSSFCellStyle style = sheet.getGenerator().createCellStyle();
         style.setFont(font);
 
 
         Instant currentTimestamp = Instant.now();
-        createCell(row, 0, style, summary.getNo());
-        createCell(row, 1, style, summary.getStatus());
-        createCell(row, 2, style, summary.getWitel());
-        createCell(row, 3, style, summary.getSto());
-        createCell(row, 4, style, summary.getIncidentNo());
-        createCell(row, 5, style, summary.getServiceNo());
-        createCell(row, 6, style, summary.getSource());
-        createCell(row, 7, style, summary.isGaul());
-        createCell(row, 8, style, Duration.ofMillis(
+        row.createCell(0, style, summary.getNo());
+        row.createCell(1, style, summary.getStatus());
+        row.createCell(2, style, summary.getWitel());
+        row.createCell(3, style, summary.getSto());
+        row.createCell(4, style, summary.getIncidentNo());
+        row.createCell(5, style, summary.getServiceNo());
+        row.createCell(6, style, summary.getSource());
+        row.createCell(7, style, summary.isGaul());
+        row.createCell(8, style, Duration.ofMillis(
                 Optional.ofNullable(summary.getClosedAt())
                         .map(Instant::toEpochMilli)
                         .orElseGet(currentTimestamp::toEpochMilli) - currentTimestamp.toEpochMilli()
         )); // TTR
-        createCell(row, 9, style, summary.getSenderName());
-        createCell(row, 10, style, summary.getIssue().getName());
-        createCell(row, 11, style, summary.getIssue().getProduct());
+        row.createCell(9, style, summary.getSenderName());
+        row.createCell(10, style, summary.getIssue().getName());
+        row.createCell(11, style, summary.getIssue().getProduct());
 
         // 12 & 13
         agentQueryService.getLastWorkspaceOptional(summary.getId())
@@ -198,58 +217,27 @@ public class ExportServiceImpl implements ExportService {
                 .ifPresentOrElse(
                         wl -> {
                             if (wl.getSolution() == null)
-                                createEmptyCell(row, 12, style);
+                                row.createEmptyCell(12, style);
                             else
-                                createCell(row, 12, style, wl.getSolution().getName());
+                                row.createCell(12, style, wl.getSolution().getName());
 
-                            createCell(row, 13, style, wl.getMessage());
+                            row.createCell(13, style, wl.getMessage());
                         },
                         () -> {
-                            createEmptyCell(row, 12, style);
-                            createEmptyCell(row, 13, style);
+                            row.createEmptyCell(12, style);
+                            row.createEmptyCell(13, style);
                         }
                 );
 
-        createCell(row, 14, style, Optional.ofNullable(accounts.get(summary.getCreatedBy()))
+        row.createCell(14, style, Optional.ofNullable(accounts.get(summary.getCreatedBy()))
                 .map(Account::getName)
                 .orElse("-"));
-        createCell(row, 15, style, summary.getCreatedAt());
+        row.createCell(15, style, summary.getCreatedAt());
 
-        createCell(row, 16, style, Optional.ofNullable(accounts.get(summary.getUpdatedBy()))
+        row.createCell(16, style, Optional.ofNullable(accounts.get(summary.getUpdatedBy()))
                 .map(Account::getName)
                 .orElse("-"));
-        createCell(row, 17, style, summary.getUpdatedAt());
-    }
-
-    private void createCell(XSSFRow row, int colIndex, XSSFCellStyle style, String value) {
-        XSSFCell cell = row.createCell(colIndex);
-        cell.setCellStyle(style);
-        cell.setCellValue(value);
-    }
-
-    private void createCell(XSSFRow row, int colIndex, XSSFCellStyle style, Enum<?> value) {
-        createCell(row, colIndex, style, value.name());
-    }
-
-    private void createCell(XSSFRow row, int colIndex, XSSFCellStyle style, Instant value) {
-        if (value == null)
-            createEmptyCell(row, colIndex, style);
-        else
-            createCell(row, colIndex, style, value.atZone(ZONE_LOCAL).format(DATE_TIME_FORMAT));
-    }
-
-    private void createCell(XSSFRow row, int colIndex, XSSFCellStyle style, boolean value) {
-        createCell(row, colIndex, style, value ? "Y" : "N");
-    }
-
-    private void createCell(XSSFRow row, int colIndex, XSSFCellStyle style, Duration value) {
-        createCell(row, colIndex, style, Util.durationDescribe(value));
-    }
-
-    private void createEmptyCell(XSSFRow row, int colIndex, XSSFCellStyle style) {
-        XSSFCell cell = row.createCell(colIndex);
-        cell.setCellStyle(style);
-        cell.setCellValue((String) null);
+        row.createCell(17, style, summary.getUpdatedAt());
     }
 
     private static final String[] CSV_HEADER = {

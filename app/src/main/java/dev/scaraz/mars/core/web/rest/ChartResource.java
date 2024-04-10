@@ -61,7 +61,7 @@ public class ChartResource {
     @GetMapping("/ticket/report/download")
     public ResponseEntity<?> getTicketReportsDownload(TicketSummaryCriteria criteria) throws IOException {
         List<TicketSummary> all = ticketSummaryQueryService.findAll(criteria);
-        File file = exportService.exportToExcel(all);
+        File file = exportService.exportTicketsToExcel(all);
         return ResourceUtil.downloadAndDelete(file);
     }
 

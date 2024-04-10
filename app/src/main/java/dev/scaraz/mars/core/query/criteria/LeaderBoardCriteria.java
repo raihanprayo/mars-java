@@ -12,6 +12,7 @@ public class LeaderBoardCriteria extends AuditableCriteria {
     // Leaderboard Criteria
     private StringFilter ticketId;
     private LongFilter workspaceId;
+    private StringFilter agentId;
 
     private IssueCriteria issue;
     private SolutionCriteria solution;
@@ -49,6 +50,11 @@ public class LeaderBoardCriteria extends AuditableCriteria {
         return this;
     }
 
+    public LeaderBoardCriteria setAgentId(StringFilter agentId) {
+        this.agentId = agentId;
+        return this;
+    }
+
     public LeaderBoardCriteria setIssue(IssueCriteria issue) {
         this.issue = issue;
         return this;
@@ -63,5 +69,7 @@ public class LeaderBoardCriteria extends AuditableCriteria {
         this.lastTicketLogAt = lastTicketLogAt;
         return this;
     }
+
+
 
 }

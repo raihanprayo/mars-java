@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ExportService {
 
-    File exportToCSV(List<TicketSummary> all) throws IOException;
+    File exportTicketsToCSV(List<TicketSummary> all) throws IOException;
 
-    File exportToExcel(List<TicketSummary> all) throws IOException;
+    File exportTicketsToExcel(List<TicketSummary> all) throws IOException;
 }

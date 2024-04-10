@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.web.rest;
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
 import dev.scaraz.mars.common.tools.filter.Filter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.utils.ResourceUtil;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
 import dev.scaraz.mars.core.mapper.LeaderboardMapper;
 import dev.scaraz.mars.core.query.criteria.LeaderBoardCriteria;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -82,6 +85,13 @@ public class LeaderboardResource {
                     .collect(Collectors.toList());
         }
         return new ResponseEntity<>(page, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/download")
+    public ResponseEntity<?> downloadRawLeadeboard(LeaderBoardCriteria criteria) throws IOException {
+        File file = leaderBoardService.exportToExcel(criteria);
+        return ResourceUtil.download(file, "mars-leaderboard.xlsx");
     }
 
     @GetMapping("/detail/{nik}")

@@ -18,6 +18,7 @@ public class LeaderBoardSpecBuilder extends AuditableSpec<LeaderBoardFragment, L
         SpecChain<LeaderBoardFragment> chainer = chain()
                 .pick(LeaderBoardFragment_.ticketId, criteria.getTicketId())
                 .pick(LeaderBoardFragment_.workspaceId, criteria.getWorkspaceId())
+                .pick(LeaderBoardFragment_.agentId, criteria.getAgentId())
                 .pick(LeaderBoardFragment_.lastTicketLogAt, criteria.getLastTicketLogAt())
                 .extend(s -> auditSpec(s, criteria));
 
