@@ -16,12 +16,14 @@ import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.repository.db.order.TicketConfirmRepo;
 import dev.scaraz.mars.core.service.order.ConfirmService;
+import dev.scaraz.mars.core.service.order.TicketBotInstantService;
 import dev.scaraz.mars.core.service.order.TicketBotService;
 import dev.scaraz.mars.core.service.order.TicketFormService;
 import dev.scaraz.mars.core.util.annotation.TgAuth;
 import dev.scaraz.mars.telegram.annotation.TelegramBot;
 import dev.scaraz.mars.telegram.annotation.TelegramCallbackQuery;
 import dev.scaraz.mars.telegram.annotation.TelegramCommand;
+import dev.scaraz.mars.telegram.annotation.context.CallbackData;
 import dev.scaraz.mars.telegram.annotation.context.Text;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +33,11 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Optional;
+
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,11 +46,11 @@ import java.util.Optional;
 public class TicketListener {
 
     private final TicketBotService ticketBotService;
+    private final TicketBotInstantService ticketBotInstantService;
     private final TicketConfirmRepo ticketConfirmRepo;
 
     private final TicketFormService ticketFormService;
     private final TicketQueryService ticketQueryService;
-
 
     private final ConfirmService confirmService;
 
@@ -147,7 +152,18 @@ public class TicketListener {
         }
     }
 
-//    @TelegramCommand("/confirm")
+    @TelegramCallbackQuery(REPORT_ISSUE + "*")
+    public void onRegistrationIssuePicked(CallbackQuery callbackQuery,
+                                          @CallbackData String data
+    ) throws TelegramApiException {
+        Integer messageId = callbackQuery.getMessage().getMessageId();
+        if (!confirmService.existsById(messageId)) return;
+
+        long issueId = Long.parseLong(data.substring(data.lastIndexOf(":") + 1));
+        ticketBotInstantService.instantForm_answerIssue(messageId, issueId);
+    }
+
+    //    @TelegramCommand("/confirm")
     public void resume(@TgAuth Account account, @Text String text) {
         if (StringUtils.isNoneBlank(text)) {
             log.debug("Confirm Pending: {}", text);

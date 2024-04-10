@@ -40,8 +40,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.Optional;
 
-import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REPORT_ISSUE;
-
 @Slf4j
 @RequiredArgsConstructor
 
@@ -148,15 +146,10 @@ public class AppListener {
             CallbackQuery cq,
             @CallbackData String data,
             @TgAuth Account marsAccount
-    ) throws TelegramApiException {
+    ) {
         log.info("{}", gson.toJson(cq));
 
-        int messageId = cq.getMessage().getMessageId();
-        if (data.startsWith(REPORT_ISSUE) && confirmService.existsById(messageId)) {
-            long issueId = Long.parseLong(data.substring(data.lastIndexOf(":") + 1));
-            ticketBotInstantService.instantForm_answerIssue(messageId, issueId);
-        }
-        else if (data.startsWith("WITEL_") && registrationRepo.existsById(user.getId())) {
+        if (data.startsWith("WITEL_") && registrationRepo.existsById(user.getId())) {
             Optional<BotRegistration> registrationOpt = registrationRepo.findById(user.getId());
             if (registrationOpt.isPresent()) {
                 Witel witel = Witel.fromCallbackData(data);

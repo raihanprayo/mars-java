@@ -10,6 +10,7 @@ import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Map;
@@ -22,6 +23,8 @@ import static dev.scaraz.mars.telegram.util.TelegramUtil.KEY_LENGTH_COMPARATOR;
 @RequiredArgsConstructor
 @Component
 public class MessageProcessor extends TelegramProcessor {
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher("_");
 
     @Override
     public HandlerType type() {
@@ -83,7 +86,8 @@ public class MessageProcessor extends TelegramProcessor {
         if (tgCommand.isCommand()) {
             String inputCmd = tgCommand.getCommand().get();
             for (String cmd : handlers.getCommandList().keySet()) {
-                if (inputCmd.equalsIgnoreCase(cmd)) return Optional.of(handlers.getCommandList().get(cmd));
+                if (pathMatcher.match(cmd, inputCmd)) return Optional.of(handlers.getCommandList().get(cmd));
+//                if (inputCmd.equalsIgnoreCase(cmd)) return Optional.of(handlers.getCommandList().get(cmd));
             }
         }
         return Optional.empty();

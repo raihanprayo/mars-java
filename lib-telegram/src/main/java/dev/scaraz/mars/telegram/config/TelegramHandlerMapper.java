@@ -5,6 +5,7 @@ import dev.scaraz.mars.telegram.model.TelegramBotCommand;
 import dev.scaraz.mars.telegram.model.TelegramHandler;
 import dev.scaraz.mars.telegram.model.TelegramHandlers;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
+import jakarta.annotation.Priority;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
@@ -14,7 +15,6 @@ import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.Priority;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -164,12 +164,13 @@ public class TelegramHandlerMapper implements BeanPostProcessor {
         );
 
         TelegramCallbackQuery cbq = AnnotatedElementUtils.findMergedAnnotation(method, TelegramCallbackQuery.class);
+        if (cbq == null) return;
 
         if (cbq.callbackData().length == 0)
             addHandlers(userId, t -> t.setDefaultCallbackQueryHandler(new TelegramHandler(bean, method, null)));
         else {
             for (String data : cbq.callbackData())
-                addHandlers(userId, t -> t.getCallbackQueryList().put(data, new TelegramHandler(bean, method, null)));
+                addHandlers(userId, t -> t.addCallbackQueryHandler(data, new TelegramHandler(bean, method, null)));
         }
     }
 
@@ -178,15 +179,11 @@ public class TelegramHandlerMapper implements BeanPostProcessor {
         if (command != null) {
             log.debug("Bind TelegramBot command controller: {}:{} for {}", bean.getClass(), method.getName(), userId);
 
+            log.debug("Add {} command(s) - {}", command.commands().length, command.commands());
             for (String cmd : command.commands()) {
                 TelegramHandler telegramHandler = new TelegramHandler(bean, method, command);
-//                if (cmd.endsWith(patternCommandSuffix)) {
-//                    createOrGet(userId).getPatternCommandList()
-//                            .put(cmd.substring(0, cmd.length() - patternCommandSuffix.length()), telegramHandler);
-//                }
-//                else {
-//                }
-                addHandlers(userId, t -> t.getCommandList().put(cmd, telegramHandler));
+
+                addHandlers(userId, t -> t.addCommandHandler(cmd, telegramHandler));
             }
         }
     }

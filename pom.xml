@@ -19,6 +19,7 @@
         <module>lib-telegram</module>
         <module>lib-security</module>
         <module>app</module>
+        <module>app-master</module>
     </modules>
 
     <properties>

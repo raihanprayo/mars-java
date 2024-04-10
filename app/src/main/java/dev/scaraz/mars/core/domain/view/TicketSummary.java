@@ -5,13 +5,17 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.converter.InstantDeserializer;
 import dev.scaraz.mars.common.tools.converter.InstantSerializer;
-import dev.scaraz.mars.common.tools.enums.*;
+import dev.scaraz.mars.common.tools.enums.AgStatus;
+import dev.scaraz.mars.common.tools.enums.TcSource;
+import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.core.domain.order.TcIssue;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.Instant;
 
 @Getter
@@ -63,7 +67,7 @@ public class TicketSummary extends AuditableEntity {
     @Column(name = "gaul")
     private int gaulCount = 0;
 
-//    @ManyToOne
+    //    @ManyToOne
 //    @JoinColumn(name = "ref_issue_id")
 //    private Issue issue;
     @AttributeOverride(name = "product", column = @Column(name = "product"))
@@ -84,6 +88,9 @@ public class TicketSummary extends AuditableEntity {
 
     @Column(name = "wip_by")
     private String wipBy;
+
+    @Column
+    private Duration age;
 
     @Column(name = "closed_at")
     @JsonDeserialize(using = InstantDeserializer.class)

@@ -32,6 +32,7 @@ public abstract class AppConstants {
 
         String REG_NEW_AGREE = "REG:USER:NEW:" + CONFIRM_AGREE;
         String REG_NEW_DISAGREE = "REG:USER:NEW:" + CONFIRM_DISAGREE;
+        String REG_USER_WITEL_PREFIX = "REG:USER:WITEL:";
 
 
         String REPORT_ISSUE = "REP:ISSUE:";

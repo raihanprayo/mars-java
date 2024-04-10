@@ -20,11 +20,7 @@ public enum Witel {
     JAKUT,
     TANGERANG, TSEL;
 
-    public String callbackData() {
-        return "WITEL_" + name();
-    }
-
-    public static List<List<InlineKeyboardButton>> generateKeyboardButtons() {
+    public static List<List<InlineKeyboardButton>> generateKeyboardButtons(String prefix) {
         Witel[] values = Witel.values();
         List<List<InlineKeyboardButton>> keyboards = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
@@ -56,7 +52,7 @@ public enum Witel {
 
             row.add(InlineKeyboardButton.builder()
                     .text(text)
-                    .callbackData(witel.callbackData())
+                    .callbackData(prefix + witel)
                     .build());
         }
 

@@ -9,6 +9,7 @@ import dev.scaraz.mars.telegram.util.enums.HandlerType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import java.util.Optional;
@@ -17,6 +18,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Component
 public class CallbackQueryProcessor extends TelegramProcessor {
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher(":");
+
     @Override
     public HandlerType type() {
         return HandlerType.CALLBACK_QUERY;
@@ -42,8 +46,11 @@ public class CallbackQueryProcessor extends TelegramProcessor {
 
     private TelegramHandler findSpecificHandler(TelegramHandlers handlers, Update update) {
         String data = update.getCallbackQuery().getData();
-        return Optional.ofNullable(handlers.getCallbackQueryList().get(data))
-                .orElseGet(handlers::getDefaultCallbackQueryHandler);
+        for (String path : handlers.getCallbackQueryList().keySet()) {
+            if (pathMatcher.match(path, data))
+                return handlers.getCallbackQueryList().get(path);
+        }
+        return handlers.getDefaultCallbackQueryHandler();
     }
 
 }

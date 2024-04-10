@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REG_USER_WITEL_PREFIX;
+
 @Slf4j
 @RequiredArgsConstructor
 
@@ -238,7 +240,7 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
                 .parseMode(ParseMode.MARKDOWNV2)
                 .text(TelegramUtil.esc("Silahkan sebutkan *Witel* anda"))
                 .replyMarkup(InlineKeyboardMarkup.builder()
-                        .keyboard(Witel.generateKeyboardButtons())
+                        .keyboard(Witel.generateKeyboardButtons(REG_USER_WITEL_PREFIX))
                         .build())
                 .build();
     }

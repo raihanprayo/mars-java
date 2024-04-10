@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.web.telegram;
 
 import dev.scaraz.mars.common.tools.Translator;
+import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.Account;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 import static dev.scaraz.mars.common.tools.Translator.LANG_EN;
 import static dev.scaraz.mars.common.tools.Translator.LANG_ID;
+import static dev.scaraz.mars.common.utils.AppConstants.Telegram.REG_USER_WITEL_PREFIX;
 import static dev.scaraz.mars.core.service.NotifierService.UNREGISTERED_USER;
 import static dev.scaraz.mars.core.service.NotifierService.WAITING_APPROVAL;
 
@@ -146,6 +148,17 @@ public class UserListener {
                 registration.get(),
                 AppConstants.Telegram.REG_NEW_AGREE.equals(data)
         );
+    }
+
+    @TelegramCallbackQuery(REG_USER_WITEL_PREFIX + "*")
+    public SendMessage onRegistrationWitelPicked(User user, @CallbackData String data) {
+        if (!registrationRepo.existsById(user.getId())) return null;
+
+        Optional<BotRegistration> regOpt = registrationRepo.findById(user.getId());
+        if (regOpt.isEmpty()) return null;
+
+        Witel witel = Witel.valueOf(data.substring(REG_USER_WITEL_PREFIX.length()).toUpperCase());
+        return accountRegistrationBotService.answerWitelThenAskSubregion(regOpt.get(), witel);
     }
 
     private boolean checkSettingFormat(String text) {
