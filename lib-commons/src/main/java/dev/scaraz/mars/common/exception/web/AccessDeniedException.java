@@ -1,6 +1,5 @@
 package dev.scaraz.mars.common.exception.web;
 
-import dev.scaraz.mars.common.tools.Translator;
 import org.zalando.problem.Status;
 
 public class AccessDeniedException extends MarsException {

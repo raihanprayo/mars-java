@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -91,7 +93,9 @@ public class LeaderboardResource {
     @GetMapping("/download")
     public ResponseEntity<?> downloadRawLeadeboard(LeaderBoardCriteria criteria) throws IOException {
         File file = leaderBoardService.exportToExcel(criteria);
-        return ResourceUtil.download(file, "mars-leaderboard.xlsx");
+        DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
+        String ldt = "leaderboard_%s.xlsx".formatted(LocalDateTime.now().format(formatDate));
+        return ResourceUtil.download(file, ldt);
     }
 
     @GetMapping("/detail/{nik}")

@@ -193,7 +193,7 @@ public class ExportServiceImpl implements ExportService {
         style.setFont(font);
 
 
-        Instant currentTimestamp = Instant.now();
+//        Instant currentTimestamp = Instant.now();
         row.createCell(0, style, summary.getNo());
         row.createCell(1, style, summary.getStatus());
         row.createCell(2, style, summary.getWitel());
@@ -202,14 +202,12 @@ public class ExportServiceImpl implements ExportService {
         row.createCell(5, style, summary.getServiceNo());
         row.createCell(6, style, summary.getSource());
         row.createCell(7, style, summary.isGaul());
-        row.createCell(8, style, Duration.ofMillis(
-                Optional.ofNullable(summary.getClosedAt())
-                        .map(Instant::toEpochMilli)
-                        .orElseGet(currentTimestamp::toEpochMilli) - currentTimestamp.toEpochMilli()
-        )); // TTR
-        row.createCell(9, style, summary.getSenderName());
-        row.createCell(10, style, summary.getIssue().getName());
-        row.createCell(11, style, summary.getIssue().getProduct());
+        row.createCell(8, style, summary.getAge()); // TTR
+        row.createCell(9, style, summary.getAge().toMillis()); // TTR (ms)
+
+        row.createCell(10, style, summary.getSenderName());
+        row.createCell(11, style, summary.getIssue().getName());
+        row.createCell(12, style, summary.getIssue().getProduct());
 
         // 12 & 13
         agentQueryService.getLastWorkspaceOptional(summary.getId())
@@ -217,27 +215,27 @@ public class ExportServiceImpl implements ExportService {
                 .ifPresentOrElse(
                         wl -> {
                             if (wl.getSolution() == null)
-                                row.createEmptyCell(12, style);
+                                row.createEmptyCell(13, style);
                             else
-                                row.createCell(12, style, wl.getSolution().getName());
+                                row.createCell(13, style, wl.getSolution().getName());
 
-                            row.createCell(13, style, wl.getMessage());
+                            row.createCell(14, style, wl.getMessage());
                         },
                         () -> {
-                            row.createEmptyCell(12, style);
                             row.createEmptyCell(13, style);
+                            row.createEmptyCell(14, style);
                         }
                 );
 
-        row.createCell(14, style, Optional.ofNullable(accounts.get(summary.getCreatedBy()))
+        row.createCell(15, style, Optional.ofNullable(accounts.get(summary.getCreatedBy()))
                 .map(Account::getName)
                 .orElse("-"));
-        row.createCell(15, style, summary.getCreatedAt());
+        row.createCell(16, style, summary.getCreatedAt());
 
-        row.createCell(16, style, Optional.ofNullable(accounts.get(summary.getUpdatedBy()))
+        row.createCell(17, style, Optional.ofNullable(accounts.get(summary.getUpdatedBy()))
                 .map(Account::getName)
                 .orElse("-"));
-        row.createCell(17, style, summary.getUpdatedAt());
+        row.createCell(18, style, summary.getUpdatedAt());
     }
 
     private static final String[] CSV_HEADER = {
@@ -250,6 +248,7 @@ public class ExportServiceImpl implements ExportService {
             "Source",
             "Gaul",
             "TTR",
+            "TTR (ms)",
             "Requestor",
             "Isu/Masalah",
             "Produk",

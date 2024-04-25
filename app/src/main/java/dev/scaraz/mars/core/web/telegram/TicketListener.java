@@ -154,7 +154,8 @@ public class TicketListener {
 
     @TelegramCallbackQuery(REPORT_ISSUE + "*")
     public void onRegistrationIssuePicked(CallbackQuery callbackQuery,
-                                          @CallbackData String data
+                                          @CallbackData String data,
+                                          @TgAuth Account account
     ) throws TelegramApiException {
         Integer messageId = callbackQuery.getMessage().getMessageId();
         if (!confirmService.existsById(messageId)) return;

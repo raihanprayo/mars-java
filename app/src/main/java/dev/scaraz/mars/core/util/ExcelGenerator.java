@@ -195,7 +195,7 @@ public class ExcelGenerator implements AutoCloseable {
 
         public XSSFCell createCell(int colIndex, XSSFCellStyle style, Duration value) {
             if (value == null) return createEmptyCell(colIndex);
-            return createCell(colIndex, style, Util.durationDescribe(value));
+            return createCell(colIndex, style, Util.durationDescribe3Segment(value));
         }
 
 

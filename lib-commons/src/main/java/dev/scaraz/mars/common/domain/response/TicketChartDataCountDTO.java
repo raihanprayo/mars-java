@@ -8,4 +8,5 @@ public class TicketChartDataCountDTO {
     private long internet;
     private long iptv;
     private long voice;
+    private long others;
 }

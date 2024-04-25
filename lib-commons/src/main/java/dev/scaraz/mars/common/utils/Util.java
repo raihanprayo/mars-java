@@ -75,7 +75,7 @@ public class Util {
         String[] units = {"date.day", "date.hour", "date.minute", "date.second"};
         String[] converted = new String[units.length];
 
-        BiFunction<String, Integer, String> formatter = (s,i) ->
+        BiFunction<String, Integer, String> formatter = (s, i) ->
                 converted[i] = String.format("%s %s",
                         (long) Double.parseDouble(s.replaceAll("[a-zA-Z]", "")),
                         Translator.tr(units[i])
@@ -99,6 +99,38 @@ public class Util {
                 .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining(" "));
     }
+
+    public static String durationDescribe3Segment(Duration duration) {
+
+        String text = duration.toString();
+        Matcher matcher = DURATION_PATTERN.matcher(text);
+
+        String[] converted = new String[]{"00", "00", "00"};
+
+        BiFunction<String, Integer, String> formatter = (s, i) ->
+                converted[i] = String.format("%02d",
+                        (long) Double.parseDouble(s.replaceAll("[a-zA-Z]", ""))
+                );
+
+        for (String s : text.replaceAll("[PTpt]", " ").trim().replaceAll("([HMShms])", "$1 ").trim().split(" ")) {
+            if (StringUtils.isBlank(s)) continue;
+
+            s = s.toUpperCase();
+//            if (s.endsWith("D"))
+//                formatter.apply(s, 0);
+            if (s.endsWith("H"))
+                formatter.apply(s, 0);
+            else if (s.endsWith("M"))
+                formatter.apply(s, 1);
+            else if (s.endsWith("S"))
+                formatter.apply(s, 2);
+        }
+
+        return Arrays.stream(converted)
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.joining(":"));
+    }
+
 
     private static class DurationParser {
 

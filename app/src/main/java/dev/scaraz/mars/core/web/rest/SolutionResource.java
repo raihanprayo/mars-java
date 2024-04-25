@@ -46,6 +46,8 @@ public class SolutionResource {
                     .name(solution.getName())
                     .description(solution.getDescription())
                     .product(solution.getProduct())
+                    .showable(true)
+                    .deleteable(true)
                     .build();
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(service.save(ns));

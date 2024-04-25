@@ -13,7 +13,9 @@ import org.hibernate.annotations.ParamDef;
 import org.hibernate.annotations.SQLDelete;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -26,7 +28,7 @@ import java.util.Set;
 @Table(name = "t_ticket")
 @SQLDelete(sql = "update t_ticket set deleted = true, deleted_at = current_timestamp where id=?")
 @FilterDef(name = "ticket-delete", parameters = @ParamDef(name = "isDeleted", type = Boolean.class))
-@Filter(name="ticket-delete", condition = "deleted = :isDeleted")
+@Filter(name = "ticket-delete", condition = "deleted = :isDeleted")
 public class Ticket extends AuditableEntity {
 
     @Id
@@ -88,6 +90,12 @@ public class Ticket extends AuditableEntity {
     @OrderBy("id asc")
     @OneToMany(mappedBy = "ticket", fetch = FetchType.EAGER)
     private Set<LogTicket> logs = new HashSet<>();
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OrderBy("id ASC")
+    @OneToMany(mappedBy = "ticket", fetch = FetchType.EAGER)
+    private List<AgentWorkspace> workspaces = new ArrayList<>();
 
     @Column(name = "closed_at")
     private Instant closedAt;

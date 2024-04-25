@@ -149,13 +149,13 @@ public class AppListener {
     ) {
         log.info("{}", gson.toJson(cq));
 
-        if (data.startsWith("WITEL_") && registrationRepo.existsById(user.getId())) {
-            Optional<BotRegistration> registrationOpt = registrationRepo.findById(user.getId());
-            if (registrationOpt.isPresent()) {
-                Witel witel = Witel.fromCallbackData(data);
-                return accountRegistrationBotService.answerWitelThenAskSubregion(registrationOpt.get(), witel);
-            }
-        }
+//        if (data.startsWith("WITEL_") && registrationRepo.existsById(user.getId())) {
+//            Optional<BotRegistration> registrationOpt = registrationRepo.findById(user.getId());
+//            if (registrationOpt.isPresent()) {
+//                Witel witel = Witel.fromCallbackData(data);
+//                return accountRegistrationBotService.answerWitelThenAskSubregion(registrationOpt.get(), witel);
+//            }
+//        }
         return null;
     }
 

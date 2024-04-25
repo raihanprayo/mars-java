@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.query.criteria;
 import dev.scaraz.mars.common.tools.AuditableCriteria;
 import dev.scaraz.mars.common.tools.filter.type.*;
 import lombok.Getter;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 @Getter
 public class TicketSummaryCriteria extends AuditableCriteria {
@@ -189,5 +190,33 @@ public class TicketSummaryCriteria extends AuditableCriteria {
     @Override
     public TicketSummaryCriteria setUpdatedAt(InstantFilter updatedAt) {
         return (TicketSummaryCriteria) super.setUpdatedAt(updatedAt);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("no", no)
+                .append("witel", witel)
+                .append("sto", sto)
+                .append("incidentNo", incidentNo)
+                .append("serviceNo", serviceNo)
+                .append("status", status)
+                .append("source", source)
+                .append("gaul", gaul)
+                .append("gaulCount", gaulCount)
+                .append("senderName", senderName)
+                .append("senderId", senderId)
+                .append("agentCount", agentCount)
+                .append("product", product)
+                .append("wip", wip)
+                .append("wipBy", wipBy)
+                .append("closedAt", closedAt)
+                .append("deleted", deleted)
+                .append("deletedAt", deletedAt)
+                .append("issue", issue)
+                .append("workspace", workspace)
+                .append(super.toString())
+                .toString();
     }
 }
