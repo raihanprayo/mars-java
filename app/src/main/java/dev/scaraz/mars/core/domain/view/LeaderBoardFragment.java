@@ -29,8 +29,8 @@ public class  LeaderBoardFragment extends AuditableEntity {
     @Column(name = "workspace_id")
     private long workspaceId;
 
-    @Column(name = "agent_id")
-    private String agentId;
+    @Column(name = "user_id")
+    private String userId;
 
     @Column(name = "take_status")
     @Enumerated(EnumType.STRING)

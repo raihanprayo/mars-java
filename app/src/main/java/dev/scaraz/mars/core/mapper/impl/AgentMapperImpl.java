@@ -43,7 +43,7 @@ public class AgentMapperImpl implements AgentMapper {
         return AgentWorkspaceDTO.builder()
                 .id(o.getId())
                 .status(o.getStatus())
-                .agent(toDTO(o.getAgent()))
+//                .agent(toDTO(o.getAgent()))
                 .createdAt(o.getCreatedAt())
                 .updatedAt(o.getUpdatedAt())
                 .build();

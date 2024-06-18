@@ -53,7 +53,9 @@ public class PendingFlowService {
     private final LogTicketService logTicketService;
 
     private final AgentService agentService;
-    private final AgentQueryService agentQueryService;
+//    private final AgentQueryService agentQueryService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
+    private final AgentWorklogQueryService agentWorklogQueryService;
 
     private final AccountQueryService accountQueryService;
 
@@ -78,8 +80,8 @@ public class PendingFlowService {
             throw new BadRequestException("Harap masukkan actsol sebelum melakukan PENDING tiket");
 
         final TcStatus prevStatus = ticket.getStatus();
-        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
-        Agent agent = workspace.getAgent();
+        AgentWorkspace workspace = agentWorkspaceQueryService.getLastWorkspace(ticket.getId());
+        Account agent = workspace.getAccount();
 
         workspace.getLastWorklog().ifPresent(worklog -> {
             worklog.setCloseStatus(TcStatus.PENDING);
@@ -114,7 +116,7 @@ public class PendingFlowService {
                 .ticket(ticket)
                 .prev(prevStatus)
                 .curr(ticket.getStatus())
-                .agentId(agent.getId())
+                .userId(agent.getId())
                 .message(LogTicketService.LOG_PENDING_CONFIRMATION)
                 .build());
 
@@ -134,7 +136,7 @@ public class PendingFlowService {
                 throw BadRequestException.args("Invalid requestor owner");
         }
 
-        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
+        AgentWorkspace workspace = agentWorkspaceQueryService.getLastWorkspace(ticket.getId());
 
         TcStatus prevStatus = ticket.getStatus();
         if (doPending) {
@@ -246,8 +248,8 @@ public class PendingFlowService {
         Ticket ticket = queryService.findByIdOrNo(ticketNo);
         TcStatus prevStatus = ticket.getStatus();
 
-        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
-        Agent agent = workspace.getAgent();
+        AgentWorkspace workspace = agentWorkspaceQueryService.getLastWorkspace(ticket.getId());
+        Account agent = workspace.getAccount();
 
         log.info("CONFIRM POST PENDING: {}", ticketNo);
         // Requestor menjawab belum
@@ -273,7 +275,7 @@ public class PendingFlowService {
                     .build());
 
             notifierService.safeSend(
-                    agent.getTelegramId(),
+                    agent.getTg().getId(),
                     "tg.ticket.confirm.reopen.agent",
                     ticket.getNo(),
                     reopenDesc);
@@ -291,7 +293,7 @@ public class PendingFlowService {
             if (TelegramContextHolder.hasContext()) {
                 logMessage = LogTicketService.LOG_CONFIRMED_CLOSE;
 
-                Optional<Account> userOpt = accountQueryService.findByIdOpt(agent.getUserId());
+                Optional<Account> userOpt = accountQueryService.findByIdOpt(agent.getId());
                 notifierService.sendRaw(ticket.getSenderId(),
                         "Tiket: *" + ticketNo + "*: telah selesai dikerjakan",
                         "",
@@ -302,7 +304,7 @@ public class PendingFlowService {
                 );
 
                 if (userOpt.isPresent()) {
-                    notifierService.safeSend(agent.getTelegramId(),
+                    notifierService.safeSend(agent.getTg().getId(),
                             "tg.ticket.confirm.closed.agent",
                             ticket.getNo(),
                             Translator.tr("app.done.watermark"));
@@ -333,8 +335,8 @@ public class PendingFlowService {
         Ticket ticket = queryService.findByIdOrNo(ticketNo);
         TcStatus prevStatus = ticket.getStatus();
 
-        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
-        Agent agent = workspace.getAgent();
+        AgentWorkspace workspace = agentWorkspaceQueryService.getLastWorkspace(ticket.getId());
+        Account agent = workspace.getAccount();
 
         log.info("CONFIRM POST PENDING: {}", ticketNo);
         // Requestor menjawab belum
@@ -360,7 +362,7 @@ public class PendingFlowService {
                     .build());
 
             notifierService.safeSend(
-                    agent.getTelegramId(),
+                    agent.getTg().getId(),
                     "tg.ticket.confirm.reopen.agent",
                     ticket.getNo(),
                     reopenDesc);
@@ -384,7 +386,7 @@ public class PendingFlowService {
                         .reopenMessage("(system) " + logMessage)
                         .build());
 
-                Optional<Account> userOpt = accountQueryService.findByIdOpt(agent.getUserId());
+                Optional<Account> userOpt = accountQueryService.findByIdOpt(agent.getId());
                 notifierService.sendRaw(ticket.getSenderId(),
                         "Tiket: *" + ticketNo + "*: ",
                         "",
@@ -394,7 +396,7 @@ public class PendingFlowService {
 
                 if (userOpt.isPresent()) {
                     notifierService.safeSend(
-                            agent.getTelegramId(),
+                            agent.getTg().getId(),
                             "tg.ticket.confirm.reopen-pending.agent",
                             ticket.getNo()
                     );

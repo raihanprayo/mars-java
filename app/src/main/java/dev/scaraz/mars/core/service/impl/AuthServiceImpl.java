@@ -20,7 +20,7 @@ import dev.scaraz.mars.core.domain.cache.ForgotPassword;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.AgentWorklog;
 import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.AgentQueryService;
+import dev.scaraz.mars.core.query.AgentWorklogQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 import dev.scaraz.mars.core.service.AuthService;
@@ -72,7 +72,7 @@ public class AuthServiceImpl implements AuthService {
     private final AccountQueryService accountQueryService;
     private final AccountApprovalService accountApprovalService;
 
-    private final AgentQueryService agentQueryService;
+    private final AgentWorklogQueryService agentWorklogQueryService;
     private final DispatchFlowService dispatchFlowService;
 
     private final MarsPasswordEncoder passwordEncoder;
@@ -217,7 +217,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void logout(Account account, boolean confirmed) {
-        List<AgentWorklog> worklogs = agentQueryService.findAllWorklogs(new AgentWorklogCriteria()
+        List<AgentWorklog> worklogs = agentWorklogQueryService.findAll(new AgentWorklogCriteria()
                 .setWorkspace(new AgentWorkspaceCriteria()
                         .setUserId(new StringFilter().setEq(account.getId())))
                 .setCloseStatus(new TcStatusFilter()

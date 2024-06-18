@@ -3,11 +3,9 @@ package dev.scaraz.mars.core.service.order.flow;
 import dev.scaraz.mars.common.domain.request.TicketStatusFormDTO;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
-import dev.scaraz.mars.core.query.AgentQueryService;
-import dev.scaraz.mars.core.query.SolutionQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
+import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.AgentService;
@@ -31,7 +29,9 @@ public class DispatchFlowService {
     private final LogTicketService logTicketService;
 
     private final AgentService agentService;
-    private final AgentQueryService agentQueryService;
+    //    private final AgentQueryService agentQueryService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
+    private final AgentWorklogQueryService agentWorklogQueryService;
 
     private final SolutionQueryService solutionQueryService;
 
@@ -47,8 +47,8 @@ public class DispatchFlowService {
 //        else if (!summary.getWipBy().equals(SecurityUtil.getCurrentUser().getId()))
 //            throw BadRequestException.args("error.ticket.update.stat.agent");
 
-        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
-        Agent agent = workspace.getAgent();
+        AgentWorkspace workspace = agentWorkspaceQueryService.getLastWorkspace(ticket.getId());
+        Account agent = workspace.getAccount();
 
         workspace.setStatus(AgStatus.CLOSED);
         workspace.getLastWorklog().ifPresent(worklog -> {
@@ -74,9 +74,9 @@ public class DispatchFlowService {
                 "tg.ticket.update.dispatch",
                 ticket.getNo());
 
-        if (agent.getTelegramId() != ticket.getSenderId()) {
-            log.info("NOTIFY AGENT -- ID {}", agent.getTelegramId());
-            notifierService.safeSend(agent.getTelegramId(),
+        if (agent.getTg().getId() != ticket.getSenderId()) {
+            log.info("NOTIFY AGENT -- ID {}", agent.getTg().getId());
+            notifierService.safeSend(agent.getTg().getId(),
                     "tg.ticket.update.dispatch.agent",
                     ticket.getNo());
         }
@@ -85,7 +85,7 @@ public class DispatchFlowService {
                 .ticket(ticket)
                 .prev(TcStatus.PROGRESS)
                 .curr(ticket.getStatus())
-                .agentId(agent.getId())
+                .userId(agent.getId())
                 .message(LogTicketService.LOG_DISPATCH_REQUEST)
                 .build());
         return service.save(ticket);

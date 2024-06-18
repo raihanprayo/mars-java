@@ -49,8 +49,11 @@ public class LogTicket {
 //    @JsonIgnore
 //    @JoinColumn(name = "ref_agent_id")
 //    private Agent agent;
-    @Column(name = "ref_agent_id")
-    private String agentId;
+//    @Column(name = "ref_agent_id")
+//    private String agentId;
+
+    @Column(name = "user_id")
+    private String userId;
 
     @CreatedBy
     @Column(name = "created_by", updatable = false)

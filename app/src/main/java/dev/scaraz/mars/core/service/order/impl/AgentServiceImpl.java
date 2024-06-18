@@ -62,10 +62,10 @@ public class AgentServiceImpl implements AgentService {
     public AgentWorkspace getWorkspace(String ticketId, String agentId) {
         Supplier<AgentWorkspace> fn = () -> save(AgentWorkspace.builder()
                 .ticket(Ticket.builder().id(ticketId).build())
-                .agent(Agent.builder().id(agentId).build())
+                .account(Account.builder().id(agentId).build())
                 .build());
 
-        return workspaceRepo.findFirstByTicketIdAndAgentIdOrderByCreatedAtDesc(ticketId, agentId)
+        return workspaceRepo.findFirstByTicketIdAndAccountIdOrderByCreatedAtDesc(ticketId, agentId)
                 .map(workspace -> workspace.getStatus() == AgStatus.CLOSED ? fn.get() : workspace)
                 .orElseGet(fn);
     }
@@ -81,25 +81,25 @@ public class AgentServiceImpl implements AgentService {
         else if (account.getTg().getId() == null)
             throw new BadRequestException("Agent tidak punya telegram id, untuk melakukan notifikasi");
 
-        Agent agent = repo.findByUserId(account.getId())
-                .map(a -> {
-                    if (!a.getNik().equals(account.getNik())) a.setNik(account.getNik());
-                    if (!a.getTelegramId().equals(account.getTg().getId())) a.setTelegramId(account.getTg().getId());
-                    return save(a);
-                })
-                .orElseGet(() -> save(Agent.builder()
-                        .nik(account.getNik())
-                        .telegramId(account.getTg().getId())
-                        .userId(account.getId())
-                        .build()));
+//        Agent agent = repo.findByUserId(account.getId())
+//                .map(a -> {
+//                    if (!a.getNik().equals(account.getNik())) a.setNik(account.getNik());
+//                    if (!a.getTelegramId().equals(account.getTg().getId())) a.setTelegramId(account.getTg().getId());
+//                    return save(a);
+//                })
+//                .orElseGet(() -> save(Agent.builder()
+//                        .nik(account.getNik())
+//                        .telegramId(account.getTg().getId())
+//                        .userId(account.getId())
+//                        .build()));
 
         Supplier<AgentWorkspace> fn = () -> save(AgentWorkspace.builder()
-                .agent(agent)
+                .account(account)
                 .ticket(Ticket.builder().id(ticketId).build())
                 .status(AgStatus.PROGRESS)
                 .build());
 
-        return workspaceRepo.findFirstByTicketIdAndAgentIdOrderByCreatedAtDesc(ticketId, agent.getId())
+        return workspaceRepo.findFirstByTicketIdAndAccountIdOrderByCreatedAtDesc(ticketId, account.getId())
                 .map(workspace -> workspace.getStatus() != AgStatus.CLOSED ? workspace : fn.get())
                 .orElseGet(fn);
     }

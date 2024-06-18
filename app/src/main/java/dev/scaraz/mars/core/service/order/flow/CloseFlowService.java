@@ -6,12 +6,10 @@ import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.utils.ConfigConstants;
+import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
-import dev.scaraz.mars.core.query.AgentQueryService;
-import dev.scaraz.mars.core.query.SolutionQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
+import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.repository.db.order.AgentRepo;
 import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.NotifierService;
@@ -54,7 +52,9 @@ public class CloseFlowService {
 
     private final AgentRepo agentRepo;
     private final AgentService agentService;
-    private final AgentQueryService agentQueryService;
+    //    private final AgentQueryService agentQueryService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
+    private final AgentWorklogQueryService agentWorklogQueryService;
 
     private final SolutionQueryService solutionQueryService;
 
@@ -87,7 +87,7 @@ public class CloseFlowService {
         if (form.getSolution() == null)
             throw new BadRequestException("Harap masukkan actsol sebelum menutup tiket");
 
-        Optional<AgentWorkspace> workspaceOpt = agentQueryService.getLastWorkspaceOptional(ticket.getId());
+        Optional<AgentWorkspace> workspaceOpt = agentWorkspaceQueryService.getLastWorkspaceOptional(ticket.getId());
         workspaceOpt.flatMap(AgentWorkspace::getLastWorklog).ifPresent(worklog -> {
             worklog.setCloseStatus(TcStatus.CLOSED);
             worklog.setMessage(form.getNote());
@@ -139,7 +139,9 @@ public class CloseFlowService {
                     .ticket(ticket)
                     .prev(prevStatus)
                     .curr(ticket.getStatus())
-                    .agentId(workspaceOpt.map(AgentWorkspace::getAgent).map(Agent::getId).orElse(null))
+                    .userId(workspaceOpt.map(AgentWorkspace::getAccount)
+                            .map(Account::getId)
+                            .orElse(null))
                     .message(LOG_CLOSE_CONFIRMATION)
                     .build());
         }
@@ -149,8 +151,8 @@ public class CloseFlowService {
 
     @Transactional
     public Ticket confirmClose(String ticketIdOrNo, boolean reopen, TicketStatusFormDTO form) {
-        log.info("TICKET CLOSE CONFIRM REQUEST OF NO {} -- REOPEN ? {}", ticketIdOrNo, reopen);
         Ticket ticket = queryService.findByIdOrNo(ticketIdOrNo);
+        log.info("TICKET CLOSE CONFIRM REQUEST OF NO {} -- REOPEN ? {}", ticket.getNo(), reopen);
 
         if (!List.of(TcStatus.CONFIRMATION, TcStatus.CLOSE_CONFIRM).contains(ticket.getStatus()))
             throw BadRequestException.args("error.ticket.illegal.confirm.state");
@@ -160,9 +162,10 @@ public class CloseFlowService {
             if (!isRequestor)
                 throw BadRequestException.args("Invalid requestor owner");
         }
+        else log.info("TICKET CLOSE CONFIRM REQUEST OF NO {} - CLOSED AUTOMATICALLY", ticket.getNo());
 
-        AgentWorkspace workspace = agentQueryService.getLastWorkspace(ticket.getId());
-        Agent agent = workspace.getAgent();
+        AgentWorkspace workspace = agentWorkspaceQueryService.getLastWorkspace(ticket.getId(), !MarsUserContext.isUserPresent());
+        Account agent = workspace.getAccount();
 
         if (reopen) {
             log.info("REOPEN TICKET - {}", ticket.getNo());
@@ -189,12 +192,12 @@ public class CloseFlowService {
                     .build());
 
             notifierService.safeSend(
-                    agent.getTelegramId(),
+                    agent.getTg().getId(),
                     "tg.ticket.confirm.reopen.agent",
                     ticket.getNo(),
                     reopenMessage);
 
-            if (agent.getTelegramId() != ticket.getSenderId()) {
+            if (agent.getTg().getId() != ticket.getSenderId()) {
                 log.info("NOTIFY SENDER -- ID {}", ticket.getSenderId());
                 notifierService.safeSend(
                         ticket.getSenderId(),
@@ -220,14 +223,14 @@ public class CloseFlowService {
 
                 notifierService.send(ticket.getSenderId(), message);
 
-                log.info("NOTIFY AGENT -- ID {}", agent.getUserId());
-                notifierService.safeSend(agent.getTelegramId(),
+                log.info("NOTIFY AGENT -- ID {}", agent.getId());
+                notifierService.safeSend(agent.getTg().getId(),
                         "tg.ticket.confirm.closed.agent",
                         ticket.getNo(),
                         Translator.tr("app.done.watermark")
                 );
 
-                if (agent.getTelegramId() != ticket.getSenderId()) {
+                if (agent.getTg().getId() != ticket.getSenderId()) {
                     log.info("NOTIFY SENDER -- ID {}", ticket.getSenderId());
                     notifierService.safeSend(ticket.getSenderId(),
                             "tg.ticket.confirm.closed.sender",
@@ -240,7 +243,7 @@ public class CloseFlowService {
                         "tg.ticket.confirm.auto-closed",
                         ticket.getNo());
 
-                if (agent.getTelegramId() != ticket.getSenderId()) {
+                if (agent.getTg().getId() != ticket.getSenderId()) {
                     log.info("NOTIFY SENDER -- ID {}", ticket.getSenderId());
                     notifierService.safeSend(ticket.getSenderId(),
                             "tg.ticket.confirm.auto-closed.sender",

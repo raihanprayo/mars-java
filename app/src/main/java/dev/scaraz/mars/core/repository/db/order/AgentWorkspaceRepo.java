@@ -16,14 +16,14 @@ public interface AgentWorkspaceRepo extends
 
     void deleteAllByTicketId(String ticketId);
 
-    List<AgentWorkspace> findByAgentUserId(String userId);
+    List<AgentWorkspace> findByAccountId(String userId);
 
     List<AgentWorkspace> findByTicketIdOrTicketNo(String tid, String tno);
     List<AgentWorkspace> findByTicketIdOrTicketNoOrderByCreatedAt(String tid, String tno);
 
     Optional<AgentWorkspace> findFirstByTicketIdOrderByCreatedAtDesc(String ticketId);
 
-    Optional<AgentWorkspace> findFirstByTicketIdAndAgentIdOrderByCreatedAtDesc(String ticketId, String agentId);
+    Optional<AgentWorkspace> findFirstByTicketIdAndAccountIdOrderByCreatedAtDesc(String ticketId, String agentId);
 
     boolean existsByTicketIdAndStatus(String tid, AgStatus status);
     boolean existsByTicketNoAndStatus(String tno, AgStatus status);

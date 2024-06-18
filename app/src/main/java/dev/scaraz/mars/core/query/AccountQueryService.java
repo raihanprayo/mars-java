@@ -26,6 +26,8 @@ public interface AccountQueryService extends UserDetailsService, BaseQueryServic
 
     Account findByTelegramId(long tgId);
 
+    Optional<Account> findByTelegramIdOpt(long tgId);
+
     Account findByNik(String nik);
 
     Account findByNikOrTelegramId(String nikOrTelegramId);

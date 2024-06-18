@@ -6,7 +6,7 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.AgentWorkspace;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.AgentQueryService;
+import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.service.order.ExportService;
 import dev.scaraz.mars.core.util.ExcelGenerator;
@@ -37,7 +37,8 @@ public class ExportServiceImpl implements ExportService {
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     private final AccountQueryService accountQueryService;
-    private final AgentQueryService agentQueryService;
+//    private final AgentQueryService agentQueryService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
     private final StorageService storageService;
 
 
@@ -74,7 +75,7 @@ public class ExportServiceImpl implements ExportService {
                 row.add(s.getIssue().getName());
                 row.add(s.getIssue().getProduct().name());
 
-                agentQueryService.getLastWorkspaceOptional(s.getId()).flatMap(AgentWorkspace::getLastWorklog)
+                agentWorkspaceQueryService.getLastWorkspaceOptional(s.getId()).flatMap(AgentWorkspace::getLastWorklog)
                         .ifPresentOrElse(
                                 wl -> {
                                     row.add(wl.getSolution().getName());
@@ -210,7 +211,7 @@ public class ExportServiceImpl implements ExportService {
         row.createCell(12, style, summary.getIssue().getProduct());
 
         // 12 & 13
-        agentQueryService.getLastWorkspaceOptional(summary.getId())
+        agentWorkspaceQueryService.getLastWorkspaceOptional(summary.getId())
                 .flatMap(AgentWorkspace::getLastWorklog)
                 .ifPresentOrElse(
                         wl -> {

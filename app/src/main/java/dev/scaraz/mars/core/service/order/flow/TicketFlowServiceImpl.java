@@ -5,9 +5,13 @@ import dev.scaraz.mars.common.exception.web.InternalServerException;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.domain.order.*;
+import dev.scaraz.mars.core.domain.order.AgentWorklog;
+import dev.scaraz.mars.core.domain.order.AgentWorkspace;
+import dev.scaraz.mars.core.domain.order.LogTicket;
+import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.AgentQueryService;
+import dev.scaraz.mars.core.query.AgentWorklogQueryService;
+import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;
 import dev.scaraz.mars.core.query.TicketQueryService;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.order.AgentService;
@@ -28,12 +32,14 @@ import java.util.List;
 @Service
 public class TicketFlowServiceImpl implements TicketFlowService {
 
-//    private final AppConfigService appConfigService;
+    //    private final AppConfigService appConfigService;
     private final TicketService service;
     private final TicketQueryService queryService;
 
     private final AgentService agentService;
-    private final AgentQueryService agentQueryService;
+//    private final AgentQueryService agentQueryService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
+    private final AgentWorklogQueryService agentWorklogQueryService;
 
     private final NotifierService notifierService;
     private final LogTicketService logTicketService;
@@ -51,7 +57,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
 
         if (!List.of(TcStatus.OPEN, TcStatus.DISPATCH).contains(ticket.getStatus()))
             throw BadRequestException.args("Status pengambilan tiket invalid");
-        else if (agentQueryService.isWorkInProgress(ticket.getId()))
+        else if (agentWorkspaceQueryService.isWorkInProgress(ticket.getId()))
             throw new BadRequestException("Tidak dapat mengambil Order/Tiket yang sedang dalam pengerjaan");
 
         if (MarsUserContext.isUserPresent()) {
@@ -59,7 +65,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
             TcStatus prevStatus = ticket.getStatus();
 
             AgentWorkspace workspace = agentService.getWorkspaceByCurrentUser(ticket.getId());
-            Agent agent = workspace.getAgent();
+            Account agent = workspace.getAccount();
 
             agentService.save(AgentWorklog.builder()
                     .takeStatus(prevStatus)
@@ -76,7 +82,7 @@ public class TicketFlowServiceImpl implements TicketFlowService {
                     .ticket(ticket)
                     .prev(prevStatus)
                     .curr(ticket.getStatus())
-                    .agentId(agent.getId())
+                    .userId(agent.getId())
                     .message(isPreviousStatusOpen ? LogTicketService.LOG_WORK_IN_PROGRESS : LogTicketService.LOG_REWORK_IN_PROGRESS)
                     .build());
 

@@ -18,7 +18,8 @@ public enum Witel {
     JAKSEL,
     JAKTIM,
     JAKUT,
-    TANGERANG, TSEL;
+    TANGERANG,
+    TSEL;
 
     public static List<List<InlineKeyboardButton>> generateKeyboardButtons(String prefix) {
         Witel[] values = Witel.values();

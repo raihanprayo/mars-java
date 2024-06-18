@@ -2,6 +2,7 @@ package dev.scaraz.mars.core.query.criteria;
 
 import dev.scaraz.mars.common.tools.AuditableCriteria;
 import dev.scaraz.mars.common.tools.filter.type.AgStatusFilter;
+import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
 import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import lombok.AllArgsConstructor;
@@ -48,5 +49,25 @@ public class AgentWorkspaceCriteria extends AuditableCriteria {
     public AgentWorkspaceCriteria setTicket(TicketCriteria ticket) {
         this.ticket = ticket;
         return this;
+    }
+
+    @Override
+    public AgentWorkspaceCriteria setCreatedBy(StringFilter createdBy) {
+        return (AgentWorkspaceCriteria) super.setCreatedBy(createdBy);
+    }
+
+    @Override
+    public AgentWorkspaceCriteria setUpdatedBy(StringFilter updatedBy) {
+        return (AgentWorkspaceCriteria) super.setUpdatedBy(updatedBy);
+    }
+
+    @Override
+    public AgentWorkspaceCriteria setCreatedAt(InstantFilter createdAt) {
+        return (AgentWorkspaceCriteria) super.setCreatedAt(createdAt);
+    }
+
+    @Override
+    public AgentWorkspaceCriteria setUpdatedAt(InstantFilter updatedAt) {
+        return (AgentWorkspaceCriteria) super.setUpdatedAt(updatedAt);
     }
 }

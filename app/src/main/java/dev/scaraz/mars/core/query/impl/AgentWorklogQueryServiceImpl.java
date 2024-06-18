@@ -53,4 +53,10 @@ public class AgentWorklogQueryServiceImpl implements AgentWorklogQueryService {
     public long count(AgentWorklogCriteria criteria) {
         return repo.count(specBuilder.createSpec(criteria));
     }
+
+    @Override
+    public List<AgentWorklog> findWorklogsByTicketIdOrNo(String ticketIdOrNo) {
+        return repo.findByWorkspaceTicketIdOrWorkspaceTicketNoOrderByCreatedAt(ticketIdOrNo, ticketIdOrNo);
+    }
+
 }

@@ -27,4 +27,5 @@ public class NotFoundException extends MarsException {
                 entity.getSimpleName(), field, value
         });
     }
+
 }

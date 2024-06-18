@@ -30,7 +30,6 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -63,7 +62,8 @@ public class TicketBotService {
     private final TelegramBotService botService;
 
     private final AccountQueryService accountQueryService;
-    private final AgentQueryService agentQueryService;
+//    private final AgentQueryService agentQueryService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
 
     private final TicketService service;
     private final TicketFlowService flowService;
@@ -138,9 +138,9 @@ public class TicketBotService {
                 .append("Pernah Diproses oleh:\n");
 
         UserCriteria userCriteria = UserCriteria.builder()
-                .id(new StringFilter().setIn(agentQueryService.findWorkspacesByTicket(tc.getId()).stream()
-                        .map(AgentWorkspace::getAgent)
-                        .map(Agent::getUserId)
+                .id(new StringFilter().setIn(agentWorkspaceQueryService.findWorkspacesByTicket(tc.getId()).stream()
+                        .map(AgentWorkspace::getAccount)
+                        .map(Account::getId)
                         .collect(Collectors.toList())))
                 .build();
 

@@ -9,9 +9,9 @@ import java.util.List;
 
 @Repository
 public interface LeaderBoardFragmentRepo extends
-        JpaRepository<LeaderBoardFragment, String>,
+        JpaRepository<LeaderBoardFragment, Long>,
         JpaSpecificationExecutor<LeaderBoardFragment> {
 
-    List<LeaderBoardFragment> findAllByTicketIdAndAgentId(String ticketId, String agentId);
+    List<LeaderBoardFragment> findAllByTicketIdAndUserId(String ticketId, String agentId);
 
 }

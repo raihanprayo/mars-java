@@ -15,10 +15,7 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.mapper.AgentMapper;
-import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.AgentQueryService;
-import dev.scaraz.mars.core.query.TicketQueryService;
-import dev.scaraz.mars.core.query.TicketSummaryQueryService;
+import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import dev.scaraz.mars.core.query.criteria.TicketSummaryCriteria;
 import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
@@ -64,7 +61,9 @@ public class TicketResource {
     private final LogTicketRepo logTicketRepo;
 
     private final AgentMapper agentMapper;
-    private final AgentQueryService agentQueryService;
+//    private final AgentQueryService agentQueryService;
+    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
+    private final AgentWorklogQueryService agentWorklogQueryService;
 
     private final CloseFlowService closeFlowService;
     private final PendingFlowService pendingFlowService;
@@ -216,7 +215,7 @@ public class TicketResource {
     public ResponseEntity<?> getWorkspaces(
             @RequestParam(defaultValue = "false") boolean full,
             @PathVariable String ticketIdOrNo) {
-        List<AgentWorkspace> workspaces = agentQueryService.findWorkspacesByTicket(ticketIdOrNo);
+        List<AgentWorkspace> workspaces = agentWorkspaceQueryService.findWorkspacesByTicket(ticketIdOrNo);
         return ResponseEntity.ok(workspaces.stream()
                 .map(o -> full ? agentMapper.toFullDTO(o) : agentMapper.toDTO(o))
                 .collect(Collectors.toList()));
@@ -226,7 +225,7 @@ public class TicketResource {
     public ResponseEntity<?> getWorklogs(
             @RequestParam(defaultValue = "false") boolean full,
             @PathVariable String ticketIdOrNo) {
-        List<AgentWorklog> workspaces = agentQueryService.findWorklogsByTicketIdOrNo(ticketIdOrNo);
+        List<AgentWorklog> workspaces = agentWorklogQueryService.findWorklogsByTicketIdOrNo(ticketIdOrNo);
         return ResponseEntity.ok(workspaces.stream()
                 .map(o -> full ? agentMapper.toFullDTO(o) : agentMapper.toDTO(o))
                 .collect(Collectors.toList()));

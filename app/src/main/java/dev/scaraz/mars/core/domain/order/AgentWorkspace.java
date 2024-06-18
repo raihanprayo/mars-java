@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.domain.order;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
+import dev.scaraz.mars.core.domain.credential.Account;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,8 +33,8 @@ public class AgentWorkspace extends AuditableEntity {
     private Ticket ticket;
 
     @ManyToOne
-    @JoinColumn(name = "ref_agent_id", updatable = false)
-    private Agent agent;
+    @JoinColumn(name = "user_id", updatable = false)
+    private Account account;
 
     @Builder.Default
     @OrderBy("id ASC")
@@ -53,7 +54,7 @@ public class AgentWorkspace extends AuditableEntity {
                 "id=" + id +
                 ", status=" + status +
                 ", ticket=" + ticket.getId() +
-                ", agent=" + agent.getId() +
+                ", account=" + account.getId() +
                 '}';
     }
 }
