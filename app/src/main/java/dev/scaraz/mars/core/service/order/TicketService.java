@@ -2,7 +2,7 @@ package dev.scaraz.mars.core.service.order;
 
 import dev.scaraz.mars.common.domain.general.TicketDashboardForm;
 import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
-import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.symptom.Issue;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.criteria.TicketCriteria;
 import org.springframework.transaction.annotation.Transactional;

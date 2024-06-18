@@ -1,6 +1,6 @@
 package dev.scaraz.mars.core.repository.db.order;
 
-import dev.scaraz.mars.core.domain.order.Solution;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;

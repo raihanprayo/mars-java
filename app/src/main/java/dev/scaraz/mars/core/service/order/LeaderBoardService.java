@@ -10,6 +10,7 @@ import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
 import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.query.criteria.*;
@@ -17,6 +18,7 @@ import dev.scaraz.mars.core.query.spec.LeaderBoardSpecBuilder;
 import dev.scaraz.mars.core.repository.db.order.AgentRepo;
 import dev.scaraz.mars.core.repository.db.view.LeaderBoardFragmentRepo;
 import dev.scaraz.mars.core.service.ConfigService;
+import dev.scaraz.mars.core.service.LogDownloadService;
 import dev.scaraz.mars.core.service.StorageService;
 import dev.scaraz.mars.core.util.ExcelGenerator;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +67,7 @@ public class LeaderBoardService {
     private final SolutionQueryService solutionQueryService;
     private final StorageService storageService;
 
+    private final LogDownloadService logDownloadService;
 
     public List<LeaderBoardDTO> getLeaderboard(LeaderBoardCriteria criteria) {
         List<Account> accounts = getAccounts();
@@ -138,11 +141,11 @@ public class LeaderBoardService {
     }
 
     private List<Account> getAccounts() {
-        return accountQueryService.findAll(UserCriteria.builder()
-                .roles(RoleCriteria.builder()
-                        .name(new StringFilter().setEq(AuthorityConstant.AGENT_ROLE))
-                        .build())
-                .build(), Sort.by("name"));
+        return accountQueryService.findAll(
+                new UserCriteria()
+                        .setRoles(new RoleCriteria()
+                                .setName(new StringFilter().setEq(AuthorityConstant.AGENT_ROLE))),
+                Sort.by("name"));
     }
 
     @Transactional(readOnly = true)
@@ -175,17 +178,19 @@ public class LeaderBoardService {
             ExcelGenerator.SheetGenerator sheet = generator.createSheet("All");
 
             for (Account account : accounts) {
-                criteria.setAgentId(new StringFilter().setEq(userAgentIds.get(account.getId())));
+                criteria.setUserId(new StringFilter().setEq(account.getId()));
 
 //                List<LeaderBoardFragment> fragments = getLeaderboardFragments(criteria);
 
 
                 List<AgentWorkspace> workspaces = agentWorkspaceQueryService.findAll(new AgentWorkspaceCriteria()
-                        .setAgent(new AgentCriteria()
-                                .setUserId(new StringFilter().setEq(account.getId()))
-                        )
-                        .setTicket(new TicketCriteria()
-                                .setCreatedAt(criteria.getCreatedAt()))
+                                .setAccount(new UserCriteria()
+                                        .setId(new StringFilter().setEq(account.getId())))
+//                        .setAgent(new AgentCriteria()
+//                                .setUserId(new StringFilter().setEq(account.getId()))
+//                        )
+                                .setTicket(new TicketCriteria()
+                                        .setCreatedAt(criteria.getCreatedAt()))
                 );
 
                 for (AgentWorkspace ws : workspaces) {

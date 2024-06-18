@@ -22,6 +22,7 @@ import dev.scaraz.mars.core.service.credential.AccountRegistrationBotService;
 import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.telegram.service.TelegramBotService;
 import dev.scaraz.mars.telegram.util.TelegramUtil;
+import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,7 +33,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -105,10 +105,9 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
 
     @Override
     public SendMessage pairAccountAnsWitel(BotRegistration registration, Witel ansWitel) {
-        Optional<Account> optUser = accountQueryService.findOne(UserCriteria.builder()
-                .nik(new StringFilter().setEq(registration.getNik()))
-                .witel(new WitelFilter().setEq(ansWitel))
-                .build());
+        Optional<Account> optUser = accountQueryService.findOne(new UserCriteria()
+                .setNik(new StringFilter().setEq(registration.getNik()))
+                .setWitel(new WitelFilter().setEq(ansWitel)));
 
         if (optUser.isPresent()) {
             registration.setWitel(ansWitel);
@@ -174,9 +173,8 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
     @Override
     public SendMessage answerNameThenAskNik(BotRegistration registration, String ansName) {
 
-        boolean existByName = accountQueryService.existByCriteria(UserCriteria.builder()
-                .name(new StringFilter().setLike(ansName.trim()))
-                .build());
+        boolean existByName = accountQueryService.existByCriteria(new UserCriteria()
+                .setName(new StringFilter().setLike(ansName.trim())));
 
         if (existByName) {
             return SendMessage.builder()
@@ -197,9 +195,8 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
 
     @Override
     public SendMessage answerNikThenAskPhone(BotRegistration registration, String ansNik) {
-        boolean existByNik = accountQueryService.existByCriteria(UserCriteria.builder()
-                .nik(new StringFilter().setEq(ansNik.trim()))
-                .build());
+        boolean existByNik = accountQueryService.existByCriteria(new UserCriteria()
+                .setNik(new StringFilter().setEq(ansNik.trim())));
 
         if (existByNik) {
             return SendMessage.builder()
@@ -220,9 +217,8 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
 
     @Override
     public SendMessage answerPhoneThenAskWitel(BotRegistration registration, String ansPhone) {
-        boolean existByPhone = accountQueryService.existByCriteria(UserCriteria.builder()
-                .phone(new StringFilter().setLike(ansPhone.trim()))
-                .build());
+        boolean existByPhone = accountQueryService.existByCriteria(new UserCriteria()
+                .setPhone(new StringFilter().setLike(ansPhone.trim())));
 
         if (existByPhone) {
             return SendMessage.builder()

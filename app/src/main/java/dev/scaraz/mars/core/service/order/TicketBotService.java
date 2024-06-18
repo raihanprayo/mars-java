@@ -14,6 +14,7 @@ import dev.scaraz.mars.common.utils.CacheConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
+import dev.scaraz.mars.core.domain.symptom.Issue;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.query.criteria.UserCriteria;
@@ -62,7 +63,7 @@ public class TicketBotService {
     private final TelegramBotService botService;
 
     private final AccountQueryService accountQueryService;
-//    private final AgentQueryService agentQueryService;
+    //    private final AgentQueryService agentQueryService;
     private final AgentWorkspaceQueryService agentWorkspaceQueryService;
 
     private final TicketService service;
@@ -137,12 +138,11 @@ public class TicketBotService {
         content.append("\n")
                 .append("Pernah Diproses oleh:\n");
 
-        UserCriteria userCriteria = UserCriteria.builder()
-                .id(new StringFilter().setIn(agentWorkspaceQueryService.findWorkspacesByTicket(tc.getId()).stream()
+        UserCriteria userCriteria = new UserCriteria()
+                .setId(new StringFilter().setIn(agentWorkspaceQueryService.findWorkspacesByTicket(tc.getId()).stream()
                         .map(AgentWorkspace::getAccount)
                         .map(Account::getId)
-                        .collect(Collectors.toList())))
-                .build();
+                        .collect(Collectors.toList())));
 
         List<String> names = accountQueryService.findAll(userCriteria).stream()
                 .map(Account::getName)

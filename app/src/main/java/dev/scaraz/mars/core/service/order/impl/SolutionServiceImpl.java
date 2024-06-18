@@ -1,6 +1,6 @@
 package dev.scaraz.mars.core.service.order.impl;
 
-import dev.scaraz.mars.core.domain.order.Solution;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.repository.db.order.SolutionRepo;
 import dev.scaraz.mars.core.service.order.AgentService;

@@ -5,6 +5,7 @@ import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.service.NotifierService;
 import dev.scaraz.mars.core.service.StorageService;

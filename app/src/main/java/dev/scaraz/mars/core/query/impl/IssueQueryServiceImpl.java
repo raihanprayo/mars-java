@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.query.impl;
 
 import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
-import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.symptom.Issue;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import dev.scaraz.mars.core.query.spec.IssueSpecBuilder;

@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.domain.order;
+package dev.scaraz.mars.core.domain.symptom;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -1,0 +1,12 @@
+create table t_log_dl
+(
+    id         serial primary key,
+    status     int4         not null,
+    filename   varchar(100) not null,
+
+    path       varchar(255),
+    message    text,
+
+    created_by varchar(100) not null default 'system',
+    created_at timestamp(0) not null default current_timestamp
+);

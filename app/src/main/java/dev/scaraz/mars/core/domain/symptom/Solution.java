@@ -1,4 +1,4 @@
-package dev.scaraz.mars.core.domain.order;
+package dev.scaraz.mars.core.domain.symptom;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.Product;

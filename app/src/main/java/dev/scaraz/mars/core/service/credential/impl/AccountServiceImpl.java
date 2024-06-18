@@ -184,10 +184,9 @@ public class AccountServiceImpl implements AccountService {
 //                        .build())
                 .build());
 
-        if (req.getRoles().size() > 0) {
-            List<Role> roles = roleQueryService.findAll(RoleCriteria.builder()
-                    .id(new StringFilter().setIn(req.getRoles()))
-                    .build());
+        if (!req.getRoles().isEmpty()) {
+            List<Role> roles = roleQueryService.findAll(new RoleCriteria()
+                    .setId(new StringFilter().setIn(req.getRoles())));
             roleService.addUserRoles(nuser, roles.toArray(new Role[0]));
         }
         else {

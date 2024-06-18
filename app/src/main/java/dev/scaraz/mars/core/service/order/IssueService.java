@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service.order;
 import dev.scaraz.mars.common.domain.request.CreateIssueDTO;
 import dev.scaraz.mars.common.domain.request.UpdateIssueDTO;
 import dev.scaraz.mars.common.tools.enums.Product;
-import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.symptom.Issue;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.annotation.Nullable;

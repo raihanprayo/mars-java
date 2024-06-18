@@ -1,6 +1,6 @@
 package dev.scaraz.mars.core.service.order;
 
-import dev.scaraz.mars.core.domain.order.Solution;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 
 import java.util.List;
 

@@ -7,6 +7,7 @@ import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentWorklogQueryService;
 import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;

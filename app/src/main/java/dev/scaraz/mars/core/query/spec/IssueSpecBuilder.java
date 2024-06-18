@@ -1,8 +1,8 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
-import dev.scaraz.mars.core.domain.order.Issue;
-import dev.scaraz.mars.core.domain.order.Issue_;
+import dev.scaraz.mars.core.domain.symptom.Issue;
+import dev.scaraz.mars.core.domain.symptom.Issue_;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;

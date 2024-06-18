@@ -1,6 +1,7 @@
 package dev.scaraz.mars.core.domain.order;
 
 import dev.scaraz.mars.common.tools.enums.Product;
+import dev.scaraz.mars.core.domain.symptom.Issue;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;

@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.query.impl;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
-import dev.scaraz.mars.core.domain.order.Solution;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.query.criteria.SolutionCriteria;
 import dev.scaraz.mars.core.query.spec.SolutionSpecBuilder;

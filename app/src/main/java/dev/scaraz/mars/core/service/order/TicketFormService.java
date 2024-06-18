@@ -7,7 +7,7 @@ import dev.scaraz.mars.common.tools.enums.Product;
 import dev.scaraz.mars.common.tools.enums.Witel;
 import dev.scaraz.mars.common.tools.filter.type.ProductFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
-import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.symptom.Issue;
 import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.IssueQueryService;
 import dev.scaraz.mars.core.query.criteria.IssueCriteria;

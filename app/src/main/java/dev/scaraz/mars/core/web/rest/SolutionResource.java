@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.web.rest;
 import dev.scaraz.mars.common.domain.request.CreateSolutionDTO;
 import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.utils.ResourceUtil;
-import dev.scaraz.mars.core.domain.order.Solution;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.query.criteria.SolutionCriteria;
 import dev.scaraz.mars.core.repository.db.order.SolutionRepo;

@@ -1,5 +1,6 @@
 package dev.scaraz.mars.core.domain.order;
 
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

@@ -94,6 +94,7 @@ public class Ticket extends AuditableEntity {
     @JsonIgnore
     @ToString.Exclude
     @OrderBy("id ASC")
+    @Builder.Default
     @OneToMany(mappedBy = "ticket", fetch = FetchType.EAGER)
     private List<AgentWorkspace> workspaces = new ArrayList<>();
 

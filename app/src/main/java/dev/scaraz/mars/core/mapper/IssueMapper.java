@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.mapper;
 
 import dev.scaraz.mars.common.domain.response.IssueDTO;
-import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.symptom.Issue;
 import dev.scaraz.mars.core.domain.order.TcIssue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

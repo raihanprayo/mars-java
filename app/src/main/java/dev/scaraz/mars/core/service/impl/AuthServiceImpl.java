@@ -23,6 +23,7 @@ import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentWorklogQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
+import dev.scaraz.mars.core.query.criteria.UserCriteria;
 import dev.scaraz.mars.core.service.AuthService;
 import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.credential.AccountApprovalService;
@@ -219,7 +220,10 @@ public class AuthServiceImpl implements AuthService {
     public void logout(Account account, boolean confirmed) {
         List<AgentWorklog> worklogs = agentWorklogQueryService.findAll(new AgentWorklogCriteria()
                 .setWorkspace(new AgentWorkspaceCriteria()
-                        .setUserId(new StringFilter().setEq(account.getId())))
+                        .setAccount(new UserCriteria()
+                                .setId(new StringFilter().setEq(account.getId()))
+                        )
+                )
                 .setCloseStatus(new TcStatusFilter()
                         .setSpecified(false)));
 

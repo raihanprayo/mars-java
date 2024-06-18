@@ -1,6 +1,8 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
+import dev.scaraz.mars.core.domain.credential.AccountTg_;
+import dev.scaraz.mars.core.domain.credential.Account_;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.query.criteria.*;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ public class AgentWorklogSpecBuilder extends AuditableSpec<AgentWorklog, AgentWo
                     .pick(AgentWorklog_.closeStatus, criteria.getCloseStatus())
                     .extend(s -> auditSpec(s, criteria));
 
-            if (criteria.getSolution()!=null) {
+            if (criteria.getSolution() != null) {
                 SolutionCriteria solution = criteria.getSolution();
                 chain.pick(solution.getId(), path(AgentWorklog_.solution, WlSolution_.id));
                 chain.pick(solution.getName(), path(AgentWorklog_.solution, WlSolution_.name));
@@ -30,15 +32,19 @@ public class AgentWorklogSpecBuilder extends AuditableSpec<AgentWorklog, AgentWo
             if (criteria.getWorkspace() != null) {
                 AgentWorkspaceCriteria ws = criteria.getWorkspace();
                 chain.pick(ws.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.id))
-                        .pick(ws.getStatus(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.status))
-                        .pick(ws.getUserId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.userId));
+                        .pick(ws.getStatus(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.status));
+//                        .pick(ws.getUserId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.userId));
 
-                if (ws.getAgent() != null) {
-                    AgentCriteria ag = ws.getAgent();
-                    chain.pick(ag.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.id))
-                            .pick(ag.getNik(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.nik))
-                            .pick(ag.getUserId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.userId))
-                            .pick(ag.getTelegram(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.agent).get(Agent_.telegramId));
+
+                if (ws.getAccount() != null) {
+                    UserCriteria ag = ws.getAccount();
+                    chain.pick(ag.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.account).get(Account_.id))
+                            .pick(ag.getNik(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.account).get(Account_.nik));
+
+                    if (ag.getTg() != null) {
+                        UserTgCriteria tg = ag.getTg();
+                        chain.pick(tg.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.account).get(Account_.tg).get(AccountTg_.id));
+                    }
                 }
 
                 if (ws.getTicket() != null) {

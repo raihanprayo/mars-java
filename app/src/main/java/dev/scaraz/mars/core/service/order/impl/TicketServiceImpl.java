@@ -10,7 +10,7 @@ import dev.scaraz.mars.common.tools.filter.type.InstantFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.domain.order.Issue;
+import dev.scaraz.mars.core.domain.symptom.Issue;
 import dev.scaraz.mars.core.domain.order.LogTicket;
 import dev.scaraz.mars.core.domain.order.TcIssue;
 import dev.scaraz.mars.core.domain.order.Ticket;

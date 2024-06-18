@@ -7,7 +7,7 @@ import dev.scaraz.mars.common.utils.AppConstants;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.common.utils.Util;
 import dev.scaraz.mars.core.domain.credential.AccountApproval;
-import dev.scaraz.mars.core.domain.order.Solution;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import dev.scaraz.mars.core.domain.order.Ticket;
 import dev.scaraz.mars.core.query.SolutionQueryService;
 import dev.scaraz.mars.core.repository.db.credential.AccountSettingRepo;

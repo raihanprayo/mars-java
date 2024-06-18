@@ -18,11 +18,13 @@ public class AgentWorkspaceCriteria extends AuditableCriteria {
 
     private LongFilter id;
 
-    private StringFilter userId;
+//    private StringFilter userId;
 
     private AgStatusFilter status;
 
-    private AgentCriteria agent;
+//    private AgentCriteria agent;
+
+    private UserCriteria account;
 
     private TicketCriteria ticket;
 
@@ -31,18 +33,18 @@ public class AgentWorkspaceCriteria extends AuditableCriteria {
         return this;
     }
 
-    public AgentWorkspaceCriteria setUserId(StringFilter userId) {
-        this.userId = userId;
-        return this;
-    }
+//    public AgentWorkspaceCriteria setUserId(StringFilter userId) {
+//        this.userId = userId;
+//        return this;
+//    }
 
     public AgentWorkspaceCriteria setStatus(AgStatusFilter status) {
         this.status = status;
         return this;
     }
 
-    public AgentWorkspaceCriteria setAgent(AgentCriteria agent) {
-        this.agent = agent;
+    public AgentWorkspaceCriteria setAccount(UserCriteria account) {
+        this.account = account;
         return this;
     }
 

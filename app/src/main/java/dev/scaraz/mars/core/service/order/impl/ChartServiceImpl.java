@@ -124,7 +124,7 @@ public class ChartServiceImpl implements ChartService {
     public void applyPieTicketStats(TicketPieChartDTO chart, TicketSummaryCriteria criteria) {
         WorklogSummaryCriteria worklogSummaryCriteria = new WorklogSummaryCriteria();
         if (criteria.getWorkspace() != null)
-            worklogSummaryCriteria.setUserId(criteria.getWorkspace().getUserId());
+            worklogSummaryCriteria.setUserId(criteria.getWorkspace().getAccount().getId());
 
         log.trace("With workspace.userId ? {}", worklogSummaryCriteria.getUserId() != null);
 

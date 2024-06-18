@@ -10,6 +10,7 @@ import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.common.utils.Util;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
+import dev.scaraz.mars.core.domain.symptom.Solution;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.*;
 import dev.scaraz.mars.core.service.ConfigService;
