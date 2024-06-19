@@ -1,9 +1,10 @@
-package dev.scaraz.mars.core.domain.order;
+package dev.scaraz.mars.core.domain.agent;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.core.domain.credential.Account;
+import dev.scaraz.mars.core.domain.order.Ticket;
 import jakarta.persistence.*;
 import lombok.*;
 

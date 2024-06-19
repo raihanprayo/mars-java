@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.query;
 
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.criteria.AccountCriteria;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -9,14 +9,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
-public interface AccountQueryService extends UserDetailsService, BaseQueryService<Account, UserCriteria> {
+public interface AccountQueryService extends UserDetailsService, BaseQueryService<Account, AccountCriteria> {
 
     @Override
     Account loadUserByUsername(String username) throws UsernameNotFoundException;
 
-    List<Account> findAll(UserCriteria criteria, Sort sort);
+    List<Account> findAll(AccountCriteria criteria, Sort sort);
 
-    Optional<Account> findOne(UserCriteria criteria);
+    Optional<Account> findOne(AccountCriteria criteria);
 
     Account findById(String id);
 
@@ -34,5 +34,5 @@ public interface AccountQueryService extends UserDetailsService, BaseQueryServic
 
     boolean existByNik(String nik);
 
-    boolean existByCriteria(UserCriteria criteria);
+    boolean existByCriteria(AccountCriteria criteria);
 }

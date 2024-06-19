@@ -1,6 +1,9 @@
 package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.query.AuditableSpec;
+import dev.scaraz.mars.core.domain.agent.AgentWorklog;
+import dev.scaraz.mars.core.domain.agent.AgentWorklog_;
+import dev.scaraz.mars.core.domain.agent.AgentWorkspace_;
 import dev.scaraz.mars.core.domain.credential.AccountTg_;
 import dev.scaraz.mars.core.domain.credential.Account_;
 import dev.scaraz.mars.core.domain.order.*;
@@ -37,12 +40,12 @@ public class AgentWorklogSpecBuilder extends AuditableSpec<AgentWorklog, AgentWo
 
 
                 if (ws.getAccount() != null) {
-                    UserCriteria ag = ws.getAccount();
+                    AccountCriteria ag = ws.getAccount();
                     chain.pick(ag.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.account).get(Account_.id))
                             .pick(ag.getNik(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.account).get(Account_.nik));
 
                     if (ag.getTg() != null) {
-                        UserTgCriteria tg = ag.getTg();
+                        AccountTgCriteria tg = ag.getTg();
                         chain.pick(tg.getId(), r -> r.get(AgentWorklog_.workspace).get(AgentWorkspace_.account).get(Account_.tg).get(AccountTg_.id));
                     }
                 }

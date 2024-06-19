@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.service.order.impl;
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.utils.Util;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace;
+import dev.scaraz.mars.core.domain.agent.AgentWorkspace;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.AccountQueryService;
 import dev.scaraz.mars.core.query.AgentWorkspaceQueryService;

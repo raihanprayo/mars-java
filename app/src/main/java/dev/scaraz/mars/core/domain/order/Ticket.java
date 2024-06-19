@@ -5,6 +5,7 @@ import dev.scaraz.mars.common.domain.AuditableEntity;
 import dev.scaraz.mars.common.tools.enums.TcSource;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.enums.Witel;
+import dev.scaraz.mars.core.domain.agent.AgentWorkspace;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Filter;

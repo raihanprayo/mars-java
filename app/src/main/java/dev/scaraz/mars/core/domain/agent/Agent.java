@@ -1,10 +1,9 @@
-package dev.scaraz.mars.core.domain.order;
+package dev.scaraz.mars.core.domain.agent;
 
 import dev.scaraz.mars.common.domain.AuditableEntity;
 import lombok.*;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.hibernate.annotations.GenericGenerator;
 
 import jakarta.persistence.*;
 

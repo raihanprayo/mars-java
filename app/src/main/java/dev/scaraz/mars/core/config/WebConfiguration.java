@@ -77,6 +77,7 @@ public class WebConfiguration extends AcceptHeaderLocaleResolver implements WebM
     @Override
     public void addFormatters(FormatterRegistry registry) {
         registry.addConverter(new StringToLocalDateConverter());
+//        registry.addConverter(new StringToInstantConverter());
     }
 
     @Override

@@ -11,7 +11,7 @@ import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.credential.AccountCredential;
 import dev.scaraz.mars.core.mapper.CredentialMapper;
 import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.criteria.AccountCriteria;
 import dev.scaraz.mars.core.service.credential.AccountService;
 import dev.scaraz.mars.security.MarsPasswordEncoder;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class UserResource {
     public ResponseEntity<?> findAll(
             @RequestParam(defaultValue = "false") boolean plain,
             @RequestParam(defaultValue = "false") boolean mapped,
-            UserCriteria criteria,
+            AccountCriteria criteria,
             Pageable pageable
     ) {
         return ResourceUtil.plainMappedResponse(plain, mapped,

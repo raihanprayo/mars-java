@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.repository.db.order;
 
 import dev.scaraz.mars.common.tools.enums.AgStatus;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace;
+import dev.scaraz.mars.core.domain.agent.AgentWorkspace;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;

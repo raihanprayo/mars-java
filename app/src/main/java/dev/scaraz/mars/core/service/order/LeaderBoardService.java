@@ -1,22 +1,18 @@
 package dev.scaraz.mars.core.service.order;
 
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
-import dev.scaraz.mars.common.exception.web.BadRequestException;
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.LongFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
+import dev.scaraz.mars.core.domain.agent.Leaderboard;
 import dev.scaraz.mars.core.domain.credential.Account;
-import dev.scaraz.mars.core.domain.order.*;
-import dev.scaraz.mars.core.domain.symptom.Solution;
-import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
 import dev.scaraz.mars.core.query.*;
-import dev.scaraz.mars.core.query.criteria.*;
-import dev.scaraz.mars.core.query.spec.LeaderBoardSpecBuilder;
-import dev.scaraz.mars.core.repository.db.order.AgentRepo;
-import dev.scaraz.mars.core.repository.db.view.LeaderBoardFragmentRepo;
+import dev.scaraz.mars.core.query.criteria.AccountCriteria;
+import dev.scaraz.mars.core.query.criteria.RoleCriteria;
+import dev.scaraz.mars.core.query.criteria.LeaderboardCriteria;
 import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.LogDownloadService;
 import dev.scaraz.mars.core.service.StorageService;
@@ -30,7 +26,6 @@ import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.springframework.data.domain.Sort;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +33,15 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.time.Duration;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -54,182 +54,321 @@ public class LeaderBoardService {
     private final ConfigService configService;
 
     private final AccountQueryService accountQueryService;
-    private final TicketQueryService ticketQueryService;
-
-    private final AgentRepo agentRepo;
-    private final AgentWorklogQueryService agentWorklogQueryService;
-    private final AgentWorkspaceQueryService agentWorkspaceQueryService;
-//    private final AgentQueryService agentQueryService;
-
-    private final LeaderBoardFragmentRepo repo;
-    private final LeaderBoardSpecBuilder specBuilder;
-
-    private final SolutionQueryService solutionQueryService;
     private final StorageService storageService;
 
     private final LogDownloadService logDownloadService;
+    private final LeaderboardQueryService leaderboardQueryService;
 
-    public List<LeaderBoardDTO> getLeaderboard(LeaderBoardCriteria criteria) {
+//    public List<LeaderBoardDTO> getLeaderboard(LeaderBoardCriteria criteria) {
+//        List<Account> accounts = getAccounts();
+//        List<Long> solutionsId = configService.get(ConfigConstants.APP_SOLUTION_REPORT_EXCLUDE_LIST)
+//                .getAsLongList();
+//
+//        if (solutionsId != null && !solutionsId.isEmpty()) {
+//            List<Solution> solutions = solutionQueryService.findAll(SolutionCriteria.builder()
+//                    .id(new LongFilter().setIn(solutionsId))
+//                    .build());
+//
+//            criteria.setSolution(new SolutionCriteria()
+//                    .setId(new LongFilter().setNegated(true).setIn(solutions.stream()
+//                            .map(Solution::getId)
+//                            .toList()))
+//            );
+//        }
+//
+//        return accounts.stream()
+//                .map(user -> this.getLeaderboard(user, criteria))
+//                .collect(Collectors.toList());
+//    }
+
+    @Transactional(readOnly = true)
+    public List<LeaderBoardDTO> getLeaderboard(LeaderboardCriteria criteria) {
         List<Account> accounts = getAccounts();
         List<Long> solutionsId = configService.get(ConfigConstants.APP_SOLUTION_REPORT_EXCLUDE_LIST)
                 .getAsLongList();
 
-        if (solutionsId != null && !solutionsId.isEmpty()) {
-            List<Solution> solutions = solutionQueryService.findAll(SolutionCriteria.builder()
-                    .id(new LongFilter().setIn(solutionsId))
-                    .build());
+        criteria.setSolutionId(new LongFilter()
+                .setNegated(true)
+                .setIn(solutionsId));
 
-            criteria.setSolution(new SolutionCriteria()
-                    .setId(new LongFilter().setNegated(true).setIn(solutions.stream()
-                            .map(Solution::getId)
-                            .toList()))
-            );
+        List<Leaderboard> summaries = leaderboardQueryService.findAll(criteria);
+        Map<String, LeaderBoardDTO> result = accounts.stream().collect(Collectors.toMap(
+                Account::getId,
+                u -> LeaderBoardDTO.builder()
+                        .id(u.getId())
+                        .nik(u.getNik())
+                        .name(u.getName())
+                        .build()
+        ));
+
+        for (Leaderboard summary : summaries) {
+            LeaderBoardDTO data;
+            if (result.containsKey(summary.getAgId()))
+                data = result.get(summary.getAgId());
+            else {
+                data = new LeaderBoardDTO();
+                result.put(summary.getAgId(), data);
+
+                data.setId(summary.getAgId());
+                data.setNik(summary.getAgNik());
+                data.setName(summary.getAgName());
+            }
+
+            data.incrementTotal();
+
+            if (summary.getTakeStatus() == TcStatus.DISPATCH)
+                data.incrementTotalHandleDispatch();
+            if (summary.getCloseStatus() == TcStatus.DISPATCH)
+                data.incrementTotalDispatch();
+
+            if (summary.getDurationAction() != null)
+                data.increaseTotalActionDuration(summary.getDurationAction().toMillis());
+            if (summary.getDurationResponse() != null)
+                data.increaseTotalResponseDuration(summary.getDurationResponse().toMillis());
+
+
+            double score = summary.getScore();
+
+            data.sumTotalScore(scoringByInterval(
+                    score, summary.getDurationResponse(), 0.1, 300_000, 6));
+
+            if (summary.getCloseStatus() == TcStatus.DISPATCH)
+                data.sumTotalScore(-1);
+            else {
+                data.sumTotalScore(scoringByInterval(
+                        score, summary.getDurationAction(), 0.2, 900_000, 4));
+            }
         }
 
-        return accounts.stream()
-                .map(user -> this.getLeaderboard(user, criteria, false))
-                .collect(Collectors.toList());
+        return result.values().stream()
+                .peek(data -> {
+                    if (data.getTotalDurationAction() != 0)
+                        data.setAvgAction(Duration.ofMillis(data.getTotalDurationAction() / data.getTotalDivideAction()));
+
+                    if (data.getTotalDivideResponse() != 0)
+                        data.setAvgResponse(Duration.ofMillis(data.getTotalDurationResponse() / data.getTotalDivideResponse()));
+
+                    data.setTotalScore(new BigDecimal(String.valueOf(data.getTotalScore()))
+                            .setScale(3, RoundingMode.HALF_DOWN)
+                            .doubleValue());
+                })
+                .toList();
+    }
+//
+//    public List<LeaderBoardFragment> getLeaderboardFragments(LeaderBoardCriteria criteria) {
+//        return repo.findAll(specBuilder.createSpec(criteria), Sort.by(Sort.Direction.DESC, "createdAt"));
+//    }
+
+    private double scoringByInterval(double score,
+                                     Duration interval,
+                                     double radius,
+                                     long everyMs,
+                                     int loop
+    ) {
+        if (interval == null) return 0;
+
+        long ms = interval.toMillis();
+        for (int i = 0; i < loop; i++) {
+            long msToCompare = everyMs * (i + 1);
+            double db = BigDecimal.valueOf((1.0 - (radius * i)))
+                    .round(new MathContext(2, RoundingMode.HALF_DOWN))
+                    .doubleValue();
+
+//            log.debug("Compare {} - {}", Duration.ofMillis(msToCompare), db);
+            if (ms <= msToCompare) {
+                BigDecimal result = BigDecimal.valueOf(score * db)
+                        .round(new MathContext(
+                                2,
+                                RoundingMode.HALF_DOWN));
+
+                return result.doubleValue();
+            }
+        }
+
+        return radius;
     }
 
-    public List<LeaderBoardFragment> getLeaderboardFragments(LeaderBoardCriteria criteria) {
-        return repo.findAll(specBuilder.createSpec(criteria), Sort.by(Sort.Direction.DESC, "createdAt"));
-    }
+//    private LeaderBoardDTO getLeaderboard(Account user, LeaderBoardCriteria criteria) {
+//        criteria.setCreatedBy(new StringFilter().setEq(user.getNik()));
+//        List<LeaderBoardFragment> fragments = repo.findAll(specBuilder.createSpec(criteria));
+//
+//        Duration avgAction = averageInterval(fragments, LeaderBoardFragment::getActionDuration);
+//        Duration avgResponse = averageInterval(fragments, LeaderBoardFragment::getResponseDuration);
+//
+//        long totalHandleDispatch = fragments.stream()
+//                .filter(frg -> frg.getStart() == TcStatus.DISPATCH)
+//                .count();
+//
+//        long totalDispatch = fragments.stream()
+//                .filter(frg -> frg.getClose() == TcStatus.DISPATCH)
+//                .count();
+//
+//        Set<String> ticketIds = fragments.stream()
+//                .map(LeaderBoardFragment::getTicketId)
+//                .collect(Collectors.toSet());
+//
+//        double totalTicketScore = ticketQueryService.sumTotalScore(ticketIds);
+//        double totalScore = totalTicketScore - (totalDispatch * 0.1) + (totalHandleDispatch * 0.1);
+//
+//        return LeaderBoardDTO.builder()
+//                .id(user.getId())
+//                .name(user.getName())
+//                .nik(user.getNik())
+//                .avgAction(avgAction)
+//                .avgResponse(avgResponse)
+//                .total(ticketIds.size())
+//                .totalScore(totalScore)
+//                .totalDispatch(totalDispatch)
+//                .totalHandleDispatch(totalHandleDispatch)
+//                .build();
+//    }
 
-    private LeaderBoardDTO getLeaderboard(Account user, LeaderBoardCriteria criteria, boolean includeFragmentAsResult) {
-        criteria.setCreatedBy(new StringFilter().setEq(user.getNik()));
-        List<LeaderBoardFragment> fragments = repo.findAll(specBuilder.createSpec(criteria));
-
-        Duration avgAction = getAverageDuration(fragments, LeaderBoardFragment::getActionDuration);
-        Duration avgResponse = getAverageDuration(fragments, LeaderBoardFragment::getResponseDuration);
-
-        long totalHandleDispatch = fragments.stream()
-                .filter(frg -> frg.getStart() == TcStatus.DISPATCH)
-                .count();
-
-        long totalDispatch = fragments.stream()
-                .filter(frg -> frg.getClose() == TcStatus.DISPATCH)
-                .count();
-
-        Set<String> ticketIds = fragments.stream()
-                .map(LeaderBoardFragment::getTicketId)
-                .collect(Collectors.toSet());
-
-        double totalTicketScore = ticketQueryService.sumTotalScore(ticketIds);
-        double totalScore = totalTicketScore - (totalDispatch * 0.1) + (totalHandleDispatch * 0.1);
-
-        return LeaderBoardDTO.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .nik(user.getNik())
-                .avgAction(avgAction)
-                .avgResponse(avgResponse)
-                .total(ticketIds.size())
-                .totalScore(totalScore)
-                .totalDispatch(totalDispatch)
-                .totalHandleDispatch(totalHandleDispatch)
-                .build();
-    }
-
-    private Duration getAverageDuration(Collection<LeaderBoardFragment> fragments, Function<LeaderBoardFragment, Duration> map) {
-        List<Duration> list = fragments.stream().map(map).filter(Objects::nonNull).toList();
-        if (list.isEmpty()) return Duration.ZERO;
-        return Duration.ofMillis(list.stream()
-                .map(Duration::toMillis)
-                .reduce(Long::sum)
-                .map(l -> l / list.size())
-                .orElse(0L));
-    }
+//    private <T> Duration averageInterval(Collection<T> fragments, Function<T, Duration> map) {
+//        List<Duration> list = fragments.stream().map(map).filter(Objects::nonNull).toList();
+//        if (list.isEmpty()) return Duration.ZERO;
+//        return Duration.ofMillis(list.stream()
+//                .map(Duration::toMillis)
+//                .reduce(Long::sum)
+//                .map(l -> l / list.size())
+//                .orElse(0L));
+//    }
 
     private List<Account> getAccounts() {
         return accountQueryService.findAll(
-                new UserCriteria()
+                new AccountCriteria()
                         .setRoles(new RoleCriteria()
                                 .setName(new StringFilter().setEq(AuthorityConstant.AGENT_ROLE))),
                 Sort.by("name"));
     }
 
+//    @Transactional(readOnly = true)
+//    public File exportToExcel(LeaderBoardCriteria criteria) throws IOException {
+//        File file = storageService.createFile(DirectoryAlias.TMP, "report", UUID.randomUUID() + ".xlsx");
+//        List<Account> accounts = getAccounts();
+//
+//        Map<String, String> userAgentIds = accounts.stream()
+//                .map(Account::getId)
+//                .map(agentRepo::findByUserId)
+//                .filter(Optional::isPresent)
+//                .map(Optional::get)
+//                .collect(Collectors.toMap(Agent::getUserId, Agent::getId));
+//
+//        Map<Long, Account> userRequestorIds = new LinkedHashMap<>();
+//
+//
+//        Map<String, Ticket> cacheTicket = new LinkedHashMap<>();
+//        Function<String, Ticket> storeAndGetTicketCache = id -> {
+//            if (cacheTicket.containsKey(id))
+//                return cacheTicket.get(id);
+//
+//            Ticket ticket = ticketQueryService.findByIdOrNo(id);
+//            cacheTicket.put(id, ticket);
+//            return ticket;
+//        };
+//
+//        AtomicInteger rowIndex = new AtomicInteger(1);
+//        try (ExcelGenerator generator = new ExcelGenerator()) {
+//            ExcelGenerator.SheetGenerator sheet = generator.createSheet("All");
+//
+//            for (Account account : accounts) {
+//                criteria.setUserId(new StringFilter().setEq(account.getId()));
+//
+////                List<LeaderBoardFragment> fragments = getLeaderboardFragments(criteria);
+//
+//
+//                List<AgentWorkspace> workspaces = agentWorkspaceQueryService.findAll(new AgentWorkspaceCriteria()
+//                                .setAccount(new AccountCriteria()
+//                                        .setId(new StringFilter().setEq(account.getId())))
+////                        .setAgent(new AgentCriteria()
+////                                .setUserId(new StringFilter().setEq(account.getId()))
+////                        )
+//                                .setTicket(new TicketCriteria()
+//                                        .setCreatedAt(criteria.getCreatedAt()))
+//                );
+//
+//                for (AgentWorkspace ws : workspaces) {
+//                    Ticket ticket = ws.getTicket();
+//                    Account requestor;
+//
+//                    if (userRequestorIds.containsKey(ticket.getSenderId()))
+//                        requestor = userRequestorIds.get(ticket.getSenderId());
+//                    else {
+//                        Optional<Account> opt = accountQueryService.findByTelegramIdOpt(ticket.getSenderId());
+//                        if (opt.isPresent()) {
+//                            requestor = opt.get();
+//                            userRequestorIds.put(ticket.getSenderId(), requestor);
+//                        }
+//                        else {
+//                            requestor = null;
+//                            userRequestorIds.put(ticket.getSenderId(), null);
+//                        }
+//                    }
+//
+//                    for (AgentWorklog worklog : ws.getWorklogs()) {
+//                        ExcelGenerator.RowGenerator row = sheet.createRow(rowIndex.getAndIncrement());
+//                        writeSheetValue(row, account, requestor, ticket, worklog);
+//                    }
+//                }
+//
+////                for (LeaderBoardFragment fragment : fragments) {
+////                    Ticket ticket = storeAndGetTicketCache.apply(fragment.getTicketId());
+////                    if (cacheTicket.containsKey(fragment.getTicketId()))
+////                        ticket = cacheTicket.get(fragment.getTicketId());
+////                    else {
+////                        ticket = ticketQueryService.findByIdOrNo(fragment.getTicketId());
+////                        cacheTicket.put(ticket.getId(), ticket);
+////                    }
+////
+////
+////                    ExcelGenerator.RowGenerator row = sheet.createRow(rowIndex.getAndIncrement());
+////                    writeSheetValue(row, account, ticket, fragment);
+////                }
+//            }
+//
+//            // Penulisan header excel di akhir dikarenakan ada penyesuaian lebar kolom
+//            writeSheetHeaderValue(sheet);
+//
+//            try (OutputStream os = new FileOutputStream(file)) {
+//                generator.write(os);
+//            }
+//
+//            userRequestorIds.clear();
+//            return file;
+//        }
+//        catch (IOException e) {
+//            FileUtils.deleteQuietly(file);
+//            throw e;
+//        }
+//    }
+
     @Transactional(readOnly = true)
-    public File exportToExcel(LeaderBoardCriteria criteria) throws IOException {
+    public File exportToExcel(LeaderboardCriteria criteria) throws IOException {
         File file = storageService.createFile(DirectoryAlias.TMP, "report", UUID.randomUUID() + ".xlsx");
         List<Account> accounts = getAccounts();
 
-        Map<String, String> userAgentIds = accounts.stream()
-                .map(Account::getId)
-                .map(agentRepo::findByUserId)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toMap(Agent::getUserId, Agent::getId));
-
-        Map<Long, Account> userRequestorIds = new LinkedHashMap<>();
-
-
-        Map<String, Ticket> cacheTicket = new LinkedHashMap<>();
-        Function<String, Ticket> storeAndGetTicketCache = id -> {
-            if (cacheTicket.containsKey(id))
-                return cacheTicket.get(id);
-
-            Ticket ticket = ticketQueryService.findByIdOrNo(id);
-            cacheTicket.put(id, ticket);
-            return ticket;
-        };
-
-        AtomicInteger rowIndex = new AtomicInteger(1);
+        AtomicInteger rowIndex = new AtomicInteger();
         try (ExcelGenerator generator = new ExcelGenerator()) {
             ExcelGenerator.SheetGenerator sheet = generator.createSheet("All");
 
+            List<Long> solutionsId = configService.get(ConfigConstants.APP_SOLUTION_REPORT_EXCLUDE_LIST)
+                    .getAsLongList();
+
+            criteria.setSolutionId(new LongFilter()
+                    .setNegated(true)
+                    .setIn(solutionsId));
+            List<Leaderboard> summaries = leaderboardQueryService.findAll(criteria);
+
             for (Account account : accounts) {
-                criteria.setUserId(new StringFilter().setEq(account.getId()));
+                List<Leaderboard> workSummaries = summaries.stream()
+                        .filter(e -> e.getAgId().equals(account.getId()))
+                        .toList();
 
-//                List<LeaderBoardFragment> fragments = getLeaderboardFragments(criteria);
+                for (Leaderboard summary : workSummaries) {
+                    summaries.removeIf(s -> s.getId() == summary.getId());
 
-
-                List<AgentWorkspace> workspaces = agentWorkspaceQueryService.findAll(new AgentWorkspaceCriteria()
-                                .setAccount(new UserCriteria()
-                                        .setId(new StringFilter().setEq(account.getId())))
-//                        .setAgent(new AgentCriteria()
-//                                .setUserId(new StringFilter().setEq(account.getId()))
-//                        )
-                                .setTicket(new TicketCriteria()
-                                        .setCreatedAt(criteria.getCreatedAt()))
-                );
-
-                for (AgentWorkspace ws : workspaces) {
-                    Ticket ticket = ws.getTicket();
-                    Account requestor;
-
-                    if (userRequestorIds.containsKey(ticket.getSenderId()))
-                        requestor = userRequestorIds.get(ticket.getSenderId());
-                    else {
-                        Optional<Account> opt = accountQueryService.findByTelegramIdOpt(ticket.getSenderId());
-                        if (opt.isPresent()) {
-                            requestor = opt.get();
-                            userRequestorIds.put(ticket.getSenderId(), requestor);
-                        }
-                        else {
-                            requestor = null;
-                            userRequestorIds.put(ticket.getSenderId(), null);
-                        }
-                    }
-
-                    for (AgentWorklog worklog : ws.getWorklogs()) {
-                        ExcelGenerator.RowGenerator row = sheet.createRow(rowIndex.getAndIncrement());
-                        writeSheetValue(row, account, requestor, ticket, worklog);
-                    }
+                    ExcelGenerator.RowGenerator row = sheet.createRow(rowIndex.getAndIncrement());
+                    writeSheetValue(row, summary);
                 }
-
-//                for (LeaderBoardFragment fragment : fragments) {
-//                    Ticket ticket = storeAndGetTicketCache.apply(fragment.getTicketId());
-//                    if (cacheTicket.containsKey(fragment.getTicketId()))
-//                        ticket = cacheTicket.get(fragment.getTicketId());
-//                    else {
-//                        ticket = ticketQueryService.findByIdOrNo(fragment.getTicketId());
-//                        cacheTicket.put(ticket.getId(), ticket);
-//                    }
-//
-//
-//                    ExcelGenerator.RowGenerator row = sheet.createRow(rowIndex.getAndIncrement());
-//                    writeSheetValue(row, account, ticket, fragment);
-//                }
             }
 
             // Penulisan header excel di akhir dikarenakan ada penyesuaian lebar kolom
@@ -239,7 +378,6 @@ public class LeaderBoardService {
                 generator.write(os);
             }
 
-            userRequestorIds.clear();
             return file;
         }
         catch (IOException e) {
@@ -269,101 +407,92 @@ public class LeaderBoardService {
         }
     }
 
-    private void writeSheetValue(ExcelGenerator.RowGenerator row,
-                                 Account account,
-                                 Ticket ticket,
-                                 LeaderBoardFragment fragment
-    ) {
+//    private void writeSheetValue(ExcelGenerator.RowGenerator row,
+//                                 Account agent,
+//                                 @Nullable Account requestor,
+//                                 Ticket ticket,
+//                                 AgentWorklog worklog
+//    ) {
+//
+//        XSSFFont font = row.getSheet().getGenerator().createFont();
+//        font.setFontHeight(14);
+//
+//        XSSFCellStyle style = row.getSheet().getGenerator().createCellStyle();
+//        style.setFont(font);
+//
+//        LeaderBoardFragment fragment = repo.findById(worklog.getId())
+//                .orElseThrow(() -> new BadRequestException("unknown fragment id"));
+//
+//        Function<Duration, Long> drtToMs = d -> Optional.ofNullable(d)
+//                .map(Duration::toMillis)
+//                .orElse(null);
+//
+//        AtomicInteger i = new AtomicInteger(0);
+//
+//        row.createCell(i.getAndIncrement(), style, row.getRowNum());
+//
+//        row.createCell(i.getAndIncrement(), style, Optional.ofNullable(requestor)
+//                .map(Account::getNik)
+//                .orElse("<tidak ditemukan>"));
+//
+//        row.createCell(i.getAndIncrement(), style, agent.getNik());
+//        row.createCell(i.getAndIncrement(), style, agent.getName());
+//
+//        row.createCell(i.getAndIncrement(), style, ticket.getNo());
+//        row.createCell(i.getAndIncrement(), style, ticket.getIssue().getScore());
+//
+//
+//        ArrayList<AgentWorklog> lastWorkspacesTicket = new ArrayList<>(ticket.getWorkspaces().getLast().getWorklogs());
+//        row.createCell(i.getAndIncrement(), style, lastWorkspacesTicket.getLast().getId() == worklog.getId());
+//
+//        // Lama Respon
+//        row.createCell(i.getAndIncrement(), style, fragment.getResponseDuration());
+//        // Lama Respon (ms)
+//        row.createCell(i.getAndIncrement(), style, drtToMs.apply(fragment.getResponseDuration()));
+//        // Lama Aksi
+//        row.createCell(i.getAndIncrement(), style, fragment.getActionDuration());
+//        // Lama Aksi (ms)
+//        row.createCell(i.getAndIncrement(), style, drtToMs.apply(fragment.getActionDuration()));
+//    }
 
+    private void writeSheetValue(ExcelGenerator.RowGenerator row, Leaderboard summary) {
         XSSFFont font = row.getSheet().getGenerator().createFont();
         font.setFontHeight(14);
 
         XSSFCellStyle style = row.getSheet().getGenerator().createCellStyle();
         style.setFont(font);
 
-        Function<Duration, Long> drtToMs = d -> Optional.ofNullable(d)
-                .map(Duration::toMillis)
-                .orElse(null);
-
-        // No
-        row.createCell(0, style, row.getRowNum());
-        // NIK
-        row.createCell(1, style, account.getNik());
-        // Nama
-        row.createCell(2, style, account.getName());
-        // No Tiket
-        row.createCell(3, style, ticket.getNo());
-        // Produk
-        row.createCell(4, style, ticket.getIssue().getProduct());
-        // Skor
-        row.createCell(5, style, ticket.getIssue().getScore());
-        // Solusi
-        row.createCell(6, style, Optional.ofNullable(fragment.getSolution())
-                .map(WlSolution::getName)
-                .orElse(null));
-
-        // Status Pengambilan
-        row.createCell(7, style, fragment.getStart());
-
-        // Status Penyelesaian
-        row.createCell(8, style, fragment.getClose());
-
-        // Lama Respon
-        row.createCell(9, style, fragment.getResponseDuration());
-        // Lama Respon (ms)
-        row.createCell(10, style, drtToMs.apply(fragment.getResponseDuration()));
-        // Lama Aksi
-        row.createCell(11, style, fragment.getActionDuration());
-        // Lama Aksi (ms)
-        row.createCell(12, style, drtToMs.apply(fragment.getActionDuration()));
-    }
-
-    private void writeSheetValue(ExcelGenerator.RowGenerator row,
-                                 Account agent,
-                                 @Nullable Account requestor,
-                                 Ticket ticket,
-                                 AgentWorklog worklog
-    ) {
-
-        XSSFFont font = row.getSheet().getGenerator().createFont();
-        font.setFontHeight(14);
-
-        XSSFCellStyle style = row.getSheet().getGenerator().createCellStyle();
-        style.setFont(font);
-
-        LeaderBoardFragment fragment = repo.findById(worklog.getId())
-                .orElseThrow(() -> new BadRequestException("unknown fragment id"));
-
-        Function<Duration, Long> drtToMs = d -> Optional.ofNullable(d)
-                .map(Duration::toMillis)
-                .orElse(null);
+//        LeaderBoardFragment fragment = repo.findById(worklog.getId())
+//                .orElseThrow(() -> new BadRequestException("unknown fragment id"));
+//
+//        Function<Duration, Long> drtToMs = d -> Optional.ofNullable(d)
+//                .map(Duration::toMillis)
+//                .orElse(null);
 
         AtomicInteger i = new AtomicInteger(0);
 
         row.createCell(i.getAndIncrement(), style, row.getRowNum());
 
-        row.createCell(i.getAndIncrement(), style, Optional.ofNullable(requestor)
-                .map(Account::getNik)
+        row.createCell(i.getAndIncrement(), style, Optional.ofNullable(summary.getRqNik())
                 .orElse("<tidak ditemukan>"));
 
-        row.createCell(i.getAndIncrement(), style, agent.getNik());
-        row.createCell(i.getAndIncrement(), style, agent.getName());
+        row.createCell(i.getAndIncrement(), style, summary.getAgNik());
+        row.createCell(i.getAndIncrement(), style, summary.getAgName());
 
-        row.createCell(i.getAndIncrement(), style, ticket.getNo());
-        row.createCell(i.getAndIncrement(), style, ticket.getIssue().getScore());
+        row.createCell(i.getAndIncrement(), style, summary.getTicketNo());
+        row.createCell(i.getAndIncrement(), style, summary.getScore());
 
+        row.createCell(i.getAndIncrement(), style, summary.isLastWork());
 
-        ArrayList<AgentWorklog> lastWorkspacesTicket = new ArrayList<>(ticket.getWorkspaces().getLast().getWorklogs());
-        row.createCell(i.getAndIncrement(), style, lastWorkspacesTicket.getLast().getId() == worklog.getId());
-
+        // Skor Respon
+        row.createCell(i.getAndIncrement(), style, scoringByInterval(summary.getScore(), summary.getDurationResponse(), 0.1, 300_000, 6));
         // Lama Respon
-        row.createCell(i.getAndIncrement(), style, fragment.getResponseDuration());
-        // Lama Respon (ms)
-        row.createCell(i.getAndIncrement(), style, drtToMs.apply(fragment.getResponseDuration()));
+        row.createCell(i.getAndIncrement(), style, summary.getDurationResponse());
+
+        // Skor Aksi
+        row.createCell(i.getAndIncrement(), style, scoringByInterval(summary.getScore(), summary.getDurationResponse(), 0.2, 900_000, 4));
         // Lama Aksi
-        row.createCell(i.getAndIncrement(), style, fragment.getActionDuration());
-        // Lama Aksi (ms)
-        row.createCell(i.getAndIncrement(), style, drtToMs.apply(fragment.getActionDuration()));
+        row.createCell(i.getAndIncrement(), style, summary.getDurationAction());
     }
 
     private static final String[] LEADERBOARD_RAW_HEADER = {
@@ -373,13 +502,15 @@ public class LeaderBoardService {
             "Nama Eksekutor",
 
             "Tiket",
-            "Skor",
+            "Skor Tiket",
 
             "Pengerjaan Terakhir (Y/N)",
 
+            "Skor Respon",
             "Lama Respon",
-            "Lama Respon (ms)",
+//            "Lama Respon (ms)",
+            "Skor Aksi",
             "Lama Aksi",
-            "Lama Aksi (ms)",
+//            "Lama Aksi (ms)",
     };
 }

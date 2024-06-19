@@ -6,11 +6,10 @@ import dev.scaraz.mars.common.tools.filter.RangeFilter;
 import dev.scaraz.mars.common.tools.filter.ReadableFilter;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.lambda.*;
+import jakarta.persistence.metamodel.SingularAttribute;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.metamodel.*;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -45,10 +44,10 @@ public abstract class QueryBuilder<E, C extends Criteria> {
         return andNonNull(spec, filter, target);
     }
 
-    protected <E> Specification<E> nonNull(
+    protected <T extends Comparable<? super T>, E> Specification<E> nonNull(
             Specification<E> spec,
-            RangeFilter<String> filter,
-            PathSupplier<E, String> target
+            RangeFilter<T> filter,
+            PathSupplier<E, T> target
     ) {
         if (filter == null) return spec;
 

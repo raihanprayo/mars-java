@@ -12,12 +12,13 @@ import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.CacheConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
+import dev.scaraz.mars.core.domain.agent.AgentWorkspace;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.symptom.Issue;
 import dev.scaraz.mars.core.domain.view.TicketSummary;
 import dev.scaraz.mars.core.query.*;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.criteria.AccountCriteria;
 import dev.scaraz.mars.core.repository.db.order.LogTicketRepo;
 import dev.scaraz.mars.core.service.ConfigService;
 import dev.scaraz.mars.core.service.StorageService;
@@ -138,13 +139,13 @@ public class TicketBotService {
         content.append("\n")
                 .append("Pernah Diproses oleh:\n");
 
-        UserCriteria userCriteria = new UserCriteria()
+        AccountCriteria accountCriteria = new AccountCriteria()
                 .setId(new StringFilter().setIn(agentWorkspaceQueryService.findWorkspacesByTicket(tc.getId()).stream()
                         .map(AgentWorkspace::getAccount)
                         .map(Account::getId)
                         .collect(Collectors.toList())));
 
-        List<String> names = accountQueryService.findAll(userCriteria).stream()
+        List<String> names = accountQueryService.findAll(accountCriteria).stream()
                 .map(Account::getName)
                 .distinct()
                 .collect(Collectors.toList());

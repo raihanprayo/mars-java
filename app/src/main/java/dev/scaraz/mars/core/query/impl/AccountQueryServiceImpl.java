@@ -3,7 +3,7 @@ package dev.scaraz.mars.core.query.impl;
 import dev.scaraz.mars.common.exception.web.NotFoundException;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.criteria.AccountCriteria;
 import dev.scaraz.mars.core.query.spec.AccountSpecBuilder;
 import dev.scaraz.mars.core.repository.db.credential.AccountRepo;
 import dev.scaraz.mars.security.MarsUserContext;
@@ -65,17 +65,17 @@ public class AccountQueryServiceImpl implements AccountQueryService {
     }
 
     @Override
-    public List<Account> findAll(UserCriteria criteria) {
+    public List<Account> findAll(AccountCriteria criteria) {
         return repo.findAll(specBuilder.createSpec(criteria));
     }
 
     @Override
-    public List<Account> findAll(UserCriteria criteria, Sort sort) {
+    public List<Account> findAll(AccountCriteria criteria, Sort sort) {
         return repo.findAll(specBuilder.createSpec(criteria), sort);
     }
 
     @Override
-    public Page<Account> findAll(UserCriteria criteria, Pageable pageable) {
+    public Page<Account> findAll(AccountCriteria criteria, Pageable pageable) {
         return repo.findAll(specBuilder.createSpec(criteria), pageable);
     }
 
@@ -85,12 +85,12 @@ public class AccountQueryServiceImpl implements AccountQueryService {
     }
 
     @Override
-    public long count(UserCriteria criteria) {
+    public long count(AccountCriteria criteria) {
         return repo.count(specBuilder.createSpec(criteria));
     }
 
     @Override
-    public Optional<Account> findOne(UserCriteria criteria) {
+    public Optional<Account> findOne(AccountCriteria criteria) {
         return repo.findOne(specBuilder.createSpec(criteria));
     }
 
@@ -146,7 +146,7 @@ public class AccountQueryServiceImpl implements AccountQueryService {
     }
 
     @Override
-    public boolean existByCriteria(UserCriteria criteria) {
+    public boolean existByCriteria(AccountCriteria criteria) {
         return repo.exists(specBuilder.createSpec(criteria));
     }
 

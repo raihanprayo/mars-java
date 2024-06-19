@@ -1,20 +1,19 @@
 package dev.scaraz.mars.core.web.rest;
 
 import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
-import dev.scaraz.mars.common.tools.filter.Filter;
-import dev.scaraz.mars.common.tools.filter.type.StringFilter;
 import dev.scaraz.mars.common.utils.ResourceUtil;
-import dev.scaraz.mars.core.domain.view.LeaderBoardFragment;
-import dev.scaraz.mars.core.mapper.LeaderboardMapper;
-import dev.scaraz.mars.core.query.criteria.LeaderBoardCriteria;
+import dev.scaraz.mars.core.domain.agent.Leaderboard;
+import dev.scaraz.mars.core.query.LeaderboardQueryService;
+import dev.scaraz.mars.core.query.criteria.LeaderboardCriteria;
 import dev.scaraz.mars.core.service.order.LeaderBoardService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,20 +22,25 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/leaderboard")
 @RequiredArgsConstructor
 public class LeaderboardResource {
 
-    private final LeaderboardMapper mapper;
     private final LeaderBoardService leaderBoardService;
+    private final LeaderboardQueryService leaderboardQueryService;
 
     @GetMapping
-    public ResponseEntity<?> getLeaderBoard(LeaderBoardCriteria criteria, Pageable pageable) {
+    public ResponseEntity<?> getLeaderBoard(LeaderboardCriteria criteria,
+                                            Pageable pageable
+    ) {
+        log.debug("Leaderboard criteria - {}", criteria);
         List<LeaderBoardDTO> page = leaderBoardService.getLeaderboard(criteria);
         Optional<Sort.Order> first = pageable.getSort().get().findFirst();
 
@@ -86,28 +90,41 @@ public class LeaderboardResource {
                     })
                     .collect(Collectors.toList());
         }
+        else {
+            page = page.stream().sorted(Comparator.comparing(LeaderBoardDTO::getName))
+                    .toList();
+        }
         return new ResponseEntity<>(page, HttpStatus.OK);
+    }
+
+    @GetMapping("/fragment")
+    public ResponseEntity<?> getLeaderboardFragments(LeaderboardCriteria criteria) {
+        List<Leaderboard> summaries = leaderboardQueryService.findAll(criteria);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("x-total-count", String.valueOf(summaries.size()));
+        return new ResponseEntity<>(summaries, headers, HttpStatus.OK);
     }
 
 
     @GetMapping("/download")
-    public ResponseEntity<?> downloadRawLeadeboard(LeaderBoardCriteria criteria) throws IOException {
+    public ResponseEntity<?> downloadRawLeadeboard(LeaderboardCriteria criteria) throws IOException {
+        log.debug("Leaderboard criteria - {}", criteria);
         File file = leaderBoardService.exportToExcel(criteria);
         DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
         String ldt = "leaderboard_%s.xlsx".formatted(LocalDateTime.now().format(formatDate));
         return ResourceUtil.download(file, ldt);
     }
 
-    @GetMapping("/detail/{nik}")
-    public ResponseEntity<?> getLeaderboardRawData(@PathVariable String nik,
-                                                   LeaderBoardCriteria criteria) {
-        criteria.setCreatedBy(new StringFilter().setEq(nik));
-        criteria.setUpdatedBy(new StringFilter().setOpt(Filter.Opt.OR).setEq(nik));
-
-        List<LeaderBoardFragment> fragments = leaderBoardService.getLeaderboardFragments(criteria);
-        return ResponseEntity.ok(fragments.stream()
-                .map(mapper::toDTO)
-                .toList());
-    }
+//    @GetMapping("/detail/{nik}")
+//    public ResponseEntity<?> getLeaderboardRawData(@PathVariable String nik,
+//                                                   LeaderBoardCriteria criteria) {
+//        criteria.setCreatedBy(new StringFilter().setEq(nik));
+//        criteria.setUpdatedBy(new StringFilter().setOpt(Filter.Opt.OR).setEq(nik));
+//
+//        List<LeaderBoardFragment> fragments = leaderBoardService.getLeaderboardFragments(criteria);
+//        return ResponseEntity.ok(fragments.stream()
+//                .map(mapper::toDTO)
+//                .toList());
+//    }
 
 }

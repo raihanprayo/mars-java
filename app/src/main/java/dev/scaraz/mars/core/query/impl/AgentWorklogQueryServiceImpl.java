@@ -1,6 +1,6 @@
 package dev.scaraz.mars.core.query.impl;
 
-import dev.scaraz.mars.core.domain.order.AgentWorklog;
+import dev.scaraz.mars.core.domain.agent.AgentWorklog;
 import dev.scaraz.mars.core.query.AgentWorklogQueryService;
 import dev.scaraz.mars.core.query.criteria.AgentWorklogCriteria;
 import dev.scaraz.mars.core.query.spec.AgentWorklogSpecBuilder;

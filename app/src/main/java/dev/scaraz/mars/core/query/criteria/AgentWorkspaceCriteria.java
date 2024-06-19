@@ -24,7 +24,7 @@ public class AgentWorkspaceCriteria extends AuditableCriteria {
 
 //    private AgentCriteria agent;
 
-    private UserCriteria account;
+    private AccountCriteria account;
 
     private TicketCriteria ticket;
 
@@ -43,7 +43,7 @@ public class AgentWorkspaceCriteria extends AuditableCriteria {
         return this;
     }
 
-    public AgentWorkspaceCriteria setAccount(UserCriteria account) {
+    public AgentWorkspaceCriteria setAccount(AccountCriteria account) {
         this.account = account;
         return this;
     }

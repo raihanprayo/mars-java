@@ -1,9 +1,7 @@
 package dev.scaraz.mars.common.domain.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
 import java.time.Duration;
 import java.util.List;
@@ -39,5 +37,47 @@ public class LeaderBoardDTO {
     private long totalHandleDispatch = 0;
 
     private List<LeaderBoardFragmentDTO> fragments;
+
+
+    @JsonIgnore
+    @Setter(AccessLevel.NONE)
+    private long totalDurationResponse;
+    @JsonIgnore
+    @Setter(AccessLevel.NONE)
+    private int totalDivideResponse;
+
+    @JsonIgnore
+    @Setter(AccessLevel.NONE)
+    private long totalDurationAction;
+    @JsonIgnore
+    @Setter(AccessLevel.NONE)
+    private int totalDivideAction;
+
+
+    public void incrementTotal() {
+        total += 1;
+    }
+
+    public void incrementTotalDispatch() {
+        totalDispatch += 1;
+    }
+
+    public void incrementTotalHandleDispatch() {
+        totalHandleDispatch += 1;
+    }
+
+    public void sumTotalScore(double value) {
+        this.totalScore += value;
+    }
+
+    public void increaseTotalActionDuration(long ms) {
+        this.totalDivideAction += 1;
+        this.totalDurationAction += ms;
+    }
+
+    public void increaseTotalResponseDuration(long ms) {
+        this.totalDivideResponse += 1;
+        this.totalDurationResponse += ms;
+    }
 
 }

@@ -1,7 +1,7 @@
 package dev.scaraz.mars.core.query;
 
 import dev.scaraz.mars.common.exception.web.NotFoundException;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace;
+import dev.scaraz.mars.core.domain.agent.AgentWorkspace;
 import dev.scaraz.mars.core.query.criteria.AgentWorkspaceCriteria;
 
 import java.util.List;

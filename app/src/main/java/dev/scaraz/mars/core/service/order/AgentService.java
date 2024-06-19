@@ -1,8 +1,8 @@
 package dev.scaraz.mars.core.service.order;
 
-import dev.scaraz.mars.core.domain.order.Agent;
-import dev.scaraz.mars.core.domain.order.AgentWorklog;
-import dev.scaraz.mars.core.domain.order.AgentWorkspace;
+import dev.scaraz.mars.core.domain.agent.Agent;
+import dev.scaraz.mars.core.domain.agent.AgentWorklog;
+import dev.scaraz.mars.core.domain.agent.AgentWorkspace;
 import dev.scaraz.mars.core.domain.symptom.Solution;
 import org.springframework.transaction.annotation.Transactional;
 

@@ -11,7 +11,7 @@ import lombok.*;
 @ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserCriteria extends AuditableCriteria {
+public class AccountCriteria extends AuditableCriteria {
 
     private StringFilter id;
     private StringFilter name;
@@ -22,56 +22,56 @@ public class UserCriteria extends AuditableCriteria {
     private StringFilter sto;
 
     private BooleanFilter active;
-    private UserTgCriteria tg;
+    private AccountTgCriteria tg;
 
     private RoleCriteria roles;
 
-    public UserCriteria setId(StringFilter id) {
+    public AccountCriteria setId(StringFilter id) {
         this.id = id;
         return this;
     }
 
-    public UserCriteria setName(StringFilter name) {
+    public AccountCriteria setName(StringFilter name) {
         this.name = name;
         return this;
     }
 
-    public UserCriteria setNik(StringFilter nik) {
+    public AccountCriteria setNik(StringFilter nik) {
         this.nik = nik;
         return this;
     }
 
-    public UserCriteria setPhone(StringFilter phone) {
+    public AccountCriteria setPhone(StringFilter phone) {
         this.phone = phone;
         return this;
     }
 
-    public UserCriteria setEmail(StringFilter email) {
+    public AccountCriteria setEmail(StringFilter email) {
         this.email = email;
         return this;
     }
 
-    public UserCriteria setWitel(WitelFilter witel) {
+    public AccountCriteria setWitel(WitelFilter witel) {
         this.witel = witel;
         return this;
     }
 
-    public UserCriteria setSto(StringFilter sto) {
+    public AccountCriteria setSto(StringFilter sto) {
         this.sto = sto;
         return this;
     }
 
-    public UserCriteria setActive(BooleanFilter active) {
+    public AccountCriteria setActive(BooleanFilter active) {
         this.active = active;
         return this;
     }
 
-    public UserCriteria setTg(UserTgCriteria tg) {
+    public AccountCriteria setTg(AccountTgCriteria tg) {
         this.tg = tg;
         return this;
     }
 
-    public UserCriteria setRoles(RoleCriteria roles) {
+    public AccountCriteria setRoles(RoleCriteria roles) {
         this.roles = roles;
         return this;
     }

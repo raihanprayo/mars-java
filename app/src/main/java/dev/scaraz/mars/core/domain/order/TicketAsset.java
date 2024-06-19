@@ -3,6 +3,7 @@ package dev.scaraz.mars.core.domain.order;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import dev.scaraz.mars.common.domain.TimestampEntity;
+import dev.scaraz.mars.core.domain.agent.Agent;
 import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.*;
 import lombok.*;

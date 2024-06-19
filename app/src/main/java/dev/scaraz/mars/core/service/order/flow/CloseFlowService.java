@@ -6,6 +6,8 @@ import dev.scaraz.mars.common.tools.Translator;
 import dev.scaraz.mars.common.tools.enums.AgStatus;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
 import dev.scaraz.mars.common.utils.ConfigConstants;
+import dev.scaraz.mars.core.domain.agent.AgentWorklog;
+import dev.scaraz.mars.core.domain.agent.AgentWorkspace;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.*;
 import dev.scaraz.mars.core.domain.symptom.Solution;

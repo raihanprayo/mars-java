@@ -14,7 +14,7 @@ import dev.scaraz.mars.core.domain.cache.BotRegistration;
 import dev.scaraz.mars.core.domain.credential.Account;
 import dev.scaraz.mars.core.domain.order.Sto;
 import dev.scaraz.mars.core.query.AccountQueryService;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
+import dev.scaraz.mars.core.query.criteria.AccountCriteria;
 import dev.scaraz.mars.core.repository.cache.BotRegistrationRepo;
 import dev.scaraz.mars.core.repository.db.order.StoRepo;
 import dev.scaraz.mars.core.service.ConfigService;
@@ -105,7 +105,7 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
 
     @Override
     public SendMessage pairAccountAnsWitel(BotRegistration registration, Witel ansWitel) {
-        Optional<Account> optUser = accountQueryService.findOne(new UserCriteria()
+        Optional<Account> optUser = accountQueryService.findOne(new AccountCriteria()
                 .setNik(new StringFilter().setEq(registration.getNik()))
                 .setWitel(new WitelFilter().setEq(ansWitel)));
 
@@ -173,7 +173,7 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
     @Override
     public SendMessage answerNameThenAskNik(BotRegistration registration, String ansName) {
 
-        boolean existByName = accountQueryService.existByCriteria(new UserCriteria()
+        boolean existByName = accountQueryService.existByCriteria(new AccountCriteria()
                 .setName(new StringFilter().setLike(ansName.trim())));
 
         if (existByName) {
@@ -195,7 +195,7 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
 
     @Override
     public SendMessage answerNikThenAskPhone(BotRegistration registration, String ansNik) {
-        boolean existByNik = accountQueryService.existByCriteria(new UserCriteria()
+        boolean existByNik = accountQueryService.existByCriteria(new AccountCriteria()
                 .setNik(new StringFilter().setEq(ansNik.trim())));
 
         if (existByNik) {
@@ -217,7 +217,7 @@ public class AccountRegistrationBotServiceImpl implements AccountRegistrationBot
 
     @Override
     public SendMessage answerPhoneThenAskWitel(BotRegistration registration, String ansPhone) {
-        boolean existByPhone = accountQueryService.existByCriteria(new UserCriteria()
+        boolean existByPhone = accountQueryService.existByCriteria(new AccountCriteria()
                 .setPhone(new StringFilter().setLike(ansPhone.trim())));
 
         if (existByPhone) {

@@ -3,18 +3,18 @@ package dev.scaraz.mars.core.query.spec;
 import dev.scaraz.mars.common.query.AuditableSpec;
 import dev.scaraz.mars.core.domain.credential.*;
 import dev.scaraz.mars.core.query.criteria.RoleCriteria;
-import dev.scaraz.mars.core.query.criteria.UserCriteria;
-import dev.scaraz.mars.core.query.criteria.UserTgCriteria;
+import dev.scaraz.mars.core.query.criteria.AccountCriteria;
+import dev.scaraz.mars.core.query.criteria.AccountTgCriteria;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class AccountSpecBuilder extends AuditableSpec<Account, UserCriteria> {
+public class AccountSpecBuilder extends AuditableSpec<Account, AccountCriteria> {
 
     @Override
-    public Specification<Account> createSpec(UserCriteria criteria) {
+    public Specification<Account> createSpec(AccountCriteria criteria) {
         SpecChain<Account> chain = chain();
 
         if (criteria != null) {
@@ -29,7 +29,7 @@ public class AccountSpecBuilder extends AuditableSpec<Account, UserCriteria> {
                     .extend(s -> auditSpec(s, criteria));
 
             if (criteria.getTg() != null) {
-                UserTgCriteria tg = criteria.getTg();
+                AccountTgCriteria tg = criteria.getTg();
                 chain.pick(tg.getId(), r -> r.get(Account_.tg).get(AccountTg_.id))
                         .pick(tg.getUsername(), r -> r.get(Account_.tg).get(AccountTg_.username));
             }
