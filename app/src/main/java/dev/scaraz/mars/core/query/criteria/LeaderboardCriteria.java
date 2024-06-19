@@ -12,7 +12,7 @@ import lombok.ToString;
 @ToString
 public class LeaderboardCriteria implements Criteria {
 
-    private StringFilter id;
+    private LongFilter id;
     private StringFilter ticketId;
 
     private LongFilter solutionId;
@@ -28,7 +28,7 @@ public class LeaderboardCriteria implements Criteria {
 
     private InstantFilter tcCreatedAt;
 
-    public LeaderboardCriteria setId(StringFilter id) {
+    public LeaderboardCriteria setId(LongFilter id) {
         this.id = id;
         return this;
     }

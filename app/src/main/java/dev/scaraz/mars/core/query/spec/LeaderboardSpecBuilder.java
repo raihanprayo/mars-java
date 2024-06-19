@@ -2,7 +2,7 @@ package dev.scaraz.mars.core.query.spec;
 
 import dev.scaraz.mars.common.utils.QueryBuilder;
 import dev.scaraz.mars.core.domain.agent.Leaderboard;
-import dev.scaraz.mars.core.domain.agent.WorkSummary_;
+import dev.scaraz.mars.core.domain.agent.Leaderboard_;
 import dev.scaraz.mars.core.query.criteria.LeaderboardCriteria;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -14,15 +14,15 @@ public class LeaderboardSpecBuilder extends QueryBuilder<Leaderboard, Leaderboar
     @Override
     public Specification<Leaderboard> createSpec(LeaderboardCriteria criteria) {
         return chain()
-                .pick(WorkSummary_.id, criteria.getId())
-                .pick(WorkSummary_.ticketId, criteria.getTicketId())
-                .pick(WorkSummary_.solutionId, criteria.getSolutionId())
-                .pick(WorkSummary_.issueId, criteria.getIssueId())
-                .pick(WorkSummary_.takeStatus, criteria.getTakeStatus())
-                .pick(WorkSummary_.closeStatus, criteria.getCloseStatus())
-                .pick(WorkSummary_.agId, criteria.getAgId())
-                .pick(WorkSummary_.rqId, criteria.getRqId())
-                .pick(WorkSummary_.tcCreatedAt, criteria.getTcCreatedAt())
+                .pick(Leaderboard_.id, criteria.getId())
+                .pick(Leaderboard_.ticketId, criteria.getTicketId())
+                .pick(Leaderboard_.solutionId, criteria.getSolutionId())
+                .pick(Leaderboard_.issueId, criteria.getIssueId())
+                .pick(Leaderboard_.takeStatus, criteria.getTakeStatus())
+                .pick(Leaderboard_.closeStatus, criteria.getCloseStatus())
+                .pick(Leaderboard_.agId, criteria.getAgId())
+                .pick(Leaderboard_.rqId, criteria.getRqId())
+                .pick(Leaderboard_.tcCreatedAt, criteria.getTcCreatedAt())
                 .specification();
     }
 }

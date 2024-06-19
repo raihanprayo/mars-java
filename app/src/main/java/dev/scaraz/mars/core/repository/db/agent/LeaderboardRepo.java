@@ -9,7 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Repository
-public interface WorkSummaryRepo extends JpaRepository<Leaderboard, Long>, JpaSpecificationExecutor<Leaderboard> {
+public interface LeaderboardRepo extends JpaRepository<Leaderboard, Long>, JpaSpecificationExecutor<Leaderboard> {
 
     List<Leaderboard> findAllByAgIdAndSolutionIdNotInOrderById(String agentId, List<Long> notInSolId);
     List<Leaderboard> findAllByAgIdAndSolutionIdNotInAndTcCreatedAtBetweenOrderById(String agentId, List<Long> notInSolId, Instant start, Instant end);

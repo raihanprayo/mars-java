@@ -2,8 +2,8 @@ package dev.scaraz.mars.core.query;
 
 import dev.scaraz.mars.core.domain.agent.Leaderboard;
 import dev.scaraz.mars.core.query.criteria.LeaderboardCriteria;
-import dev.scaraz.mars.core.query.spec.WorkSummarySpecBuilder;
-import dev.scaraz.mars.core.repository.db.agent.WorkSummaryRepo;
+import dev.scaraz.mars.core.query.spec.LeaderboardSpecBuilder;
+import dev.scaraz.mars.core.repository.db.agent.LeaderboardRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +17,8 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class LeaderboardQueryService {
 
-    private final WorkSummaryRepo repo;
-    private final WorkSummarySpecBuilder specBuilder;
+    private final LeaderboardRepo repo;
+    private final LeaderboardSpecBuilder specBuilder;
 
 
     public Page<Leaderboard> findAll(LeaderboardCriteria criteria, Pageable pageable) {
