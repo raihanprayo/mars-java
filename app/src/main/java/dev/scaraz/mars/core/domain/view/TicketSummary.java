@@ -23,7 +23,7 @@ import java.time.Instant;
 @AllArgsConstructor
 
 @Entity
-@Table(name = "v_ticket_summary")
+@Table(name = "tc_summary")
 public class TicketSummary extends AuditableEntity {
     @Id
     private String id;

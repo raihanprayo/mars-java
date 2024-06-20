@@ -66,8 +66,11 @@ public class Leaderboard implements Serializable {
     @Column(name = "ag_name")
     private String agName;
 
-    @Column(name = "last_wl")
-    private boolean lastWork;
+    @Column(name = "last_tc_wl")
+    private boolean lastTicketWork;
+
+    @Column(name = "last_ag_wl")
+    private boolean lastAgentWork;
 
     @Column(name = "score")
     private double score;

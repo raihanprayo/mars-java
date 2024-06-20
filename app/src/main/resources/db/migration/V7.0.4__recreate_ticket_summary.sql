@@ -1,5 +1,5 @@
-drop view v_ticket_summary;
-create view v_ticket_summary as
+drop view if exists v_ticket_summary;
+create view tc_summary as
 select tc.id                               as id,
        tc.no                               as no,
        tc.witel                            as witel,
@@ -32,7 +32,10 @@ select tc.id                               as id,
        wip.status                          as wip_status,
        wip.user_id                         as wip_by,
 
-       array_agg(wl.id order by wl.id)     as wls,
+       (select array_agg(wl.id)
+        from t_agent_worklog wl
+                 join t_agent_workspace ws on ws.id = wl.ref_workspace_id
+        where ws.ref_ticket_id = tc.id)    as wls,
 
        (case
             when tc.status = 'CLOSED'
@@ -51,9 +54,7 @@ select tc.id                               as id,
        tc.updated_by                       as updated_by
 
 from t_ticket as tc
-         join t_agent_workspace wip on wip.ref_ticket_id = tc.id and wip.status = 'PROGRESS'
-         join t_agent_workspace ws on ws.ref_ticket_id = tc.id
-         join t_agent_worklog wl on wl.ref_workspace_id = ws.id
+         left join t_agent_workspace wip on wip.ref_ticket_id = tc.id and wip.status = 'PROGRESS'
 
 group by tc.id, wip.id, wip.status;
 

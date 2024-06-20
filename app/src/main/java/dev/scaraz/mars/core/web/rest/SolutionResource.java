@@ -26,7 +26,6 @@ import java.util.List;
 @RequestMapping("/solution")
 public class SolutionResource {
 
-    private final SolutionRepo repo;
     private final SolutionService service;
     private final SolutionQueryService queryService;
 

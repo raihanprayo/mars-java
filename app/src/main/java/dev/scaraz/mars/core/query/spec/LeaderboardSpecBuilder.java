@@ -22,6 +22,8 @@ public class LeaderboardSpecBuilder extends QueryBuilder<Leaderboard, Leaderboar
                 .pick(Leaderboard_.closeStatus, criteria.getCloseStatus())
                 .pick(Leaderboard_.agId, criteria.getAgId())
                 .pick(Leaderboard_.rqId, criteria.getRqId())
+                .pick(Leaderboard_.lastTicketWork, criteria.getLastTicketWork())
+                .pick(Leaderboard_.lastAgentWork, criteria.getLastAgentWork())
                 .pick(Leaderboard_.tcCreatedAt, criteria.getTcCreatedAt())
                 .specification();
     }

@@ -41,7 +41,7 @@ public class LeaderboardResource {
                                             Pageable pageable
     ) {
         log.debug("Leaderboard criteria - {}", criteria);
-        List<LeaderBoardDTO> page = leaderBoardService.getLeaderboard(criteria);
+        List<LeaderBoardDTO> page = leaderBoardService.leaderboardSummary(criteria);
         Optional<Sort.Order> first = pageable.getSort().get().findFirst();
 
         if (first.isPresent()) {
