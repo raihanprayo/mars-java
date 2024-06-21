@@ -1,8 +1,9 @@
 package dev.scaraz.mars.core.web.rest;
 
-import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
+import dev.scaraz.mars.common.domain.response.LeaderboardDTO;
+import dev.scaraz.mars.common.domain.response.LeaderboardFragmentDTO;
 import dev.scaraz.mars.common.utils.ResourceUtil;
-import dev.scaraz.mars.core.domain.agent.Leaderboard;
+import dev.scaraz.mars.core.mapper.LeaderboardMapper;
 import dev.scaraz.mars.core.query.LeaderboardQueryService;
 import dev.scaraz.mars.core.query.criteria.LeaderboardCriteria;
 import dev.scaraz.mars.core.service.order.LeaderBoardService;
@@ -33,17 +34,20 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LeaderboardResource {
 
-    private final LeaderBoardService leaderBoardService;
-    private final LeaderboardQueryService leaderboardQueryService;
+    private final LeaderboardMapper mapper;
+    private final LeaderBoardService service;
+    private final LeaderboardQueryService queryService;
 
     @GetMapping
-    public ResponseEntity<?> getLeaderBoard(LeaderboardCriteria criteria,
+    public ResponseEntity<?> getLeaderboard(LeaderboardCriteria criteria,
                                             Pageable pageable
     ) {
-        log.debug("Leaderboard criteria - {}", criteria);
-        List<LeaderBoardDTO> page = leaderBoardService.leaderboardSummary(criteria);
+        List<LeaderboardDTO> page = service.leaderboardSummary(criteria);
         Optional<Sort.Order> first = pageable.getSort().get().findFirst();
 
+
+        log.debug("Leaderboard sortBy - {}", first);
+        log.debug("Leaderboard criteria - {}", criteria);
         if (first.isPresent()) {
             page = page.stream().sorted((a, b) -> {
                         Sort.Order order = first.get();
@@ -91,7 +95,7 @@ public class LeaderboardResource {
                     .collect(Collectors.toList());
         }
         else {
-            page = page.stream().sorted(Comparator.comparing(LeaderBoardDTO::getName))
+            page = page.stream().sorted(Comparator.comparing(LeaderboardDTO::getName))
                     .toList();
         }
         return new ResponseEntity<>(page, HttpStatus.OK);
@@ -99,7 +103,10 @@ public class LeaderboardResource {
 
     @GetMapping("/fragment")
     public ResponseEntity<?> getLeaderboardFragments(LeaderboardCriteria criteria) {
-        List<Leaderboard> summaries = leaderboardQueryService.findAll(criteria);
+        List<LeaderboardFragmentDTO> summaries = service.getFragments(criteria).stream()
+                .map(mapper::toDTO)
+                .toList();
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("x-total-count", String.valueOf(summaries.size()));
         return new ResponseEntity<>(summaries, headers, HttpStatus.OK);
@@ -109,7 +116,7 @@ public class LeaderboardResource {
     @GetMapping("/download")
     public ResponseEntity<?> downloadRawLeadeboard(LeaderboardCriteria criteria) throws IOException {
         log.debug("Leaderboard criteria - {}", criteria);
-        File file = leaderBoardService.exportToExcel(criteria);
+        File file = service.exportToExcel(criteria);
         DateTimeFormatter formatDate = DateTimeFormatter.ofPattern("yyyyMMdd_HHmm");
         String ldt = "leaderboard_%s.xlsx".formatted(LocalDateTime.now().format(formatDate));
         return ResourceUtil.download(file, ldt);

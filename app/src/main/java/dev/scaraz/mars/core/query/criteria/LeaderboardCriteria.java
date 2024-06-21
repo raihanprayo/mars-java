@@ -29,7 +29,7 @@ public class LeaderboardCriteria implements Criteria {
 
     private InstantFilter tcCreatedAt;
 
-    public LeaderboardCriteria dup() {
+    public LeaderboardCriteria duplicate() {
         return new LeaderboardCriteria()
                 .setId(id)
                 .setTicketId(ticketId)

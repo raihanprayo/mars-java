@@ -1,4 +1,6 @@
-update t_solution set showable = true where name = 'Force Close';
+update t_solution
+set showable = true
+where name = 'Force Close';
 
 drop view if exists v_leader_board_fragment;
 
@@ -48,7 +50,7 @@ select wl.id              as id,
                                    join t_agent_workspace tws on tws.id = twl.ref_workspace_id
                                    join t_ticket ttc on ttc.id = tws.ref_ticket_id
                           where ttc.id = tc.id
-                            and tws.user_id = ag.id
+                            and tws.user_id = ws.user_id
                           order by twl.id desc
                           limit 1)
                 then true
@@ -77,7 +79,12 @@ select wl.id              as id,
        tc.iss_name,
        tc.iss_product,
 
-       tc.created_at      as tc_created_at
+       tc.created_at      as tc_created_at,
+
+       wl.created_by,
+       wl.created_at,
+       wl.updated_by,
+       wl.updated_at
 
 -- from t_agent_worklog wl
 --          join t_agent_workspace ws on ws.id = wl.ref_workspace_id

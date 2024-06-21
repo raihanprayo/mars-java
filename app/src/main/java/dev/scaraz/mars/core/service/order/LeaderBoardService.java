@@ -1,9 +1,12 @@
 package dev.scaraz.mars.core.service.order;
 
-import dev.scaraz.mars.common.domain.response.LeaderBoardDTO;
+import dev.scaraz.mars.common.domain.response.LeaderboardDTO;
 import dev.scaraz.mars.common.tools.enums.DirectoryAlias;
 import dev.scaraz.mars.common.tools.enums.TcStatus;
-import dev.scaraz.mars.common.tools.filter.type.*;
+import dev.scaraz.mars.common.tools.filter.type.BooleanFilter;
+import dev.scaraz.mars.common.tools.filter.type.StringFilter;
+import dev.scaraz.mars.common.tools.filter.type.TcStatusFilter;
+import dev.scaraz.mars.common.tools.filter.type.WitelFilter;
 import dev.scaraz.mars.common.utils.AuthorityConstant;
 import dev.scaraz.mars.common.utils.ConfigConstants;
 import dev.scaraz.mars.core.domain.agent.Leaderboard;
@@ -54,19 +57,19 @@ public class LeaderBoardService {
     private final LeaderboardQueryService leaderboardQueryService;
 
     @Transactional(readOnly = true)
-    public List<LeaderBoardDTO> leaderboardSummary(LeaderboardCriteria criteria) {
-        List<Long> ignored = getIgnoredSolutions();
+    public List<LeaderboardDTO> leaderboardSummary(LeaderboardCriteria criteria) {
+        Map<String, LeaderboardDTO> result = new LinkedHashMap<>();
+
         List<Leaderboard> summaries = getFragments(criteria);
-        Map<String, LeaderBoardDTO> result = new HashMap<>();
 
+        log.debug("Summaries size - {}", summaries.size());
         for (Leaderboard summary : summaries) {
-            if (ignored.contains(summary.getSolutionId())) continue;
 
-            LeaderBoardDTO data;
+            LeaderboardDTO data;
             if (result.containsKey(summary.getAgId()))
                 data = result.get(summary.getAgId());
             else {
-                data = new LeaderBoardDTO();
+                data = new LeaderboardDTO();
                 result.put(summary.getAgId(), data);
 
                 data.setId(summary.getAgId());
@@ -75,11 +78,6 @@ public class LeaderBoardService {
             }
 
             data.incrementTotal();
-
-//            if (summary.getTakeStatus() == TcStatus.DISPATCH)
-//                data.incrementTotalHandleDispatch();
-//            if (summary.getCloseStatus() == TcStatus.DISPATCH)
-//                data.incrementTotalDispatch();
 
             if (summary.getDurationAction() != null)
                 data.increaseTotalActionDuration(summary.getDurationAction().toMillis());
@@ -109,20 +107,18 @@ public class LeaderBoardService {
                         data.setAvgResponse(Duration.ofMillis(data.getTotalDurationResponse() / data.getTotalDivideResponse()));
 
                     data.setTotalScore(new BigDecimal(String.valueOf(data.getTotalScore()))
-                            .setScale(3, RoundingMode.HALF_DOWN)
+                            .setScale(3, RoundingMode.HALF_UP)
                             .doubleValue());
 
-                    data.setTotalDispatch(leaderboardQueryService.count(criteria.dup()
-                            .setLastAgentWork(null)
+                    criteria.setLastAgentWork(null)
                             .setAgId(new StringFilter()
-                                    .setEq(data.getId()))
+                                    .setEq(data.getId()));
+
+                    data.setTotalDispatch(leaderboardQueryService.count(criteria.duplicate()
                             .setCloseStatus(new TcStatusFilter()
                                     .setEq(TcStatus.DISPATCH))
                     ));
-                    data.setTotalHandleDispatch(leaderboardQueryService.count(criteria.dup()
-                            .setLastAgentWork(null)
-                            .setAgId(new StringFilter()
-                                    .setEq(data.getId()))
+                    data.setTotalHandleDispatch(leaderboardQueryService.count(criteria.duplicate()
                             .setTakeStatus(new TcStatusFilter()
                                     .setEq(TcStatus.DISPATCH))
                     ));
@@ -135,15 +131,24 @@ public class LeaderBoardService {
     public File exportToExcel(LeaderboardCriteria criteria) throws IOException {
         File file = storageService.createFile(DirectoryAlias.TMP, "report", UUID.randomUUID() + ".xlsx");
 
-        AtomicInteger rowIndex = new AtomicInteger();
+        AtomicInteger rowIndex = new AtomicInteger(1);
         try (ExcelGenerator generator = new ExcelGenerator()) {
             ExcelGenerator.SheetGenerator sheet = generator.createSheet("All");
 
             List<Leaderboard> summaries = getFragments(criteria);
+
+            log.debug("Summaries size - {}", summaries.size());
+
+            int ARYA_SUHADA_KESUMA = 0;
             for (Leaderboard summary : summaries) {
+                if (summary.getAgId().equals("576b5457-0ab8-477d-878a-ed9c2b2a5913"))
+                    ARYA_SUHADA_KESUMA++;
+
                 ExcelGenerator.RowGenerator row = sheet.createRow(rowIndex.getAndIncrement());
                 writeSheetValue(row, summary);
             }
+
+            log.debug("Count Arya Suhada - {}", ARYA_SUHADA_KESUMA);
 
             // Penulisan header excel di akhir dikarenakan ada penyesuaian lebar kolom
             writeSheetHeaderValue(sheet);
@@ -160,6 +165,11 @@ public class LeaderBoardService {
         }
     }
 
+    private double doubleScale(double score) {
+        return new BigDecimal(String.valueOf(score))
+                .setScale(3, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
 
     private double scoringByInterval(Duration interval,
                                      double radius,
@@ -169,39 +179,39 @@ public class LeaderBoardService {
         if (interval == null) return 0;
 
         long ms = interval.toMillis();
+
         for (int i = 0; ; i++) {
-            long msToCompare = everySec * (i + 1) * 1000;
+            long secToCompare = everySec * (i + 1);
+            long msToCompare = secToCompare * 1000;
             double result = BigDecimal.valueOf((1.0 - (radius * i)))
-                    .round(new MathContext(2, RoundingMode.HALF_DOWN))
+                    .round(new MathContext(3, RoundingMode.HALF_DOWN))
                     .doubleValue();
 
-            if (ms <= msToCompare)
-                return result;
+            if (ms <= msToCompare) return result;
 
-            if (msToCompare >= maxSec)
-                break;
+            if (secToCompare >= maxSec) break;
         }
 
         return radius;
     }
 
-    private double scoreAction(Duration interval) {
-        long sec = 900;
-        return scoringByInterval(interval, 0.2, sec, sec * 4);
+    public double scoreAction(Duration interval) {
+        long sec = 900, max = sec * 4;
+        return scoringByInterval(interval, 0.2, sec, max);
     }
 
-    private double scoreResponse(Duration interval) {
-        long sec = 300;
-        return scoringByInterval(interval, 0.1, sec, sec * 6);
+    public double scoreResponse(Duration interval) {
+        long sec = 300, max = sec * 6;
+        return scoringByInterval(interval, 0.1, sec, max);
     }
 
 
-    private List<Long> getIgnoredSolutions() {
+    public List<Long> getIgnoredSolutions() {
         return configService.get(ConfigConstants.APP_SOLUTION_REPORT_EXCLUDE_LIST)
                 .getAsLongList();
     }
 
-    private List<Account> getAccounts(WitelFilter witelFilter) {
+    public List<Account> getAccounts(WitelFilter witelFilter) {
         return accountQueryService.findAll(new AccountCriteria()
                         .setWitel(witelFilter)
                         .setRoles(new RoleCriteria()
@@ -209,7 +219,8 @@ public class LeaderBoardService {
                 Sort.by("name"));
     }
 
-    private List<Leaderboard> getFragments(LeaderboardCriteria criteria) {
+    public List<Leaderboard> getFragments(LeaderboardCriteria criteria) {
+        List<Long> solutions = getIgnoredSolutions();
         List<String> accounts = getAccounts(criteria.getAgWitel()).stream()
                 .map(Account::getId)
                 .toList();
@@ -219,7 +230,9 @@ public class LeaderBoardService {
                 .setAgId(new StringFilter()
                         .setIn(accounts));
 
-        return leaderboardQueryService.findAll(criteria);
+        return leaderboardQueryService.findAll(criteria).stream()
+                .filter(lb -> !solutions.contains(lb.getSolutionId()))
+                .toList();
     }
 
 
@@ -251,13 +264,6 @@ public class LeaderBoardService {
         XSSFCellStyle style = row.getSheet().getGenerator().createCellStyle();
         style.setFont(font);
 
-//        LeaderBoardFragment fragment = repo.findById(worklog.getId())
-//                .orElseThrow(() -> new BadRequestException("unknown fragment id"));
-//
-//        Function<Duration, Long> drtToMs = d -> Optional.ofNullable(d)
-//                .map(Duration::toMillis)
-//                .orElse(null);
-
         AtomicInteger i = new AtomicInteger(0);
 
         row.createCell(i.getAndIncrement(), style, row.getRowNum());
@@ -281,6 +287,10 @@ public class LeaderBoardService {
         // Pengerjaan Terakhir (Y/N)
         row.createCell(i.getAndIncrement(), style, summary.isLastTicketWork());
 
+        // Tgl Agent Selesai
+        row.createCell(i.getAndIncrement(), style, summary.getUpdatedAt());
+        row.createCell(i.getAndIncrement(), style, summary.getCloseStatus());
+
         // Skor Respon
         double responseScore = scoreResponse(summary.getDurationResponse());
         row.createCell(i.getAndIncrement(), style, responseScore);
@@ -299,7 +309,7 @@ public class LeaderBoardService {
         if (summary.getCloseStatus() == TcStatus.DISPATCH)
             row.createCell(i.getAndIncrement(), style, -0.5);
         else
-            row.createCell(i.getAndIncrement(), style, score * responseScore * actionScore);
+            row.createCell(i.getAndIncrement(), style, doubleScale(score * responseScore * actionScore));
     }
 
     private static final String[] LEADERBOARD_RAW_HEADER = {
@@ -313,6 +323,9 @@ public class LeaderBoardService {
             "Tgl Tiket Dibuat",
 
             "Pengerjaan Terakhir (Y/N)",
+
+            "Tgl Agent Selesai",
+            "Status Agent Selesai",
 
             "Skor Respon",
             "Lama Respon",
